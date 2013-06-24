@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.text.ParseException;
@@ -83,7 +84,7 @@ public class Parser {
 		} else if (line.contains("Invalid")) { // TODO -when is a line always
 												// invalid?
 			return parseInvalid(line);
-		} else if (line.contains("Server") || line.contains("Error")) {
+		} else if (line.contains("Server") || line.contains("error")) {
 			return parseOther(line);
 		} else
 			return null;
@@ -106,6 +107,9 @@ public class Parser {
 		if (!"sshd".equals(service)) {
 			throw new ParseException("invalid daemon", 0);
 		}
+		String temp = parts[idx].substring(1 + parts[idx].indexOf("["),
+				parts[idx++].indexOf("]"));
+		int connectID = Integer.parseInt(temp);
 
 		int offset = 5; // spaces
 		for (int i = 0; i <= idx; i++) {
@@ -115,7 +119,7 @@ public class Parser {
 		String msg = line.substring(offset); // we're just gonna treat the bulk
 												// as a text for now.
 
-		return new Other(date, time, s, msg, line);
+		return new Other(date, time, s, connectID, msg, line);
 	}
 
 	private Line parseConn(String line) throws ParseException {
@@ -204,22 +208,27 @@ public class Parser {
 		Server s = getServer(parts[idx++]);
 
 		String service = parts[idx].substring(0, parts[idx].indexOf("["));
+		int connectID;
 		if (!"sshd".equals(service)) {
 			throw new ParseException("invalid daemon", 0);
 		} else {
-			idx++;
+			String temp = parts[idx].substring(1 + parts[idx].indexOf("["),
+					parts[idx++].indexOf("]"));
+			connectID = Integer.parseInt(temp);
 		}
 
 		User user;
-		if (parts[idx].equals("invalid")) {
+		if (parts[idx].equals("Invalid")) {
 			idx += 2;
 			user = anonymiseUser(parts[idx++], false);
 		} else
 			throw new ParseException("user is not invalid", 0);
 
+		idx++; //constant string, skip past it.
+		
 		String addr = anonymiseIP(parts[idx]);
 
-		return new Invalid(date, time, s, user, addr, line);
+		return new Invalid(date, time, s, connectID, user, addr, line);
 	}
 
 	private Line parseDiscon(String line) throws ParseException {
@@ -280,12 +289,12 @@ public class Parser {
 			throw new ParseException("invalid daemon", 0);
 		} else {
 			connectID = Integer.parseInt(
-					parts[idx].substring(1 + parts[idx].indexOf("[")),
-					parts[idx++].indexOf("]"));
+					parts[idx].substring(1 + parts[idx].indexOf("["),
+					parts[idx++].indexOf("]")));
 			idx++;
 		}
 
-		idx += 3; // skip constant string "subsystem request for"
+		idx += 2; // skip constant string "subsystem request for"
 
 		SubSystem sys;
 		if (parts[idx].equals("sftp")) {
@@ -336,27 +345,41 @@ public class Parser {
 	}
 
 	private void writeToDB() {
-		// TODO implement writing of parsed logs to DB
 		Connection conn = null;
 		// get connection
 		try {
 			writeUsersToDB(conn); // ensures users updated with ID's
 			writeServersToDB(conn); // ensures users updated with ID's
 
-			for (Line l : lines) {
-				l.writeToDB(conn);
+			PreparedStatement insertLine = conn.prepareStatement("INSERT INTO entry VALUES(" +
+					"DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,? ,?)");
+			for (int i = 0; i < lines.size(); i++) {
+				lines.get(i).writeToDB(insertLine);
+				if ((i%1000) == 0) { //write it out every thousand lines, just to be sure it all writes.
+					insertLine.executeBatch();
+				}
 			}
+			insertLine.executeBatch(); //flush what's left.
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
 	private void writeUsersToDB(Connection conn) throws SQLException {
-		// TODO implement writing user set to DB
+		PreparedStatement insert = conn.prepareStatement("INSERT INTO user VALUES (DEFAULT, ?, ?)");
+		PreparedStatement getID = conn.prepareStatement("LAST_INSERT_ID()");
+		for (User u: this.users.values()){
+			u.writeToDB(insert, getID);
+		}
 	}
 
 	private void writeServersToDB(Connection conn) throws SQLException {
-		// TODO implement writing servers to DB.
+		PreparedStatement insert = conn.prepareStatement("INSERT INTO server VALUES (DEFAULT, ?, ?)");
+		PreparedStatement getID = conn.prepareStatement("LAST_INSERT_ID()");
+		for (Server s: this.servers.values()){
+			s.writeToDB(insert, getID);
+		}
 	}
 
 	public static void main(String[] args) {

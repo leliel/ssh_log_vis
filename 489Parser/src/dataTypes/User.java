@@ -1,5 +1,9 @@
 package dataTypes;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 public class User {
 	private int id;
 	private final String name;
@@ -25,6 +29,17 @@ public class User {
 	public boolean isValid() {
 		return isValid;
 	}
+	
+	public void writeToDB(PreparedStatement s1, PreparedStatement s2) throws SQLException{
+		s1.setString(1, this.name);
+		s1.setBoolean(2, this.isValid);
+		s1.executeUpdate();
+		ResultSet rs = s2.executeQuery();
+		rs.next();
+		this.id = rs.getInt(1);
+		rs.close();
+	}
+	
 	
 	@Override
 	public int hashCode() {

@@ -1,23 +1,27 @@
 package dataTypes;
 
-import java.sql.Connection;
 import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
 
 public class Other implements Line {
 	private final Date date;
 	private final Time time;
 	private final Server server;
+	private final int connectID;
 	private final String message;
 	private final String rawLine;
 	
-	public Other(Date date, Time time, Server server, String message,
+	public Other(Date date, Time time, Server server, int connectID, String message,
 			String rawLine) {
 		super();
 		this.date = date;
 		this.time = time;
 		this.server = server;
+		this.connectID = connectID;
 		this.message = message;
 		this.rawLine = rawLine;
 	}
@@ -31,6 +35,9 @@ public class Other implements Line {
 	public Server getServer() {
 		return server;
 	}
+	public int getConnectID(){
+		return connectID;
+	}
 	public String getMessage() {
 		return message;
 	}
@@ -40,15 +47,27 @@ public class Other implements Line {
 	}
 
 	@Override
-	public void writeToDB(Connection conn) throws SQLException {
-		// TODO Auto-generated method stub
-		
+	public void writeToDB(PreparedStatement insert) throws SQLException {
+		insert.setTimestamp(1, new Timestamp(this.date.getTime() + this.time.getTime()));
+		insert.setInt(2, this.server.getId());
+		insert.setInt(3, this.connectID);
+		insert.setString(4, "other");
+		insert.setNull(5, Types.CHAR);
+		insert.setNull(6, Types.CHAR);
+		insert.setNull(7, Types.INTEGER);
+		insert.setNull(8, Types.CHAR);
+		insert.setNull(9, Types.INTEGER);
+		insert.setNull(10, Types.CHAR);
+		insert.setNull(11, Types.INTEGER);
+		insert.setString(12, this.rawLine);
+		insert.addBatch();
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + connectID;
 		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result + ((message == null) ? 0 : message.hashCode());
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
@@ -69,6 +88,9 @@ public class Other implements Line {
 			return false;
 		}
 		Other other = (Other) obj;
+		if (connectID != other.connectID) {
+			return false;
+		}
 		if (date == null) {
 			if (other.date != null) {
 				return false;

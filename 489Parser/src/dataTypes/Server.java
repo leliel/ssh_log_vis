@@ -1,5 +1,9 @@
 package dataTypes;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 public class Server {
 	
 	private int id;
@@ -27,7 +31,17 @@ public class Server {
 	public String getBlock() {
 		return block;
 	}
-
+	
+	public void writeToDB(PreparedStatement insert, PreparedStatement getID) throws SQLException{
+		insert.setString(1, this.name);
+		insert.setString(2, this.block);
+		insert.executeUpdate();
+		ResultSet rs = getID.executeQuery();
+		rs.next();
+		this.id = rs.getInt(1);
+		rs.close();
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

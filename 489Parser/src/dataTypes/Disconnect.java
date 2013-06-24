@@ -1,9 +1,11 @@
 package dataTypes;
 
-import java.sql.Connection;
 import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
 
 public class Disconnect implements dataTypes.Line {
 	private final Date date;
@@ -55,9 +57,21 @@ public class Disconnect implements dataTypes.Line {
 	}
 
 	@Override
-	public void writeToDB(Connection conn) throws SQLException {
+	public void writeToDB(PreparedStatement insert) throws SQLException {
 		// TODO Auto-generated method stub
-		
+		insert.setTimestamp(1, new Timestamp(this.date.getTime() + this.time.getTime()));
+		insert.setInt(2, this.server.getId());
+		insert.setInt(3, this.connectID);
+		insert.setString(4, "disconnect");
+		insert.setNull(5, Types.CHAR);
+		insert.setNull(6, Types.CHAR);
+		insert.setNull(7, Types.INTEGER);
+		insert.setString(8, this.addr);
+		insert.setNull(9, Types.INTEGER);
+		insert.setNull(10, Types.CHAR);
+		insert.setInt(11, this.code);
+		insert.setString(12, this.rawLine);
+		insert.addBatch();
 	}
 
 	@Override

@@ -1,26 +1,30 @@
 package dataTypes;
 
-import java.sql.Connection;
 import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
 
 public class Invalid implements dataTypes.Line {
 	private final Date date;
 	private final Time time;
 	private final Server server;
+	private final int connectID;
 	private final User user;
 	private final String source;
 	private final String rawLine;
 	
 
-	public Invalid(Date date, Time time, Server server, User user,
+	public Invalid(Date date, Time time, Server server, int connectID, User user,
 			String source, String rawLine) {
 		super();
 		if (!user.isValid()){
 			this.date = date;
 			this.time = time;
 			this.server = server;
+			this.connectID = connectID;
 			this.user = user;
 			this.source = source;
 			this.rawLine = rawLine;
@@ -38,6 +42,10 @@ public class Invalid implements dataTypes.Line {
 	public Server getServer() {
 		return server;
 	}
+	
+	public int getConnectID(){
+		return connectID;
+	}
 
 	public User getUser() {
 		return user;
@@ -52,15 +60,28 @@ public class Invalid implements dataTypes.Line {
 	}
 
 	@Override
-	public void writeToDB(Connection conn) throws SQLException {
+	public void writeToDB(PreparedStatement insert) throws SQLException {
 		// TODO Auto-generated method stub
-		
+		insert.setTimestamp(1, new Timestamp(this.date.getTime() + this.time.getTime()));
+		insert.setInt(2, this.server.getId());
+		insert.setInt(3, this.connectID);
+		insert.setString(4, "invalid");
+		insert.setNull(5, Types.CHAR);
+		insert.setNull(6, Types.CHAR);
+		insert.setInt(7,  this.user.getId());
+		insert.setString(8, this.source);
+		insert.setNull(9, Types.INTEGER);
+		insert.setNull(10, Types.CHAR);
+		insert.setNull(11, Types.INTEGER);
+		insert.setString(12, this.rawLine);
+		insert.addBatch();
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + connectID;
 		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
@@ -82,6 +103,9 @@ public class Invalid implements dataTypes.Line {
 			return false;
 		}
 		Invalid other = (Invalid) obj;
+		if (connectID != other.connectID) {
+			return false;
+		}
 		if (date == null) {
 			if (other.date != null) {
 				return false;
@@ -126,4 +150,6 @@ public class Invalid implements dataTypes.Line {
 		}
 		return true;
 	}
+
+	
 }

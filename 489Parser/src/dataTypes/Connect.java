@@ -1,12 +1,14 @@
 package dataTypes;
 
-import java.sql.Connection;
 import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
 
-import enums.Status;
 import enums.AuthType;
+import enums.Status;
 
 
 public class Connect implements dataTypes.Line {
@@ -78,8 +80,20 @@ public class Connect implements dataTypes.Line {
 	}
 
 	@Override
-	public void writeToDB(Connection conn) throws SQLException {
-		// TODO write code to write to db
+	public void writeToDB(PreparedStatement insert) throws SQLException {
+		insert.setTimestamp(1, new Timestamp(this.date.getTime() + this.time.getTime()));
+		insert.setInt(2, this.server.getId());
+		insert.setInt(3, this.connectID);
+		insert.setString(4, "connect");
+		insert.setString(5, this.type.toString().toLowerCase());
+		insert.setString(6, this.status.toString().toLowerCase());
+		insert.setInt(7, this.user.getId());
+		insert.setString(8, this.source);
+		insert.setInt(9, this.port);
+		insert.setNull(10, Types.CHAR);
+		insert.setNull(11, Types.INTEGER);
+		insert.setString(12, this.rawLine);
+		insert.addBatch();
 	}
 
 	@Override
