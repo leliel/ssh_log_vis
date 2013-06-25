@@ -44,12 +44,14 @@ public class Parser {
 	private Map<String, String> addresses;
 	private Map<String, Server> servers;
 	private List<Line> lines;
+	private final boolean anonymise;
 
-	public Parser() {
+	public Parser(boolean anonymise) {
 		users = new HashMap<String, User>();
 		addresses = new HashMap<String, String>();
 		servers = new HashMap<String, Server>();
 		lines = new ArrayList<Line>();
+		this.anonymise = anonymise;
 	}
 
 	private void parseLogs(String[] logName) {
@@ -332,7 +334,7 @@ public class Parser {
 				return users.get(name);
 			}
 			String hiddenName = "user" + (users.values().size() + 1);
-			User temp = new User(name, isvalid);
+			User temp = new User(hiddenName, isvalid);
 			users.put(name, temp);
 			return temp;
 		}
