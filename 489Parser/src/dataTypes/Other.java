@@ -1,5 +1,6 @@
 package dataTypes;
 
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -14,7 +15,7 @@ public class Other implements Line {
 	private final int connectID;
 	private final String message;
 	private final String rawLine;
-	
+
 	public Other(Date date, Time time, Server server, int connectID, String message,
 			String rawLine) {
 		super();
@@ -25,7 +26,7 @@ public class Other implements Line {
 		this.message = message;
 		this.rawLine = rawLine;
 	}
-	
+
 	public Date getDate() {
 		return date;
 	}
@@ -127,5 +128,15 @@ public class Other implements Line {
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public void writeLoc(Connection conn) throws SQLException {
+		return; //nothing to do
+	}
+
+	@Override
+	public void writeTime(Connection conn) throws SQLException {
+		return; //nothing to do
 	}
 }

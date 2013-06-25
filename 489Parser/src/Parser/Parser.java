@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
@@ -32,6 +33,12 @@ import enums.SubSystem;
 
 //TODO - get algorithm from ian for IP anonymizing.
 public class Parser {
+
+	private final static String url = "jdbc:mysql://depot:3306/";
+	private final static String dbName = "leliel_engr489_2013";
+	private final static String userName = "leliel";
+	private final static String pass = "iBoo3Ang";
+
 
 	private Map<String, User> users;
 	private Map<String, String> addresses;
@@ -81,8 +88,7 @@ public class Parser {
 			return parseDiscon(line);
 		} else if (line.contains("Accept") || line.contains("Fail")) {
 			return parseConn(line);
-		} else if (line.contains("Invalid")) { // TODO -when is a line always
-												// invalid?
+		} else if (line.contains("Invalid")) {
 			return parseInvalid(line);
 		} else if (line.contains("Server") || line.contains("error")) {
 			return parseOther(line);
@@ -163,8 +169,7 @@ public class Parser {
 		} else if (parts[idx].equals("publickey")) {
 			auth = AuthType.KEY;
 			idx++;
-		} else if (parts[idx].startsWith("gssapi-")) { // TODO fix db to support
-														// all 4 authtypes
+		} else if (parts[idx].startsWith("gssapi-")) {
 			auth = AuthType.GSSAPI;
 			idx++;
 		} else
@@ -225,7 +230,7 @@ public class Parser {
 			throw new ParseException("user is not invalid", 0);
 
 		idx++; //constant string, skip past it.
-		
+
 		String addr = anonymiseIP(parts[idx]);
 
 		return new Invalid(date, time, s, connectID, user, addr, line);
@@ -327,7 +332,7 @@ public class Parser {
 				return users.get(name);
 			}
 			String hiddenName = "user" + (users.values().size() + 1);
-			User temp = new User(hiddenName, isvalid);
+			User temp = new User(name, isvalid);
 			users.put(name, temp);
 			return temp;
 		}
@@ -345,9 +350,9 @@ public class Parser {
 	}
 
 	private void writeToDB() {
-		Connection conn = null;
-		// get connection
 		try {
+			Connection conn = DriverManager.getConnection(url + dbName, userName, pass);
+
 			writeUsersToDB(conn); // ensures users updated with ID's
 			writeServersToDB(conn); // ensures users updated with ID's
 
@@ -355,12 +360,14 @@ public class Parser {
 					"DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,? ,?)");
 			for (int i = 0; i < lines.size(); i++) {
 				lines.get(i).writeToDB(insertLine);
+				lines.get(i).writeLoc(conn);
+				//lines.get(i).writeTime(conn);
 				if ((i%1000) == 0) { //write it out every thousand lines, just to be sure it all writes.
 					insertLine.executeBatch();
 				}
 			}
 			insertLine.executeBatch(); //flush what's left.
-			
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -385,8 +392,7 @@ public class Parser {
 	public static void main(String[] args) {
 		if (args.length == 0) {
 			System.out.print("Logfile parser and database loader for SSHDVis");
-			System.out
-					.print("Usage: commandline arguments should be a space seperated list of filenames, full paths allowable.");
+			System.out.print("Usage: commandline arguments should be a space seperated list of filenames, full paths allowable.");
 			System.exit(0);
 		} else {
 			Parser p = new Parser();

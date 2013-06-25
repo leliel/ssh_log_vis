@@ -1,5 +1,6 @@
 package dataTypes;
 
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -16,7 +17,7 @@ public class SubSystemReq implements dataTypes.Line {
 	private final int connectID;
 	private final SubSystem system;
 	private final String rawLine;
-	
+
 	public SubSystemReq(Date date, Time time, Server server, int connectID,
 			SubSystem system, String rawLine) {
 		super();
@@ -129,6 +130,16 @@ public class SubSystemReq implements dataTypes.Line {
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public void writeLoc(Connection conn) throws SQLException {
+		return; //nothing to do
+	}
+
+	@Override
+	public void writeTime(Connection conn) throws SQLException {
+		return; //nothing to do
 	}
 
 }

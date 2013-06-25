@@ -1,5 +1,6 @@
 package dataTypes;
 
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -15,7 +16,7 @@ public class Disconnect implements dataTypes.Line {
 	private final int code;
 	private final String addr;
 	private final String rawLine;
-	
+
 	public Disconnect(Date date, Time time, dataTypes.Server server,
 			int connectID, int code, String addr, String rawLine) {
 		super();
@@ -47,18 +48,17 @@ public class Disconnect implements dataTypes.Line {
 	public int getCode() {
 		return code;
 	}
-	
+
 	public String getAddress(){
 		return addr;
 	}
-	
+
 	public String getRawLine(){
 		return rawLine;
 	}
 
 	@Override
 	public void writeToDB(PreparedStatement insert) throws SQLException {
-		// TODO Auto-generated method stub
 		insert.setTimestamp(1, new Timestamp(this.date.getTime() + this.time.getTime()));
 		insert.setInt(2, this.server.getId());
 		insert.setInt(3, this.connectID);
@@ -142,6 +142,16 @@ public class Disconnect implements dataTypes.Line {
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public void writeLoc(Connection conn) throws SQLException {
+		return; //do nothing, nothing to do
+	}
+
+	@Override
+	public void writeTime(Connection conn) throws SQLException {
+		return; //nothing to do.
 	}
 
 }
