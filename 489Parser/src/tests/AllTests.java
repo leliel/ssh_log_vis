@@ -6,7 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({ TestConnParsing.class, TestDisconParsing.class,
-		TestSubParsing.class})//, TestInvalidParsing.class})
+		TestSubParsing.class, TestInvalidParsing.class, TestOtherParsing.class})
 public class AllTests {
 
 }

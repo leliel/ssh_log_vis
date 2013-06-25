@@ -39,7 +39,6 @@ public class Parser {
 	private final static String userName = "leliel";
 	private final static String pass = "iBoo3Ang";
 
-
 	private Map<String, User> users;
 	private Map<String, String> addresses;
 	private Map<String, Server> servers;
@@ -231,7 +230,7 @@ public class Parser {
 		} else
 			throw new ParseException("user is not invalid", 0);
 
-		idx++; //constant string, skip past it.
+		idx++; // constant string, skip past it.
 
 		String addr = anonymiseIP(parts[idx]);
 
@@ -256,9 +255,8 @@ public class Parser {
 		if (!"sshd".equals(service)) {
 			throw new ParseException("invalid daemon", 0);
 		} else {
-			connectID = Integer.parseInt(
-					parts[idx].substring(1 + parts[idx].indexOf("["),
-					parts[idx++].indexOf("]")));
+			connectID = Integer.parseInt(parts[idx].substring(
+					1 + parts[idx].indexOf("["), parts[idx++].indexOf("]")));
 		}
 
 		idx += 3; // constant words "recieved disconnect from", skipping
@@ -295,9 +293,8 @@ public class Parser {
 		if (!"sshd".equals(service)) {
 			throw new ParseException("invalid daemon", 0);
 		} else {
-			connectID = Integer.parseInt(
-					parts[idx].substring(1 + parts[idx].indexOf("["),
-					parts[idx++].indexOf("]")));
+			connectID = Integer.parseInt(parts[idx].substring(
+					1 + parts[idx].indexOf("["), parts[idx++].indexOf("]")));
 			idx++;
 		}
 
@@ -329,7 +326,7 @@ public class Parser {
 		if (users.containsKey(name)) {
 			return users.get(name);
 		} else {
-			if (name.equals("root")) {
+			if (name.equals("root") || !this.anonymise) { //it's root, or we've got anonymization turned off.
 				users.put(name, new User(name, isvalid));
 				return users.get(name);
 			}
@@ -343,32 +340,38 @@ public class Parser {
 	private String anonymiseIP(String address) {
 		if (addresses.containsKey(address)) {
 			return addresses.get(address);
-		} else {
+		} else if (this.anonymise){
 			String temp = address;
 			addresses.put(address, temp);
 			// TODO implement IP anonymisation.
 			return temp;
+		} else {
+			addresses.put(address, address);
+			return address;
 		}
 	}
 
 	private void writeToDB() {
 		try {
-			Connection conn = DriverManager.getConnection(url + dbName, userName, pass);
+			Connection conn = DriverManager.getConnection(url + dbName,
+					userName, pass);
 
 			writeUsersToDB(conn); // ensures users updated with ID's
 			writeServersToDB(conn); // ensures users updated with ID's
 
-			PreparedStatement insertLine = conn.prepareStatement("INSERT INTO entry VALUES(" +
-					"DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,? ,?)");
+			PreparedStatement insertLine = conn
+					.prepareStatement("INSERT INTO entry VALUES("
+							+ "DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,? ,?)");
 			for (int i = 0; i < lines.size(); i++) {
 				lines.get(i).writeToDB(insertLine);
 				lines.get(i).writeLoc(conn);
-				//lines.get(i).writeTime(conn);
-				if ((i%1000) == 0) { //write it out every thousand lines, just to be sure it all writes.
+				// lines.get(i).writeTime(conn);
+				if ((i % 1000) == 0) { // write it out every thousand lines,
+										// just to be sure it all writes.
 					insertLine.executeBatch();
 				}
 			}
-			insertLine.executeBatch(); //flush what's left.
+			insertLine.executeBatch(); // flush what's left.
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -376,17 +379,19 @@ public class Parser {
 	}
 
 	private void writeUsersToDB(Connection conn) throws SQLException {
-		PreparedStatement insert = conn.prepareStatement("INSERT INTO user VALUES (DEFAULT, ?, ?)");
+		PreparedStatement insert = conn
+				.prepareStatement("INSERT INTO user VALUES (DEFAULT, ?, ?)");
 		PreparedStatement getID = conn.prepareStatement("LAST_INSERT_ID()");
-		for (User u: this.users.values()){
+		for (User u : this.users.values()) {
 			u.writeToDB(insert, getID);
 		}
 	}
 
 	private void writeServersToDB(Connection conn) throws SQLException {
-		PreparedStatement insert = conn.prepareStatement("INSERT INTO server VALUES (DEFAULT, ?, ?)");
+		PreparedStatement insert = conn
+				.prepareStatement("INSERT INTO server VALUES (DEFAULT, ?, ?)");
 		PreparedStatement getID = conn.prepareStatement("LAST_INSERT_ID()");
-		for (Server s: this.servers.values()){
+		for (Server s : this.servers.values()) {
 			s.writeToDB(insert, getID);
 		}
 	}
@@ -394,10 +399,11 @@ public class Parser {
 	public static void main(String[] args) {
 		if (args.length == 0) {
 			System.out.print("Logfile parser and database loader for SSHDVis");
-			System.out.print("Usage: commandline arguments should be a space seperated list of filenames, full paths allowable.");
+			System.out
+					.print("Usage: commandline arguments should be a space seperated list of filenames, full paths allowable.");
 			System.exit(0);
 		} else {
-			Parser p = new Parser();
+			Parser p = new Parser(false);
 			p.parseLogs(args);
 			p.writeToDB();
 		}
