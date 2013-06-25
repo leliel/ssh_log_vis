@@ -1,20 +1,20 @@
 package dataTypes;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.CallableStatement;
 import java.sql.SQLException;
+
 
 public class User {
 	private int id;
 	private final String name;
 	private final boolean isValid;
-	
+
 	public User(String name, boolean isValid) {
 		super();
 		this.name = name;
 		this.isValid = isValid;
 	}
-	
+
 	public int getId() {
 		return id;
 	}
@@ -29,18 +29,15 @@ public class User {
 	public boolean isValid() {
 		return isValid;
 	}
-	
-	public void writeToDB(PreparedStatement s1, PreparedStatement s2) throws SQLException{
-		s1.setString(1, this.name);
-		s1.setBoolean(2, this.isValid);
-		s1.executeUpdate();
-		ResultSet rs = s2.executeQuery();
-		rs.next();
-		this.id = rs.getInt(1);
-		rs.close();
+
+	public void writeToDB(CallableStatement call) throws SQLException{
+		call.setString(1,  this.name);
+		call.setBoolean(2, this.isValid);
+		call.registerOutParameter(3, this.id);
+		call.execute();
 	}
-	
-	
+
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

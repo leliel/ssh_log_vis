@@ -1,5 +1,6 @@
 package dataTypes;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -102,30 +103,16 @@ public class Connect implements dataTypes.Line {
 
 	@Override
 	public void writeLoc(Connection conn) throws SQLException {
-		if (this.status == Status.ACCEPTED) { //don't record locations for failed logins
-			Statement s = conn.createStatement();
+		if (this.status == Status.ACCEPTED) { // don't record locations for
+												// failed logins
+			CallableStatement s = conn.prepareCall("{call freq_loc_add(?, ?, ?)}");
 			String[] loc = GeoLocator.getLocFromIp(this.source, conn);
 			if (loc != null) {
-				ResultSet rs = s
-						.executeQuery("SELECT * FROM freq_loc WHERE user="
-								+ this.user.getId() + ", country='" + loc[0]
-								+ "'" + ", city='" + loc[1] + "'");
-				if (!rs.first()) { // never been here before.
-					s.executeUpdate("INSERT INTO freq_loc VALUES(DEFAULT, "
-							+ this.user.getId() + ", DEFAULT, country='"
-							+ loc[1] + "', city='" + loc[0] + "')");
-					rs.close();
-					s.close();
-					return;
-				} else { // we're updating the count on an existing loc for this
-							// user
-					s.executeUpdate("UPDATE freq_loc SET count="
-							+ (rs.getInt("count") + 1) + " WHERE id="
-							+ rs.getInt("id"));
-					rs.close();
-					s.close();
-					return;
-				}
+				s.setInt(1, this.user.getId());
+				s.setString(2, loc[1]);
+				s.setString(3, loc[0]);
+				s.execute();
+				return;
 			}
 		}
 	}

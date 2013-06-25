@@ -5,11 +5,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -379,20 +381,16 @@ public class Parser {
 	}
 
 	private void writeUsersToDB(Connection conn) throws SQLException {
-		PreparedStatement insert = conn
-				.prepareStatement("INSERT INTO user VALUES (DEFAULT, ?, ?)");
-		PreparedStatement getID = conn.prepareStatement("LAST_INSERT_ID()");
+		CallableStatement s = conn.prepareCall("{call insert_user(?, ?, ?)}");
 		for (User u : this.users.values()) {
-			u.writeToDB(insert, getID);
+			u.writeToDB(s);
 		}
 	}
 
 	private void writeServersToDB(Connection conn) throws SQLException {
-		PreparedStatement insert = conn
-				.prepareStatement("INSERT INTO server VALUES (DEFAULT, ?, ?)");
-		PreparedStatement getID = conn.prepareStatement("LAST_INSERT_ID()");
+		CallableStatement serve = conn.prepareCall("{call insert_server(?, ?)}");
 		for (Server s : this.servers.values()) {
-			s.writeToDB(insert, getID);
+			s.writeToDB(serve);
 		}
 	}
 
