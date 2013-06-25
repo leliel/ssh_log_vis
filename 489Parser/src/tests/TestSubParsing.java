@@ -22,13 +22,13 @@ import enums.SubSystem;
 public class TestSubParsing {
 	private Parser p;
 	private SimpleDateFormat d, t;
-	
+
 	@Rule
     public ExpectedException thrown = ExpectedException.none();
-	
+
 	@Before
 	public void setUp() {
-		p = new Parser();
+		p = new Parser(true);
 		d = new SimpleDateFormat("MMM dd", Locale.ENGLISH);
 		t = new SimpleDateFormat("HH:mm:ss");
 	}

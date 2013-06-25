@@ -23,13 +23,13 @@ public class TestInvalidParsing {
 
 	private Parser p;
 	private SimpleDateFormat d, t;
-	
+
 	@Rule
     public ExpectedException thrown = ExpectedException.none();
-	
+
 	@Before
 	public void setUp() {
-		p = new Parser();
+		p = new Parser(true);
 		d = new SimpleDateFormat("MMM dd", Locale.ENGLISH);
 		t = new SimpleDateFormat("HH:mm:ss");
 	}
@@ -38,7 +38,7 @@ public class TestInvalidParsing {
 	public void testInvalidParseGood() {
 		String input = "Apr 19 04:36:49 app-1 sshd[6990]: Invalid user tomcat from 203.81.226.86";
 		try {
-			Invalid output = 
+			Invalid output =
 					new Invalid(
 							new Date(d.parse("Apr 19").getTime()),
 							new Time(t.parse("04:36:49").getTime()),
@@ -47,7 +47,7 @@ public class TestInvalidParsing {
 							new User("user1", false),
 							"203.81.226.86",
 							"Apr 19 04:36:49 app-1 sshd[6990]: Invalid user tomcat from 203.81.226.86");
-					
+
 
 			assertEquals("parsing Failed, object do not match", output,
 					p.parseLine(input));

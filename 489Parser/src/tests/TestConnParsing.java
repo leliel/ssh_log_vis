@@ -24,13 +24,13 @@ import enums.Status;
 public class TestConnParsing {
 	private Parser p;
 	private SimpleDateFormat d, t;
-	
+
 	@Rule
     public ExpectedException thrown = ExpectedException.none();
-	
+
 	@Before
 	public void setUp() {
-		p = new Parser();
+		p = new Parser(true);
 		d = new SimpleDateFormat("MMM dd", Locale.ENGLISH);
 		t = new SimpleDateFormat("HH:mm:ss");
 	}
@@ -93,7 +93,7 @@ public class TestConnParsing {
 	@Test
 	public void testConnParseBad1() throws ParseException {
 		String input = "Apr 19 17:28:05 app-1 sshd[950]: Accept password for user1 from 76.191.195.140 port 34472 ssh2";
-		
+
 		thrown.expect(ParseException.class);
 		thrown.expectMessage("Illegal status for connection attempt");
 		p.parseLine(input);
@@ -103,7 +103,7 @@ public class TestConnParsing {
 	@Test
 	public void testConnParseBad2() throws ParseException {
 		String input = "Apr 19 16:56:50 app-1 sshd[817]: Failed passwords for root from 122.102.64.54 port 56210 ssh2";
-		
+
 		thrown.expect(ParseException.class);
 		thrown.expectMessage("Illegal authentication method string");
 		p.parseLine(input);
