@@ -1,5 +1,6 @@
 package dataTypes;
 
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -15,7 +16,7 @@ public class Invalid implements dataTypes.Line {
 	private final User user;
 	private final String source;
 	private final String rawLine;
-	
+
 
 	public Invalid(Date date, Time time, Server server, int connectID, User user,
 			String source, String rawLine) {
@@ -42,7 +43,7 @@ public class Invalid implements dataTypes.Line {
 	public Server getServer() {
 		return server;
 	}
-	
+
 	public int getConnectID(){
 		return connectID;
 	}
@@ -54,14 +55,13 @@ public class Invalid implements dataTypes.Line {
 	public String getSource() {
 		return source;
 	}
-	
+
 	public String getRawLine(){
 		return rawLine;
 	}
 
 	@Override
 	public void writeToDB(PreparedStatement insert) throws SQLException {
-		// TODO Auto-generated method stub
 		insert.setTimestamp(1, new Timestamp(this.date.getTime() + this.time.getTime()));
 		insert.setInt(2, this.server.getId());
 		insert.setInt(3, this.connectID);
@@ -151,5 +151,15 @@ public class Invalid implements dataTypes.Line {
 		return true;
 	}
 
-	
+	@Override
+	public void writeLoc(Connection conn) throws SQLException {
+		return; //nothing to do
+	}
+
+	@Override
+	public void writeTime(Connection conn) throws SQLException {
+		return; //nothing to do
+	}
+
+
 }
