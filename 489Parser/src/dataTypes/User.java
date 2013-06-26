@@ -2,6 +2,7 @@ package dataTypes;
 
 import java.sql.CallableStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 
 
 public class User {
@@ -33,8 +34,9 @@ public class User {
 	public void writeToDB(CallableStatement call) throws SQLException{
 		call.setString(1,  this.name);
 		call.setBoolean(2, this.isValid);
-		call.registerOutParameter(3, this.id);
+		call.registerOutParameter(3, Types.INTEGER);
 		call.execute();
+		this.id = call.getInt(3);
 	}
 
 

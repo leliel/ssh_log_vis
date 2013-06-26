@@ -11,7 +11,6 @@ import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -20,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import dataTypes.Connect;
 import dataTypes.Disconnect;
@@ -101,7 +101,7 @@ public class Parser {
 
 	private Line parseOther(String line) throws ParseException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split(" ");
+		String[] parts = line.split("\\s+");
 
 		SimpleDateFormat format = new SimpleDateFormat("MMM:dd", Locale.ENGLISH);
 		Date date = new Date(format.parse(parts[idx++] + ":" + parts[idx++])
@@ -133,7 +133,7 @@ public class Parser {
 
 	private Line parseConn(String line) throws ParseException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split(" ");
+		String[] parts = line.split("\\s+");
 
 		SimpleDateFormat format = new SimpleDateFormat("MMM:dd", Locale.ENGLISH);
 		Date date = new Date(format.parse(parts[idx++] + ":" + parts[idx++])
@@ -163,19 +163,22 @@ public class Parser {
 			throw new ParseException("Illegal status for connection attempt", 0);
 
 		AuthType auth;
-		if (parts[idx].equals("password")) {
+		if (parts[idx].equalsIgnoreCase("password")) {
 			auth = AuthType.PASS;
 			idx++;
-		} else if (parts[idx].equals("host")) {
+		} else if (parts[idx].equalsIgnoreCase("host")) {
 			auth = AuthType.HOST;
 			idx += 2;
-		} else if (parts[idx].equals("publickey")) {
+		} else if (parts[idx].equalsIgnoreCase("publickey")) {
 			auth = AuthType.KEY;
 			idx++;
 		} else if (parts[idx].startsWith("gssapi-")) {
 			auth = AuthType.GSSAPI;
 			idx++;
-		} else
+		} else if (parts[idx].equalsIgnoreCase("none")){
+			auth = AuthType.NONE;
+			idx++;
+		}else
 			throw new ParseException("Illegal authentication method string", 0);
 
 		idx++; // there's a constant string here, just skip over it.
@@ -204,7 +207,7 @@ public class Parser {
 
 	private Line parseInvalid(String line) throws ParseException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split(" ");
+		String[] parts = line.split("\\s+");
 
 		SimpleDateFormat format = new SimpleDateFormat("MMM:dd", Locale.ENGLISH);
 		Date date = new Date(format.parse(parts[idx++] + ":" + parts[idx++])
@@ -226,7 +229,7 @@ public class Parser {
 		}
 
 		User user;
-		if (parts[idx].equals("Invalid")) {
+		if (parts[idx].equalsIgnoreCase("Invalid")) {
 			idx += 2;
 			user = anonymiseUser(parts[idx++], false);
 		} else
@@ -241,7 +244,7 @@ public class Parser {
 
 	private Line parseDiscon(String line) throws ParseException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split(" ");
+		String[] parts = line.split("\\s+");
 
 		SimpleDateFormat format = new SimpleDateFormat("MMM:dd", Locale.ENGLISH);
 		Date date = new Date(format.parse(parts[idx++] + ":" + parts[idx++])
@@ -279,7 +282,7 @@ public class Parser {
 
 	private Line parseSubsystem(String line) throws ParseException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split(" ");
+		String[] parts = line.split("\\s+");
 
 		SimpleDateFormat format = new SimpleDateFormat("MMM:dd", Locale.ENGLISH);
 		Date date = new Date(format.parse(parts[idx++] + ":" + parts[idx++])
@@ -325,7 +328,7 @@ public class Parser {
 	}
 
 	private User anonymiseUser(String name, boolean isvalid) {
-		if (users.containsKey(name)) {
+		if (users.containsKey(name) && users.get(name).isValid() == isvalid) {
 			return users.get(name);
 		} else {
 			if (name.equals("root") || !this.anonymise) { //it's root, or we've got anonymization turned off.
@@ -371,6 +374,7 @@ public class Parser {
 				if ((i % 1000) == 0) { // write it out every thousand lines,
 										// just to be sure it all writes.
 					insertLine.executeBatch();
+					System.out.printf("inserted %d lines\n", i);
 				}
 			}
 			insertLine.executeBatch(); // flush what's left.
@@ -382,8 +386,11 @@ public class Parser {
 
 	private void writeUsersToDB(Connection conn) throws SQLException {
 		CallableStatement s = conn.prepareCall("{call insert_user(?, ?, ?)}");
-		for (User u : this.users.values()) {
-			u.writeToDB(s);
+		for (Entry<String, User> u : this.users.entrySet()) {
+			if (u.getValue().getName().equals("Ftp")){
+				System.out.printf("key %s, name %s", u.getKey(), u.getValue().getName());
+			}
+			u.getValue().writeToDB(s);
 		}
 	}
 

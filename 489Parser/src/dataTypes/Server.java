@@ -4,6 +4,7 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 
 public class Server {
 
@@ -35,8 +36,9 @@ public class Server {
 
 	public void writeToDB(CallableStatement insert) throws SQLException{
 		insert.setString(1, this.name);
-		insert.registerOutParameter(3, this.id);
+		insert.registerOutParameter(2, Types.INTEGER);
 		insert.execute();
+		this.id = insert.getInt(2);
 	}
 
 	@Override

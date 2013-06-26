@@ -1,5 +1,5 @@
 package enums;
 
 public enum AuthType {
-	PASS, HOST, KEY, GSSAPI;
+	PASS, HOST, KEY, GSSAPI, NONE;
 }

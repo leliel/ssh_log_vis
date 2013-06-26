@@ -8,7 +8,7 @@ import java.sql.Statement;
 public class GeoLocator {
 
 	private static long IptoNum(String ip) {
-		String[] parts = ip.trim().split(".");
+		String[] parts = ip.trim().split("\\.");
 		long result = 0;
 		for (int i = 0; i < parts.length; i++) {
 			result += (long) (Long.parseLong(parts[i]) * (Math.pow(256d,
@@ -34,9 +34,10 @@ public class GeoLocator {
 	public static String[] getLocFromIp(String ip, Connection conn)
 			throws SQLException {
 		Statement s = conn.createStatement();
+		//TODO handle local addresses gracefully
 		long num = IptoNum(ip);
 		ResultSet rs = s
-				.executeQuery("SELECT geo.city, geo.country FROM geo NATURAL JOIN IP WHERE "
+				.executeQuery("SELECT geo.city, geo.country FROM geo LEFT JOIN ip ON geo.locId=ip.locID WHERE "
 						+ num
 						+ " BETWEEN ip.startIpNum AND ip.endIpNum LIMIT 1");
 		if (!rs.first()) {
