@@ -1,12 +1,11 @@
 package dataTypes;
 
+import java.net.InetAddress;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -23,12 +22,12 @@ public class Connect implements dataTypes.Line {
 	private final Status status;
 	private final AuthType type;
 	private final User user;
-	private final String source;
+	private final InetAddress source;
 	private final int port;
 	private final String rawLine;
 
 	public Connect(Date date, Time time, Server server, int connectID,
-			Status status, AuthType type, User user, String source, int port,
+			Status status, AuthType type, User user, InetAddress address, int port,
 			String rawLine) {
 		super();
 		this.date = date;
@@ -38,7 +37,7 @@ public class Connect implements dataTypes.Line {
 		this.status = status;
 		this.type = type;
 		this.user = user;
-		this.source = source;
+		this.source = address;
 		this.port = port;
 		this.rawLine = rawLine;
 	}
@@ -71,7 +70,7 @@ public class Connect implements dataTypes.Line {
 		return user;
 	}
 
-	public String getSource() {
+	public InetAddress getSource() {
 		return source;
 	}
 
@@ -93,7 +92,7 @@ public class Connect implements dataTypes.Line {
 		insert.setString(5, this.type.toString().toLowerCase());
 		insert.setString(6, this.status.toString().toLowerCase());
 		insert.setInt(7, this.user.getId());
-		insert.setString(8, this.source);
+		insert.setString(8, this.source.getHostAddress());
 		insert.setInt(9, this.port);
 		insert.setNull(10, Types.CHAR);
 		insert.setNull(11, Types.INTEGER);
@@ -105,12 +104,21 @@ public class Connect implements dataTypes.Line {
 	public void writeLoc(Connection conn) throws SQLException {
 		if (this.status == Status.ACCEPTED) { // don't record locations for
 												// failed logins
+			if (this.user.getName().equals("user3")){
+				System.out.println("user3 being used. id = " + this.user.getId());
+			}
 			CallableStatement s = conn.prepareCall("{call freq_loc_add(?, ?, ?)}");
 			String[] loc = GeoLocator.getLocFromIp(this.source, conn);
-			if (loc != null) {
+			if (loc != null && !loc[1].equals("") ) {
 				s.setInt(1, this.user.getId());
-				s.setString(2, loc[1]);
-				s.setString(3, loc[0]);
+				s.setString(2, loc[0]);
+				s.setString(3, loc[1]);
+				s.execute();
+				return;
+			} else if (loc != null && loc[1].equals("")){
+				s.setInt(1, this.user.getId());
+				s.setString(2, loc[0]);
+				s.setNull(3, Types.CHAR);
 				s.execute();
 				return;
 			}

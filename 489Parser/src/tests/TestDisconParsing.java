@@ -2,6 +2,8 @@ package tests;
 
 import static org.junit.Assert.assertEquals;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Date;
 import java.sql.Time;
 import java.text.ParseException;
@@ -33,7 +35,7 @@ public class TestDisconParsing {
 	}
 
 	@Test
-	public void test() throws ParseException {
+	public void test() throws ParseException, UnknownHostException {
 		String input = "Nov 23 22:04:58 server sshd[30487]: Received disconnect from 200.54.84.233: 11: Bye Bye ";
 
 		Line output = new Disconnect(new Date(d.parse("Nov 23").getTime()),
@@ -41,7 +43,7 @@ public class TestDisconParsing {
 				new Server("server", ""),
 				30487,
 				11,
-				"200.54.84.233",
+				InetAddress.getByName("200.54.84.233"),
 				input);
 
 		assertEquals("Parsing failed", output, p.parseLine(input));

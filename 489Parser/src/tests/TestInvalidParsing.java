@@ -3,6 +3,8 @@ package tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Date;
 import java.sql.Time;
 import java.text.ParseException;
@@ -35,7 +37,7 @@ public class TestInvalidParsing {
 	}
 
 	@Test
-	public void testInvalidParseGood() {
+	public void testInvalidParseGood() throws UnknownHostException {
 		String input = "Apr 19 04:36:49 app-1 sshd[6990]: Invalid user tomcat from 203.81.226.86";
 		try {
 			Invalid output =
@@ -45,7 +47,7 @@ public class TestInvalidParsing {
 							new Server("app-1", ""),
 							6990,
 							new User("user1", false),
-							"203.81.226.86",
+							InetAddress.getByName("203.81.226.86"),
 							"Apr 19 04:36:49 app-1 sshd[6990]: Invalid user tomcat from 203.81.226.86");
 
 

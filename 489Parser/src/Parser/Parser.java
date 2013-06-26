@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Date;
@@ -34,6 +36,7 @@ import enums.Status;
 import enums.SubSystem;
 
 //TODO - get algorithm from ian for IP anonymizing.
+//TODO refactor database connection.
 public class Parser {
 
 	private final static String url = "jdbc:mysql://depot:3306/";
@@ -42,14 +45,14 @@ public class Parser {
 	private final static String pass = "iBoo3Ang";
 
 	private Map<String, User> users;
-	private Map<String, String> addresses;
+	private Map<InetAddress, InetAddress> addresses;
 	private Map<String, Server> servers;
 	private List<Line> lines;
 	private final boolean anonymise;
 
 	public Parser(boolean anonymise) {
 		users = new HashMap<String, User>();
-		addresses = new HashMap<String, String>();
+		addresses = new HashMap<InetAddress, InetAddress>();
 		servers = new HashMap<String, Server>();
 		lines = new ArrayList<Line>();
 		this.anonymise = anonymise;
@@ -74,7 +77,7 @@ public class Parser {
 	}
 
 	private void parseLog(BufferedReader read) throws IOException,
-			ParseException {
+			ParseException{
 		String line;
 		while ((line = read.readLine()) != null) {
 			Line res = parseLine(line);
@@ -84,7 +87,7 @@ public class Parser {
 		}
 	}
 
-	public Line parseLine(String line) throws ParseException {
+	public Line parseLine(String line) throws ParseException, UnknownHostException {
 		if (line.contains("subsystem")) {
 			return parseSubsystem(line);
 		} else if (line.contains("disconnect")) {
@@ -131,7 +134,7 @@ public class Parser {
 		return new Other(date, time, s, connectID, msg, line);
 	}
 
-	private Line parseConn(String line) throws ParseException {
+	private Line parseConn(String line) throws ParseException, UnknownHostException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+");
 
@@ -193,7 +196,7 @@ public class Parser {
 
 		idx++; // constant word from
 
-		String address = anonymiseIP(parts[idx++]);
+		InetAddress address = anonymiseIP(InetAddress.getByName(parts[idx++]));
 
 		idx++; // constant word port;
 
@@ -205,7 +208,7 @@ public class Parser {
 				status, auth, user, address, port, line);
 	}
 
-	private Line parseInvalid(String line) throws ParseException {
+	private Line parseInvalid(String line) throws ParseException, UnknownHostException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+");
 
@@ -237,12 +240,12 @@ public class Parser {
 
 		idx++; // constant string, skip past it.
 
-		String addr = anonymiseIP(parts[idx]);
+		InetAddress addr = anonymiseIP(InetAddress.getByName(parts[idx]));
 
 		return new Invalid(date, time, s, connectID, user, addr, line);
 	}
 
-	private Line parseDiscon(String line) throws ParseException {
+	private Line parseDiscon(String line) throws ParseException, UnknownHostException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+");
 
@@ -266,7 +269,7 @@ public class Parser {
 
 		idx += 3; // constant words "recieved disconnect from", skipping
 
-		String addr = anonymiseIP(parts[idx++].replace(":", "")); // strip
+		InetAddress addr = anonymiseIP(InetAddress.getByName((parts[idx++].replace(":", "")))); // strip
 																	// trailing
 																	// colon
 																	// before
@@ -342,17 +345,17 @@ public class Parser {
 		}
 	}
 
-	private String anonymiseIP(String address) {
-		if (addresses.containsKey(address)) {
-			return addresses.get(address);
+	private InetAddress anonymiseIP(InetAddress ip) {
+		if (addresses.containsKey(ip)) {
+			return addresses.get(ip);
 		} else if (this.anonymise){
-			String temp = address;
-			addresses.put(address, temp);
+			InetAddress temp = ip;
+			addresses.put(ip, temp);
 			// TODO implement IP anonymisation.
 			return temp;
 		} else {
-			addresses.put(address, address);
-			return address;
+			addresses.put(ip, ip);
+			return ip;
 		}
 	}
 

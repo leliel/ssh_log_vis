@@ -3,6 +3,7 @@ package tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.net.UnknownHostException;
 import java.sql.Date;
 import java.sql.Time;
 import java.text.ParseException;
@@ -34,7 +35,7 @@ public class TestSubParsing {
 	}
 
 	@Test
-	public void testSubParseGood() {
+	public void testSubParseGood() throws UnknownHostException {
 		String[] input = {
 				"Jan 28 11:43:11 server sshd[9813]: subsystem request for sftp",
 				"Apr 20 12:02:49 app-1 sshd[30800]: subsystem request for scp"};

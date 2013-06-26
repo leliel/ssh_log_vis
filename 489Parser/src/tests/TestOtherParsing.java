@@ -3,6 +3,7 @@ package tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.net.UnknownHostException;
 import java.sql.Date;
 import java.sql.Time;
 import java.text.ParseException;
@@ -35,7 +36,7 @@ public class TestOtherParsing {
 	}
 
 	@Test
-	public void testOtherParseGood() {
+	public void testOtherParseGood() throws UnknownHostException {
 		String[] input = {"Mar 16 08:25:22 app-1 sshd[4884]: Server listening on :: port 22.",
 						"Mar 16 08:25:22 app-1 sshd[4884]: error: Bind to port 22 on 0.0.0.0 failed: Address already in use."};
 		try {

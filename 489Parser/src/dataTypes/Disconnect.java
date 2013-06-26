@@ -1,5 +1,6 @@
 package dataTypes;
 
+import java.net.InetAddress;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -14,18 +15,18 @@ public class Disconnect implements dataTypes.Line {
 	private final Server server;
 	private final int connectID;
 	private final int code;
-	private final String addr;
+	private final InetAddress addr;
 	private final String rawLine;
 
 	public Disconnect(Date date, Time time, dataTypes.Server server,
-			int connectID, int code, String addr, String rawLine) {
+			int connectID, int code, InetAddress addr2, String rawLine) {
 		super();
 		this.date = date;
 		this.time = time;
 		this.server = server;
 		this.connectID = connectID;
 		this.code = code;
-		this.addr = addr;
+		this.addr = addr2;
 		this.rawLine = rawLine;
 	}
 
@@ -49,7 +50,7 @@ public class Disconnect implements dataTypes.Line {
 		return code;
 	}
 
-	public String getAddress(){
+	public InetAddress getAddress(){
 		return addr;
 	}
 
@@ -66,7 +67,7 @@ public class Disconnect implements dataTypes.Line {
 		insert.setNull(5, Types.CHAR);
 		insert.setNull(6, Types.CHAR);
 		insert.setNull(7, Types.INTEGER);
-		insert.setString(8, this.addr);
+		insert.setString(8, this.addr.getHostAddress());
 		insert.setNull(9, Types.INTEGER);
 		insert.setNull(10, Types.CHAR);
 		insert.setInt(11, this.code);

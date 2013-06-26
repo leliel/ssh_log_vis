@@ -1,5 +1,6 @@
 package dataTypes;
 
+import java.net.InetAddress;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -14,12 +15,12 @@ public class Invalid implements dataTypes.Line {
 	private final Server server;
 	private final int connectID;
 	private final User user;
-	private final String source;
+	private final InetAddress source;
 	private final String rawLine;
 
 
 	public Invalid(Date date, Time time, Server server, int connectID, User user,
-			String source, String rawLine) {
+			InetAddress addr, String rawLine) {
 		super();
 		if (!user.isValid()){
 			this.date = date;
@@ -27,7 +28,7 @@ public class Invalid implements dataTypes.Line {
 			this.server = server;
 			this.connectID = connectID;
 			this.user = user;
-			this.source = source;
+			this.source = addr;
 			this.rawLine = rawLine;
 		} else throw new IllegalArgumentException("cannot have a valid user on this line");
 	}
@@ -52,7 +53,7 @@ public class Invalid implements dataTypes.Line {
 		return user;
 	}
 
-	public String getSource() {
+	public InetAddress getSource() {
 		return source;
 	}
 
@@ -69,7 +70,7 @@ public class Invalid implements dataTypes.Line {
 		insert.setNull(5, Types.CHAR);
 		insert.setNull(6, Types.CHAR);
 		insert.setInt(7,  this.user.getId());
-		insert.setString(8, this.source);
+		insert.setString(8, this.source.getHostAddress());
 		insert.setNull(9, Types.INTEGER);
 		insert.setNull(10, Types.CHAR);
 		insert.setNull(11, Types.INTEGER);

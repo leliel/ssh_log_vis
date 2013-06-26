@@ -31,10 +31,13 @@ public class User {
 		return isValid;
 	}
 
-	public void writeToDB(CallableStatement call) throws SQLException{
+	public void writeToDB(CallableStatement call) throws SQLException {
 		call.setString(1,  this.name);
 		call.setBoolean(2, this.isValid);
 		call.registerOutParameter(3, Types.INTEGER);
+		if (this.name.equals("user3")){
+			System.out.println("breaking here");
+		}
 		call.execute();
 		this.id = call.getInt(3);
 	}

@@ -3,6 +3,8 @@ package tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Date;
 import java.sql.Time;
 import java.text.ParseException;
@@ -52,7 +54,7 @@ public class TestConnParsing {
 							Status.ACCEPTED,
 							AuthType.PASS,
 							new User("user1", true),
-							"76.191.195.140",
+							InetAddress.getByName("76.191.195.140"),
 							34472,
 							"Apr 19 17:28:05 app-1 sshd[950]: Accepted password for user1 from 76.191.195.140 port 34472 ssh2"),
 					new Connect(
@@ -63,7 +65,7 @@ public class TestConnParsing {
 							Status.FAILED,
 							AuthType.PASS,
 							new User("root", true),
-							"122.102.64.54",
+							InetAddress.getByName("122.102.64.54"),
 							56210,
 							"Apr 19 16:56:50 app-1 sshd[817]: Failed password for root from 122.102.64.54 port 56210 ssh2"),
 					new Connect(
@@ -74,7 +76,7 @@ public class TestConnParsing {
 							Status.ACCEPTED,
 							AuthType.KEY,
 							new User("user3", true),
-							"192.168.3.60",
+							InetAddress.getByName("192.168.3.60"),
 							20042,
 							"Jan 28 11:52:05 server sshd[1003]: Accepted publickey for fred from 192.168.3.60 port 20042 ssh2") };
 
@@ -87,6 +89,9 @@ public class TestConnParsing {
 		} catch (ParseException e) {
 			e.printStackTrace();
 			fail("Parsing threw an exception.");
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			fail("Unreachable exception");
 		}
 	}
 
@@ -96,7 +101,12 @@ public class TestConnParsing {
 
 		thrown.expect(ParseException.class);
 		thrown.expectMessage("Illegal status for connection attempt");
-		p.parseLine(input);
+		try {
+			p.parseLine(input);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			fail("unreachable exception");
+		}
 
 	}
 
@@ -106,6 +116,11 @@ public class TestConnParsing {
 
 		thrown.expect(ParseException.class);
 		thrown.expectMessage("Illegal authentication method string");
-		p.parseLine(input);
+		try {
+			p.parseLine(input);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			fail("unreachable exception");
+		}
 	}
 }
