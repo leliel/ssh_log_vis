@@ -46,7 +46,7 @@ public class TestInvalidParsing {
 							new Time(t.parse("04:36:49").getTime()),
 							new Server("app-1", ""),
 							6990,
-							new User("user1", false),
+							new User("user1"),
 							InetAddress.getByName("203.81.226.86"),
 							"Apr 19 04:36:49 app-1 sshd[6990]: Invalid user tomcat from 203.81.226.86");
 

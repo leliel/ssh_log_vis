@@ -39,7 +39,7 @@ import enums.SubSystem;
 //TODO refactor database connection.
 public class Parser {
 
-	private final static String url = "jdbc:mysql://depot:3306/";
+	private final static String url = "jdbc:mysql://localhost:3306/";
 	private final static String dbName = "leliel_engr489_2013";
 	private final static String userName = "leliel";
 	private final static String pass = "iBoo3Ang";
@@ -77,7 +77,7 @@ public class Parser {
 	}
 
 	private void parseLog(BufferedReader read) throws IOException,
-			ParseException{
+			ParseException {
 		String line;
 		while ((line = read.readLine()) != null) {
 			Line res = parseLine(line);
@@ -87,7 +87,8 @@ public class Parser {
 		}
 	}
 
-	public Line parseLine(String line) throws ParseException, UnknownHostException {
+	public Line parseLine(String line) throws ParseException,
+			UnknownHostException {
 		if (line.contains("subsystem")) {
 			return parseSubsystem(line);
 		} else if (line.contains("disconnect")) {
@@ -134,7 +135,8 @@ public class Parser {
 		return new Other(date, time, s, connectID, msg, line);
 	}
 
-	private Line parseConn(String line) throws ParseException, UnknownHostException {
+	private Line parseConn(String line) throws ParseException,
+			UnknownHostException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+");
 
@@ -178,10 +180,10 @@ public class Parser {
 		} else if (parts[idx].startsWith("gssapi-")) {
 			auth = AuthType.GSSAPI;
 			idx++;
-		} else if (parts[idx].equalsIgnoreCase("none")){
+		} else if (parts[idx].equalsIgnoreCase("none")) {
 			auth = AuthType.NONE;
 			idx++;
-		}else
+		} else
 			throw new ParseException("Illegal authentication method string", 0);
 
 		idx++; // there's a constant string here, just skip over it.
@@ -189,9 +191,9 @@ public class Parser {
 		User user;
 		if (parts[idx].equals("invalid")) {
 			idx += 2; // skip over the word user, it's a constant string.
-			user = anonymiseUser(parts[idx++], false);
+			user = getUser(parts[idx++]);
 		} else { // User must be valid, so parts[idx] is a username.
-			user = anonymiseUser(parts[idx++], true);
+			user = getUser(parts[idx++]);
 		}
 
 		idx++; // constant word from
@@ -208,7 +210,8 @@ public class Parser {
 				status, auth, user, address, port, line);
 	}
 
-	private Line parseInvalid(String line) throws ParseException, UnknownHostException {
+	private Line parseInvalid(String line) throws ParseException,
+			UnknownHostException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+");
 
@@ -234,9 +237,10 @@ public class Parser {
 		User user;
 		if (parts[idx].equalsIgnoreCase("Invalid")) {
 			idx += 2;
-			user = anonymiseUser(parts[idx++], false);
-		} else
+			user = getUser(parts[idx++]);
+		} else {
 			throw new ParseException("user is not invalid", 0);
+		}
 
 		idx++; // constant string, skip past it.
 
@@ -245,7 +249,8 @@ public class Parser {
 		return new Invalid(date, time, s, connectID, user, addr, line);
 	}
 
-	private Line parseDiscon(String line) throws ParseException, UnknownHostException {
+	private Line parseDiscon(String line) throws ParseException,
+			UnknownHostException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+");
 
@@ -269,11 +274,12 @@ public class Parser {
 
 		idx += 3; // constant words "recieved disconnect from", skipping
 
-		InetAddress addr = anonymiseIP(InetAddress.getByName((parts[idx++].replace(":", "")))); // strip
-																	// trailing
-																	// colon
-																	// before
-																	// parsing
+		InetAddress addr = anonymiseIP(InetAddress.getByName((parts[idx++]
+				.replace(":", "")))); // strip
+		// trailing
+		// colon
+		// before
+		// parsing
 		int code = Integer.parseInt(parts[idx].replace(":", "")); // strip
 																	// trailing
 																	// colon
@@ -330,16 +336,11 @@ public class Parser {
 		}
 	}
 
-	private User anonymiseUser(String name, boolean isvalid) {
-		if (users.containsKey(name) && users.get(name).isValid() == isvalid) {
+	private User getUser(String name) {
+		if (users.containsKey(name)) {
 			return users.get(name);
 		} else {
-			if (name.equals("root") || !this.anonymise) { //it's root, or we've got anonymization turned off.
-				users.put(name, new User(name, isvalid));
-				return users.get(name);
-			}
-			String hiddenName = "user" + (users.values().size() + 1);
-			User temp = new User(hiddenName, isvalid);
+			User temp = new User(name);
 			users.put(name, temp);
 			return temp;
 		}
@@ -348,7 +349,7 @@ public class Parser {
 	private InetAddress anonymiseIP(InetAddress ip) {
 		if (addresses.containsKey(ip)) {
 			return addresses.get(ip);
-		} else if (this.anonymise){
+		} else if (this.anonymise) {
 			InetAddress temp = ip;
 			addresses.put(ip, temp);
 			// TODO implement IP anonymisation.
@@ -388,17 +389,19 @@ public class Parser {
 	}
 
 	private void writeUsersToDB(Connection conn) throws SQLException {
-		CallableStatement s = conn.prepareCall("{call insert_user(?, ?, ?)}");
+		CallableStatement s = conn.prepareCall("{call insert_user(?, ?)}");
 		for (Entry<String, User> u : this.users.entrySet()) {
-			if (u.getValue().getName().equals("Ftp")){
-				System.out.printf("key %s, name %s", u.getKey(), u.getValue().getName());
+			if (u.getValue().getName().equals("Ftp")) {
+				System.out.printf("key %s, name %s", u.getKey(), u.getValue()
+						.getName());
 			}
 			u.getValue().writeToDB(s);
 		}
 	}
 
 	private void writeServersToDB(Connection conn) throws SQLException {
-		CallableStatement serve = conn.prepareCall("{call insert_server(?, ?)}");
+		CallableStatement serve = conn
+				.prepareCall("{call insert_server(?, ?)}");
 		for (Server s : this.servers.values()) {
 			s.writeToDB(serve);
 		}

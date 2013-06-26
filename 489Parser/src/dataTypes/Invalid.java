@@ -18,19 +18,16 @@ public class Invalid implements dataTypes.Line {
 	private final InetAddress source;
 	private final String rawLine;
 
-
-	public Invalid(Date date, Time time, Server server, int connectID, User user,
-			InetAddress addr, String rawLine) {
+	public Invalid(Date date, Time time, Server server, int connectID,
+			User user, InetAddress addr, String rawLine) {
 		super();
-		if (!user.isValid()){
-			this.date = date;
-			this.time = time;
-			this.server = server;
-			this.connectID = connectID;
-			this.user = user;
-			this.source = addr;
-			this.rawLine = rawLine;
-		} else throw new IllegalArgumentException("cannot have a valid user on this line");
+		this.date = date;
+		this.time = time;
+		this.server = server;
+		this.connectID = connectID;
+		this.user = user;
+		this.source = addr;
+		this.rawLine = rawLine;
 	}
 
 	public Date getDate() {
@@ -45,7 +42,7 @@ public class Invalid implements dataTypes.Line {
 		return server;
 	}
 
-	public int getConnectID(){
+	public int getConnectID() {
 		return connectID;
 	}
 
@@ -57,19 +54,20 @@ public class Invalid implements dataTypes.Line {
 		return source;
 	}
 
-	public String getRawLine(){
+	public String getRawLine() {
 		return rawLine;
 	}
 
 	@Override
 	public void writeToDB(PreparedStatement insert) throws SQLException {
-		insert.setTimestamp(1, new Timestamp(this.date.getTime() + this.time.getTime()));
+		insert.setTimestamp(1,
+				new Timestamp(this.date.getTime() + this.time.getTime()));
 		insert.setInt(2, this.server.getId());
 		insert.setInt(3, this.connectID);
 		insert.setString(4, "invalid");
 		insert.setNull(5, Types.CHAR);
 		insert.setNull(6, Types.CHAR);
-		insert.setInt(7,  this.user.getId());
+		insert.setInt(7, this.user.getId());
 		insert.setString(8, this.source.getHostAddress());
 		insert.setNull(9, Types.INTEGER);
 		insert.setNull(10, Types.CHAR);
@@ -154,13 +152,12 @@ public class Invalid implements dataTypes.Line {
 
 	@Override
 	public void writeLoc(Connection conn) throws SQLException {
-		return; //nothing to do
+		return; // nothing to do
 	}
 
 	@Override
 	public void writeTime(Connection conn) throws SQLException {
-		return; //nothing to do
+		return; // nothing to do
 	}
-
 
 }

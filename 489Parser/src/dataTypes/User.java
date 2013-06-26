@@ -8,12 +8,10 @@ import java.sql.Types;
 public class User {
 	private int id;
 	private final String name;
-	private final boolean isValid;
 
-	public User(String name, boolean isValid) {
+	public User(String name) {
 		super();
 		this.name = name;
-		this.isValid = isValid;
 	}
 
 	public int getId() {
@@ -27,19 +25,12 @@ public class User {
 	public String getName() {
 		return name;
 	}
-	public boolean isValid() {
-		return isValid;
-	}
 
 	public void writeToDB(CallableStatement call) throws SQLException {
 		call.setString(1,  this.name);
-		call.setBoolean(2, this.isValid);
-		call.registerOutParameter(3, Types.INTEGER);
-		if (this.name.equals("user3")){
-			System.out.println("breaking here");
-		}
+		call.registerOutParameter(2, Types.INTEGER);
 		call.execute();
-		this.id = call.getInt(3);
+		this.id = call.getInt(2);
 	}
 
 
@@ -47,7 +38,6 @@ public class User {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + (isValid ? 1231 : 1237);
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
@@ -64,9 +54,6 @@ public class User {
 			return false;
 		}
 		User other = (User) obj;
-		if (isValid != other.isValid) {
-			return false;
-		}
 		if (name == null) {
 			if (other.name != null) {
 				return false;
