@@ -19,8 +19,6 @@
 -- Current Database: `leliel_engr489_2013`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `leliel_engr489_2013` /*!40100 DEFAULT CHARACTER SET latin1 */;
-
 USE `leliel_engr489_2013`;
 
 --
@@ -260,4 +258,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2013-06-27 22:14:36
+-- Dump completed on 2013-06-27 22:16:09
