@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+	<Resource name="jdbc/sshd_vis_db" 
+	driverClassName="com.mysql.jdbc.Driver"
+	url="jdbc:mysql://localhost:3306/leliel_engr489_2013" 
+	type="javax.sql.DataSource" 
+	username="leliel"
+	password="iBoo3Ang" 
+	auth="Container" 
+	maxActive="8" />
+</Context>
