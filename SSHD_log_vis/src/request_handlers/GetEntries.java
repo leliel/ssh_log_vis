@@ -113,8 +113,24 @@ public class GetEntries extends HttpServlet {
 			int elemPerBin = lines.size()/bins;
 			int count = 1;
 			Entry e = new Entry(elemPerBin, null);
+			Connect con;
+			Disconnect discon;
+			Invalid inv;
+			SubSystemReq subs;
+			Other other;
 			for (Line l : lines){
 				//TODO iterate through lines, building elems with flags.
+				if (l.getClass().equals(Connect.class)){
+					con = (Connect)l;
+					if (con.getStatus() == Status.ACCEPTED){
+						e.incAcceptedConn();
+					} else {
+						e.incFailedConn();
+					}
+					if (!con.isFreqLoc()){
+						e.addFlag(""); //TODO define flags for entry.
+					}
+				}
 				if (count%elemPerBin == 0){
 					entries.add(e);
 					e = new Entry(elemPerBin, null);
@@ -222,7 +238,7 @@ public class GetEntries extends HttpServlet {
 			status = Status.FAILED;
 		}
 		
-		return new Connect(date, time, s, result.getInt("connectid"), status, auth, result.getString("user"), result.getString("source"), result.getInt("port"), result.getString("rawline"));
+		return new Connect(date, time, s, result.getInt("connectid"), status, auth, result.getString("user"), result.getString("source"), result.getInt("port"), result.getBoolean("isfreqtime"), result.getBoolean("isfreqloc"), result.getString("rawline"));
 	}
 
 }

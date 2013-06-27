@@ -392,10 +392,6 @@ public class Parser {
 	private void writeUsersToDB(Connection conn) throws SQLException {
 		CallableStatement s = conn.prepareCall("{call insert_user(?, ?)}");
 		for (Entry<String, User> u : this.users.entrySet()) {
-			if (u.getValue().getName().equals("Ftp")) {
-				System.out.printf("key %s, name %s", u.getKey(), u.getValue()
-						.getName());
-			}
 			u.getValue().writeToDB(s);
 		}
 	}

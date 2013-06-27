@@ -49,6 +49,10 @@ public class Entry {
 	public void addFlag(String f){
 		this.flags += f;
 	}
+	
+	public boolean hasFlag(String f){
+		return this.flags.contains(f);
+	}
 
 	public int getSubElemCount() {
 		return subElemCount;

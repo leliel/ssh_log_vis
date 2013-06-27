@@ -12,15 +12,13 @@ public class GeoLocator {
 	public static int getLocFromIp(InetAddress source, Connection conn)
 			throws SQLException {
 		Statement s = conn.createStatement();
-		if (source.isAnyLocalAddress()){
-			System.out.println("Private Address: " + source.getHostAddress());
+		if (source.isSiteLocalAddress()){
 			return priv_loc;
 		}
-		System.out.println("Public Address: " + source.getHostAddress());
 		ResultSet rs = s
-				.executeQuery("SELECT geo.locId FROM geo LEFT JOIN ip ON geo.locId=ip.locID WHERE INET_NTOA("
+				.executeQuery("SELECT geo.locId FROM geo LEFT JOIN ip ON geo.locId=ip.locID WHERE INET_NTOA('"
 						+ source.getHostAddress()
-						+ ") BETWEEN ip.startIpNum AND ip.endIpNum LIMIT 1");
+						+ "') BETWEEN ip.startIpNum AND ip.endIpNum LIMIT 1");
 		if (!rs.first()) {
 			rs.close();
 			s.close();
