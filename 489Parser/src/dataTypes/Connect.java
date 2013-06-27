@@ -15,6 +15,8 @@ import enums.AuthType;
 import enums.Status;
 
 public class Connect implements dataTypes.Line {
+	private static final int frequency = 5; //how often do we have to login somewhere before it's frequent?
+	
 	private final Date date;
 	private final Time time;
 	private final Server server;
@@ -25,6 +27,7 @@ public class Connect implements dataTypes.Line {
 	private final InetAddress source;
 	private final int port;
 	private final String rawLine;
+	private boolean isFreqLoc;
 
 	public Connect(Date date, Time time, Server server, int connectID,
 			Status status, AuthType type, User user, InetAddress address, int port,
@@ -96,30 +99,29 @@ public class Connect implements dataTypes.Line {
 		insert.setInt(9, this.port);
 		insert.setNull(10, Types.CHAR);
 		insert.setNull(11, Types.INTEGER);
-		insert.setString(12, this.rawLine);
+		insert.setBoolean(12, false);
+		insert.setBoolean(13, this.isFreqLoc);
+		insert.setString(14, this.rawLine);
 		insert.addBatch();
 	}
 
 	@Override
 	public void writeLoc(Connection conn) throws SQLException {
-		if (this.status == Status.ACCEPTED) { // don't record locations for
-												// failed logins
-			if (this.user.getName().equals("user3")){
-				System.out.println("user3 being used. id = " + this.user.getId());
-			}
+		if (this.status == Status.ACCEPTED) { // don't record locations for failed logins
+			//TODO rebuild with new freq_loc schema								
 			CallableStatement s = conn.prepareCall("{call freq_loc_add(?, ?, ?)}");
-			String[] loc = GeoLocator.getLocFromIp(this.source, conn);
-			if (loc != null && !loc[1].equals("") ) {
+			int loc = GeoLocator.getLocFromIp(this.source, conn);
+			if (loc != -1) {
 				s.setInt(1, this.user.getId());
-				s.setString(2, loc[0]);
-				s.setString(3, loc[1]);
+				s.setInt(2, loc);
+				s.registerOutParameter(3, Types.INTEGER);
 				s.execute();
-				return;
-			} else if (loc != null && loc[1].equals("")){
-				s.setInt(1, this.user.getId());
-				s.setString(2, loc[0]);
-				s.setNull(3, Types.CHAR);
-				s.execute();
+				int count = s.getInt(3);
+				if (count >= Connect.frequency){
+					this.isFreqLoc = true;
+				} else {
+					this.isFreqLoc = false;
+				}
 				return;
 			}
 		}

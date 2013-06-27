@@ -7,35 +7,26 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class GeoLocator {
-	private final static String[] priv_loc = {"US", "Redmond"};
+	private final static int priv_loc = 15389;//chosen semirandomly
 	
-	private static long inet_ntoa(InetAddress ip){
-		long res = 0;
-		byte[] bits = ip.getAddress();
-		for (int i = 0; i < bits.length; i++){
-			res +=  (long)(bits[i] << (i*8));
-		}
-		return res;
-	}
-
-	public static String[] getLocFromIp(InetAddress source, Connection conn)
+	public static int getLocFromIp(InetAddress source, Connection conn)
 			throws SQLException {
 		Statement s = conn.createStatement();
 		if (source.isAnyLocalAddress()){
+			System.out.println("Private Address: " + source.getHostAddress());
 			return priv_loc;
 		}
+		System.out.println("Public Address: " + source.getHostAddress());
 		ResultSet rs = s
-				.executeQuery("SELECT geo.country, geo.city FROM geo LEFT JOIN ip ON geo.locId=ip.locID WHERE "
-						+ inet_ntoa(source)
-						+ " BETWEEN ip.startIpNum AND ip.endIpNum LIMIT 1");
+				.executeQuery("SELECT geo.locId FROM geo LEFT JOIN ip ON geo.locId=ip.locID WHERE INET_NTOA("
+						+ source.getHostAddress()
+						+ ") BETWEEN ip.startIpNum AND ip.endIpNum LIMIT 1");
 		if (!rs.first()) {
 			rs.close();
 			s.close();
-			return null;
+			return -1;
 		} else {
-			String[] res = new String[2];
-			res[0] = rs.getString(1);
-			res[1] = rs.getString(2);
+			int res = rs.getInt(1);
 			rs.close();
 			s.close();
 			return res;

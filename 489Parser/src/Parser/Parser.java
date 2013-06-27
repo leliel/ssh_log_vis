@@ -370,11 +370,12 @@ public class Parser {
 
 			PreparedStatement insertLine = conn
 					.prepareStatement("INSERT INTO entry VALUES("
-							+ "DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,? ,?)");
+							+ "DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,? ,? ,?, ?)");
 			for (int i = 0; i < lines.size(); i++) {
-				lines.get(i).writeToDB(insertLine);
-				lines.get(i).writeLoc(conn);
+				//writing location/time also tests if entry prompting write counts as frequent.
+				lines.get(i).writeLoc(conn); //must be written before entries are written to db.
 				// lines.get(i).writeTime(conn);
+				lines.get(i).writeToDB(insertLine);
 				if ((i % 1000) == 0) { // write it out every thousand lines,
 										// just to be sure it all writes.
 					insertLine.executeBatch();

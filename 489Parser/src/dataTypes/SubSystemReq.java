@@ -66,7 +66,9 @@ public class SubSystemReq implements dataTypes.Line {
 		insert.setNull(9, Types.INTEGER);
 		insert.setString(10, this.system.toString().toLowerCase());
 		insert.setNull(11, Types.INTEGER);
-		insert.setString(12, this.rawLine);
+		insert.setNull(12, Types.BOOLEAN);
+		insert.setNull(13, Types.BOOLEAN);
+		insert.setString(14, this.rawLine);
 		insert.addBatch();
 	}
 

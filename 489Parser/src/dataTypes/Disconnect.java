@@ -71,7 +71,9 @@ public class Disconnect implements dataTypes.Line {
 		insert.setNull(9, Types.INTEGER);
 		insert.setNull(10, Types.CHAR);
 		insert.setInt(11, this.code);
-		insert.setString(12, this.rawLine);
+		insert.setNull(12, Types.BOOLEAN);
+		insert.setNull(13, Types.BOOLEAN);
+		insert.setString(14, this.rawLine);
 		insert.addBatch();
 	}
 

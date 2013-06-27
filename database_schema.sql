@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.1.67, for -netbsdelf (i486)
+-- MySQL dump 10.13  Distrib 5.5.31, for Linux (x86_64)
 --
--- Host: depot    Database: leliel_engr489_2013
+-- Host: localhost    Database: leliel_engr489_2013
 -- ------------------------------------------------------
--- Server version       5.1.67
+-- Server version	5.5.31
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -43,13 +43,16 @@ CREATE TABLE `entry` (
   `port` smallint(5) unsigned DEFAULT NULL,
   `subsystem` enum('sftp','scp') DEFAULT NULL,
   `code` int(11) DEFAULT NULL,
+  `isfreqtime` tinyint(1) DEFAULT NULL,
+  `isfreqloc` tinyint(1) DEFAULT NULL,
   `rawline` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `server_entry_ind` (`server`),
   KEY `user_entry_ind` (`user`),
+  KEY `time_idx` (`timestamp`),
   CONSTRAINT `entry_ibfk_1` FOREIGN KEY (`server`) REFERENCES `server` (`id`),
   CONSTRAINT `entry_ibfk_2` FOREIGN KEY (`user`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -60,16 +63,16 @@ DROP TABLE IF EXISTS `freq_loc`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `freq_loc` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `user` int(10) unsigned NOT NULL,
-  `count` int(10) unsigned NOT NULL DEFAULT '1',
-  `country` char(2) NOT NULL,
-  `city` char(50) DEFAULT NULL,
+  `locId` int(11) DEFAULT NULL,
+  `count` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `user_loc` (`user`,`country`,`city`),
   KEY `freq_loc_user` (`user`),
-  CONSTRAINT `freq_loc_ibfk_1` FOREIGN KEY (`user`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+  KEY `freq_loc_locId` (`locId`),
+  CONSTRAINT `freq_loc_ibfk_1` FOREIGN KEY (`user`) REFERENCES `user` (`id`),
+  CONSTRAINT `freq_loc_ibfk_2` FOREIGN KEY (`locId`) REFERENCES `geo` (`locId`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -103,13 +106,13 @@ CREATE TABLE `geo` (
   `country` char(2) NOT NULL,
   `region` char(50) DEFAULT NULL,
   `city` char(50) DEFAULT NULL,
-  `postalCode` char(10) DEFAULT NULL,
+  `postCode` char(10) DEFAULT NULL,
   `latitude` decimal(8,4) NOT NULL,
   `longitude` decimal(8,4) NOT NULL,
   `metroCode` int(11) DEFAULT NULL,
   `areaCode` int(11) DEFAULT NULL,
-  KEY `geo_loc` (`locId`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+  PRIMARY KEY (`locId`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -160,7 +163,7 @@ CREATE TABLE `server` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `name_2` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -173,12 +176,11 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` char(50) CHARACTER SET latin1 COLLATE latin1_general_cs NOT NULL,
-  `isvalid` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `name_2` (`name`),
   KEY `users` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=41848 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -188,14 +190,24 @@ CREATE TABLE `user` (
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = latin1 */ ;
-/*!50003 SET character_set_results = latin1 */ ;
-/*!50003 SET collation_connection  = latin1_swedish_ci */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 DEFINER=`leliel`@`%`*/ /*!50003 PROCEDURE `freq_loc_add`(IN userId INT UNSIGNED, IN country CHAR(2), IN city CHAR(50))
-BEGIN DECLARE i INT DEFAULT 0; DECLARE id INT UNSIGNED; DECLARE count INT UNSIGNED; SELECT COUNT(*), freq_loc.id, freq_loc.count INTO i, id, count FROM freq_loc WHERE freq_loc.user = userId AND freq_loc.country=country AND freq_loc.city=city; IF i > 0 THEN  UPDATE freq_loc SET freq_loc.count=count+1 WHERE freq_loc.id=id; ELSE INSERT INTO freq_loc VALUES (DEFAULT, userid, DEFAULT, country, city); END IF; END */;;
+CREATE DEFINER=`leliel`@`localhost` PROCEDURE `freq_loc_add`(IN user INT, IN loc INT, OUT freq INT)
+BEGIN 
+DECLARE temp INT DEFAULT NULL; 
+SELECT freq_loc.id INTO temp FROM freq_loc WHERE freq_loc.user=user AND freq_loc.locId=loc; 
+IF temp IS NULL THEN 
+INSERT INTO freq_loc VALUE(DEFAULT, user, loc, DEFAULT);
+SET freq = 1; 
+ELSE 
+UPDATE freq_loc SET count=count+1 WHERE freq_loc.id=temp; 
+SELECT freq_loc.count INTO freq FROM freq_loc WHERE freq_loc.id=temp;
+END IF; 
+END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -211,8 +223,8 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 DEFINER=`leliel`@`%`*/ /*!50003 PROCEDURE `insert_server`(IN n CHAR(50), OUT id INT UNSIGNED)
-BEGIN INSERT INTO server VALUES(DEFAULT, n, NULL); SET id = LAST_INSERT_ID(); END */;;
+CREATE DEFINER=`leliel`@`%` PROCEDURE `insert_server`(IN n CHAR(50), OUT id INT UNSIGNED)
+BEGIN INSERT INTO server VALUES(DEFAULT, n, NULL); SET id = LAST_INSERT_ID(); END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -222,14 +234,17 @@ DELIMITER ;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = latin1 */ ;
-/*!50003 SET character_set_results = latin1 */ ;
-/*!50003 SET collation_connection  = latin1_swedish_ci */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50020 DEFINER=`leliel`@`%`*/ /*!50003 PROCEDURE `insert_user`(IN n CHAR(50), IN isValid BOOLEAN, OUT id INT UNSIGNED)
-BEGIN INSERT INTO user VALUES(DEFAULT, n, isValid); SET id = LAST_INSERT_ID(); END */;;
+CREATE DEFINER=`leliel`@`localhost` PROCEDURE `insert_user`(IN name CHAR(50), OUT id INT UNSIGNED)
+BEGIN
+INSERT INTO user VALUES(DEFAULT, name);
+SET id = LAST_INSERT_ID();
+END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -244,3 +259,5 @@ DELIMITER ;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2013-06-27 22:14:36
