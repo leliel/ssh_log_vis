@@ -19,12 +19,10 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.tomcat.jdbc.pool.DataSource;
+import javax.sql.DataSource;
 
 import JSONtypes.Connect;
 import JSONtypes.Disconnect;
@@ -41,10 +39,10 @@ import enums.SubSystem;
 /**
  * Servlet implementation class GetEntries
  */
-@WebServlet(description = "gets sshd log entries in JSON format", urlPatterns = { "/GetEntries" })
+//@WebServlet(description = "gets sshd log entries in JSON format", urlPatterns = { "/GetEntries" })
 public class GetEntries extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
+
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -72,20 +70,20 @@ public class GetEntries extends HttpServlet {
 			Context context = new InitialContext();
 			DataSource dataSource = (DataSource)context.lookup("java:comp/env/jdbc/sshd_vis_db");
 			Connection connection = dataSource.getConnection();
-			
+
 			SimpleDateFormat formatter = new SimpleDateFormat("", Locale.ENGLISH);
-			
+
 			CallableStatement state = connection.prepareCall("{call get_entries(?, ?, ?)}");
 			state.setTimestamp(1, new Timestamp(formatter.parse(request.getParameter("startDateTime")).getTime()));
 			state.setTimestamp(2, new Timestamp(formatter.parse(request.getParameter("endDateTime")).getTime()));
-			
+
 			if (request.getParameter("serverName") != null){
 				state.setString(3, request.getParameter("serverName"));
 			} else {
 				state.setNull(3, Types.CHAR);
 			}
 			state.execute();
-			
+
 			ResultSet result = state.getResultSet();
 			Line res;
 			while (result.next()){
@@ -104,7 +102,7 @@ public class GetEntries extends HttpServlet {
 			}
 			result.close();
 			state.close();
-			
+
 			if (Math.round(Math.sqrt(lines.size())) < Integer.parseInt(request.getParameter("maxBins"))){
 				bins = (int)Math.round(Math.sqrt(lines.size()));
 			} else {
@@ -137,7 +135,7 @@ public class GetEntries extends HttpServlet {
 				}
 			}
 
-			
+
 		} catch (NamingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -152,7 +150,7 @@ public class GetEntries extends HttpServlet {
 	}
 
 	private Line loadOther(ResultSet result) throws SQLException {
-		Date date = result.getDate("timestamp"); 
+		Date date = result.getDate("timestamp");
 		Time time = result.getTime("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
@@ -166,7 +164,7 @@ public class GetEntries extends HttpServlet {
 	}
 
 	private Line loadInvalid(ResultSet result) throws SQLException {
-		Date date = result.getDate("timestamp"); 
+		Date date = result.getDate("timestamp");
 		Time time = result.getTime("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
@@ -178,7 +176,7 @@ public class GetEntries extends HttpServlet {
 	}
 
 	private Line loadSubsystem(ResultSet result) throws SQLException {
-		Date date = result.getDate("timestamp"); 
+		Date date = result.getDate("timestamp");
 		Time time = result.getTime("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
@@ -196,7 +194,7 @@ public class GetEntries extends HttpServlet {
 	}
 
 	private Line loadDisconnect(ResultSet result) throws SQLException {
-		Date date = result.getDate("timestamp"); 
+		Date date = result.getDate("timestamp");
 		Time time = result.getTime("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
@@ -208,7 +206,7 @@ public class GetEntries extends HttpServlet {
 	}
 
 	private Line loadConnect(ResultSet result) throws SQLException {
-		Date date = result.getDate("timestamp"); 
+		Date date = result.getDate("timestamp");
 		Time time = result.getTime("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
@@ -216,7 +214,7 @@ public class GetEntries extends HttpServlet {
 		} else {
 			s = new Server(result.getString("server"), null);
 		}
-		
+
 		AuthType auth;
 		String temp = result.getString("authtype");
 		if (temp.equals("pass")){
@@ -230,14 +228,14 @@ public class GetEntries extends HttpServlet {
 		} else {
 			auth = AuthType.NONE;
 		}
-		
+
 		Status status;
 		if (result.getString("status").equals("accepted")){
 			status = Status.ACCEPTED;
 		} else {
 			status = Status.FAILED;
 		}
-		
+
 		return new Connect(date, time, s, result.getInt("connectid"), status, auth, result.getString("user"), result.getString("source"), result.getInt("port"), result.getBoolean("isfreqtime"), result.getBoolean("isfreqloc"), result.getString("rawline"));
 	}
 
