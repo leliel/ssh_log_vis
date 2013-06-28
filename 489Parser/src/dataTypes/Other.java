@@ -1,25 +1,21 @@
 package dataTypes;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 
 public class Other implements Line {
-	private final Date date;
-	private final Time time;
+	private final Timestamp time;
 	private final Server server;
 	private final int connectID;
 	private final String message;
 	private final String rawLine;
 
-	public Other(Date date, Time time, Server server, int connectID, String message,
+	public Other(Timestamp time, Server server, int connectID, String message,
 			String rawLine) {
 		super();
-		this.date = date;
 		this.time = time;
 		this.server = server;
 		this.connectID = connectID;
@@ -27,10 +23,7 @@ public class Other implements Line {
 		this.rawLine = rawLine;
 	}
 
-	public Date getDate() {
-		return date;
-	}
-	public Time getTime() {
+	public Timestamp getTime() {
 		return time;
 	}
 	public Server getServer() {
@@ -49,7 +42,7 @@ public class Other implements Line {
 
 	@Override
 	public void writeToDB(PreparedStatement insert) throws SQLException {
-		insert.setTimestamp(1, new Timestamp(this.date.getTime() + this.time.getTime()));
+		insert.setTimestamp(1, this.time);
 		insert.setInt(2, this.server.getId());
 		insert.setInt(3, this.connectID);
 		insert.setString(4, "other");
@@ -71,7 +64,6 @@ public class Other implements Line {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + connectID;
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result + ((message == null) ? 0 : message.hashCode());
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
@@ -92,13 +84,6 @@ public class Other implements Line {
 		}
 		Other other = (Other) obj;
 		if (connectID != other.connectID) {
-			return false;
-		}
-		if (date == null) {
-			if (other.date != null) {
-				return false;
-			}
-		} else if (!date.equals(other.date)) {
 			return false;
 		}
 		if (message == null) {

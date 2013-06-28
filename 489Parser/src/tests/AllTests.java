@@ -8,5 +8,5 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({ TestConnParsing.class, TestDisconParsing.class,
 		TestSubParsing.class, TestInvalidParsing.class, TestOtherParsing.class})
 public class AllTests {
-
+//TODO fix tests for new api -using timestamps instead of seperate date and time
 }

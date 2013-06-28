@@ -1,7 +1,6 @@
 package JSONtypes;
 
-import java.sql.Date;
-import java.sql.Time;
+import java.sql.Timestamp;
 
 import enums.AuthType;
 import enums.Status;
@@ -9,8 +8,7 @@ import enums.Status;
 
 
 public class Connect implements JSONtypes.Line {
-	private final Date date;
-	private final Time time;
+	private final Timestamp time;
 	private final Server server;
 	private final int connectID;
 	private final Status status;
@@ -22,11 +20,10 @@ public class Connect implements JSONtypes.Line {
 	private final boolean freqLoc;
 	private final String rawLine;
 
-	public Connect(Date date, Time time, Server server, int connectID,
+	public Connect(Timestamp time, Server server, int connectID,
 			Status status, AuthType type, String user, String address, int port,
 			boolean freqTime, boolean freqLoc, String rawLine) {
 		super();
-		this.date = date;
 		this.time = time;
 		this.server = server;
 		this.connectID = connectID;
@@ -40,11 +37,7 @@ public class Connect implements JSONtypes.Line {
 		this.rawLine = rawLine;
 	}
 
-	public Date getDate() {
-		return date;
-	}
-
-	public Time getTime() {
+	public Timestamp getTime() {
 		return time;
 	}
 
@@ -94,7 +87,6 @@ public class Connect implements JSONtypes.Line {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + connectID;
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result + (freqLoc ? 1231 : 1237);
 		result = prime * result + (freqTime ? 1231 : 1237);
 		result = prime * result + port;
@@ -121,13 +113,6 @@ public class Connect implements JSONtypes.Line {
 		}
 		Connect other = (Connect) obj;
 		if (connectID != other.connectID) {
-			return false;
-		}
-		if (date == null) {
-			if (other.date != null) {
-				return false;
-			}
-		} else if (!date.equals(other.date)) {
 			return false;
 		}
 		if (freqLoc != other.freqLoc) {

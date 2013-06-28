@@ -10,18 +10,16 @@ import java.sql.Timestamp;
 import java.sql.Types;
 
 public class Disconnect implements dataTypes.Line {
-	private final Date date;
-	private final Time time;
+	private final Timestamp time;
 	private final Server server;
 	private final int connectID;
 	private final int code;
 	private final InetAddress addr;
 	private final String rawLine;
 
-	public Disconnect(Date date, Time time, dataTypes.Server server,
+	public Disconnect(Timestamp time, dataTypes.Server server,
 			int connectID, int code, InetAddress addr2, String rawLine) {
 		super();
-		this.date = date;
 		this.time = time;
 		this.server = server;
 		this.connectID = connectID;
@@ -30,11 +28,7 @@ public class Disconnect implements dataTypes.Line {
 		this.rawLine = rawLine;
 	}
 
-	public Date getDate() {
-		return date;
-	}
-
-	public Time getTime() {
+	public Timestamp getTime() {
 		return time;
 	}
 
@@ -60,7 +54,7 @@ public class Disconnect implements dataTypes.Line {
 
 	@Override
 	public void writeToDB(PreparedStatement insert) throws SQLException {
-		insert.setTimestamp(1, new Timestamp(this.date.getTime() + this.time.getTime()));
+		insert.setTimestamp(1, this.time);
 		insert.setInt(2, this.server.getId());
 		insert.setInt(3, this.connectID);
 		insert.setString(4, "disconnect");
@@ -84,7 +78,6 @@ public class Disconnect implements dataTypes.Line {
 		result = prime * result + ((addr == null) ? 0 : addr.hashCode());
 		result = prime * result + code;
 		result = prime * result + connectID;
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
 		result = prime * result + ((time == null) ? 0 : time.hashCode());
@@ -114,13 +107,6 @@ public class Disconnect implements dataTypes.Line {
 			return false;
 		}
 		if (connectID != other.connectID) {
-			return false;
-		}
-		if (date == null) {
-			if (other.date != null) {
-				return false;
-			}
-		} else if (!date.equals(other.date)) {
 			return false;
 		}
 		if (rawLine == null) {

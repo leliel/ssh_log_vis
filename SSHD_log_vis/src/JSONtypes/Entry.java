@@ -10,10 +10,11 @@ public class Entry {
 	private final int subElemCount;
 	private int acceptedConn;
 	private int failedConn;
+	private int invalidAttempts;
 	private final Line elem;
-	
+
 	public Entry(Timestamp start, Timestamp end, String flags,
-			int subElemCount, int acceptedConn, int failedConn, Line elem) {
+			int subElemCount, int acceptedConn, int failedConn, int invalidAttempts, Line elem) {
 		super();
 		if (subElemCount != 0 && elem != null){
 			throw new IllegalArgumentException("elem only exists for singleton Entries");
@@ -24,13 +25,17 @@ public class Entry {
 		this.subElemCount = subElemCount;
 		this.acceptedConn = acceptedConn;
 		this.failedConn = failedConn;
+		this.invalidAttempts = invalidAttempts;
 		this.elem = elem;
 	}
-	
+
 	public Entry(int subElemCount, Line elem) {
 		super();
 		this.subElemCount = subElemCount;
 		this.elem = elem;
+		this.acceptedConn = 0;
+		this.failedConn = 0;
+		this.invalidAttempts = 0;
 	}
 
 
@@ -45,11 +50,11 @@ public class Entry {
 	public String getFlags() {
 		return flags;
 	}
-	
+
 	public void addFlag(String f){
 		this.flags += f;
 	}
-	
+
 	public boolean hasFlag(String f){
 		return this.flags.contains(f);
 	}
@@ -61,7 +66,7 @@ public class Entry {
 	public int getAcceptedConn() {
 		return acceptedConn;
 	}
-	
+
 	public void incAcceptedConn(){
 		this.acceptedConn++;
 	}
@@ -69,15 +74,23 @@ public class Entry {
 	public int getFailedConn() {
 		return failedConn;
 	}
-	
+
 	public void incFailedConn(){
 		this.failedConn++;
+	}
+
+	public void incInvalid() {
+		this.invalidAttempts++;
+	}
+
+	public int getInvalidAttempts() {
+		return invalidAttempts;
 	}
 
 	public Line getElem() {
 		return elem;
 	}
-	
+
 	public String toJSONString(){
 		String res = "";
 		//TODO complete Entry toJSON method.

@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Date;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -44,11 +45,9 @@ public class TestConnParsing {
 				"Apr 19 16:56:50 app-1 sshd[817]: Failed password for root from 122.102.64.54 port 56210 ssh2",
 				"Jan 28 11:52:05 server sshd[1003]: Accepted publickey for fred from 192.168.3.60 port 20042 ssh2" };
 		try {
-			new Date(d.parse("Apr 19").getTime());
 			Connect[] output = {
 					new Connect(
-							new Date(d.parse("Apr 19").getTime()),
-							new Time(t.parse("17:28:05").getTime()),
+							new Timestamp(t.parse("APR 19 17:28:05").getTime()),
 							new Server("app-1", ""),
 							950,
 							Status.ACCEPTED,

@@ -1,27 +1,23 @@
 package dataTypes;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 
 import enums.SubSystem;
 
 public class SubSystemReq implements dataTypes.Line {
-	private final Date date;
-	private final Time time;
+	private final Timestamp time;
 	private final Server server;
 	private final int connectID;
 	private final SubSystem system;
 	private final String rawLine;
 
-	public SubSystemReq(Date date, Time time, Server server, int connectID,
+	public SubSystemReq(Timestamp time, Server server, int connectID,
 			SubSystem system, String rawLine) {
 		super();
-		this.date = date;
 		this.time = time;
 		this.server = server;
 		this.connectID = connectID;
@@ -29,11 +25,7 @@ public class SubSystemReq implements dataTypes.Line {
 		this.rawLine = rawLine;
 	}
 
-	public Date getDate() {
-		return date;
-	}
-
-	public Time getTime() {
+	public Timestamp getTime() {
 		return time;
 	}
 
@@ -55,7 +47,7 @@ public class SubSystemReq implements dataTypes.Line {
 
 	@Override
 	public void writeToDB(PreparedStatement insert) throws SQLException {
-		insert.setTimestamp(1, new Timestamp(this.date.getTime() + this.time.getTime()));
+		insert.setTimestamp(1, this.time);
 		insert.setInt(2, this.server.getId());
 		insert.setInt(3, this.connectID);
 		insert.setString(4, "subsystem");
@@ -77,7 +69,6 @@ public class SubSystemReq implements dataTypes.Line {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + connectID;
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
 		result = prime * result + ((system == null) ? 0 : system.hashCode());
@@ -98,13 +89,6 @@ public class SubSystemReq implements dataTypes.Line {
 		}
 		SubSystemReq other = (SubSystemReq) obj;
 		if (connectID != other.connectID) {
-			return false;
-		}
-		if (date == null) {
-			if (other.date != null) {
-				return false;
-			}
-		} else if (!date.equals(other.date)) {
 			return false;
 		}
 		if (rawLine == null) {

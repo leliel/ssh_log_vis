@@ -1,14 +1,12 @@
 package request_handlers;
 
 import java.io.IOException;
-import java.sql.CallableStatement;
+import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Time;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -42,13 +40,13 @@ import enums.SubSystem;
 //@WebServlet(description = "gets sshd log entries in JSON format", urlPatterns = { "/GetEntries" })
 public class GetEntries extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	private static final String JSONMimeType = "application/json";
 
     /**
      * @see HttpServlet#HttpServlet()
      */
     public GetEntries() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
 	/**
@@ -73,14 +71,29 @@ public class GetEntries extends HttpServlet {
 
 			SimpleDateFormat formatter = new SimpleDateFormat("", Locale.ENGLISH);
 
-			CallableStatement state = connection.prepareCall("{call get_entries(?, ?, ?)}");
-			state.setTimestamp(1, new Timestamp(formatter.parse(request.getParameter("startDateTime")).getTime()));
-			state.setTimestamp(2, new Timestamp(formatter.parse(request.getParameter("endDateTime")).getTime()));
+			PreparedStatement state;
+
 
 			if (request.getParameter("serverName") != null){
-				state.setString(3, request.getParameter("serverName"));
+				state = connection.prepareStatement("SELECT entry.timestamp, entry.connid, entry.reqtype, " +
+						"entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, " +
+						"entry.isfreqtime, entry.isfreqloc, entry.rawline " +
+						"FROM entry LEFT JOIN server ON entry.server = server.id " +
+						"LEFT JOIN user ON entry.user = user.id " +
+						"WHERE server.name = ? AND" +
+						"entry.timestamp BETWEEN ? AND ?;");
+				state.setString(1, request.getParameter("serverName"));
+				state.setTimestamp(2, new Timestamp(formatter.parse(request.getParameter("startDateTime")).getTime()));
+				state.setTimestamp(3, new Timestamp(formatter.parse(request.getParameter("endDateTime")).getTime()));
 			} else {
-				state.setNull(3, Types.CHAR);
+				state = connection.prepareStatement("SELECT entry.timestamp, server.name as server, entry.connid, entry.reqtype, " +
+						"entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, " +
+						"entry.isfreqtime, entry.isfreqloc, entry.rawline " +
+						"FROM entry LEFT JOIN server ON entry.server = server.id " +
+						"LEFT JOIN user ON entry.user = user.id " +
+						"WHERE entry.timestamp BETWEEN ? AND ?;");
+				state.setTimestamp(1, new Timestamp(formatter.parse(request.getParameter("startDateTime")).getTime()));
+				state.setTimestamp(2, new Timestamp(formatter.parse(request.getParameter("endDateTime")).getTime()));
 			}
 			state.execute();
 
@@ -100,8 +113,14 @@ public class GetEntries extends HttpServlet {
 				}
 				lines.add(res);
 			}
+			/*done with database, cleanup*/
 			result.close();
 			state.close();
+			connection.close();
+			/*done with database, cleanup*/
+
+			response.setContentType(GetEntries.JSONMimeType);
+			PrintWriter w = response.getWriter();
 
 			if (Math.round(Math.sqrt(lines.size())) < Integer.parseInt(request.getParameter("maxBins"))){
 				bins = (int)Math.round(Math.sqrt(lines.size()));
@@ -111,29 +130,23 @@ public class GetEntries extends HttpServlet {
 			int elemPerBin = lines.size()/bins;
 			int count = 1;
 			Entry e = new Entry(elemPerBin, null);
-			Connect con;
-			Disconnect discon;
-			Invalid inv;
-			SubSystemReq subs;
-			Other other;
+
+			if (lines.size() == 1){
+				Line l = lines.get(0);
+				e = new Entry(l.getTime(), l.getTime(), null, 1, 0, 0, 0, l);
+				setFlags(l, e);
+				w.print(e.toJSONString());
+				//TODO finish sending response for single entry;
+			}
+
 			for (Line l : lines){
-				//TODO iterate through lines, building elems with flags.
-				if (l.getClass().equals(Connect.class)){
-					con = (Connect)l;
-					if (con.getStatus() == Status.ACCEPTED){
-						e.incAcceptedConn();
-					} else {
-						e.incFailedConn();
-					}
-					if (!con.isFreqLoc()){
-						e.addFlag(""); //TODO define flags for entry.
-					}
-				}
+				setFlags(l, e);
 				if (count%elemPerBin == 0){
 					entries.add(e);
 					e = new Entry(elemPerBin, null);
 				}
 			}
+
 
 
 		} catch (NamingException e) {
@@ -149,9 +162,48 @@ public class GetEntries extends HttpServlet {
 
 	}
 
+	private void setFlags(Line l, Entry e){
+		Connect con;
+		Disconnect discon;
+		Invalid inv;
+		SubSystemReq subs;
+		Other other;
+		if (l.getClass().equals(Connect.class)){
+			con = (Connect)l;
+			if (con.getStatus() == Status.ACCEPTED){
+				e.incAcceptedConn();
+			} else {
+				e.incFailedConn();
+				if (con.getUser().equals("root")){
+					e.addFlag("");
+				}
+			}
+			if (!con.isFreqLoc()){
+				e.addFlag(""); //TODO define flags for entry.
+			}
+			if (!con.isFreqTime()){
+				e.addFlag("");
+			}
+		} else if (l.getClass().equals(Disconnect.class)){
+			discon = (Disconnect)l;
+			//do we need to do anything here or are these mostly pointless at this level?
+		} else if (l.getClass().equals(Invalid.class)){
+			inv = (Invalid)l;
+			e.addFlag("");
+			e.incInvalid();
+		} else if (l.getClass().equals(Other.class)){
+			other = (Other)l;
+			if (other.getMessage().toLowerCase().startsWith("error")){
+				e.addFlag("");
+			}
+		} else {
+			subs = (SubSystemReq)l;
+			//do we actually need to do anything with this?
+		}
+	}
+
 	private Line loadOther(ResultSet result) throws SQLException {
-		Date date = result.getDate("timestamp");
-		Time time = result.getTime("timestamp");
+		Timestamp time = result.getTimestamp("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
 			s = new Server(null, null);
@@ -160,24 +212,22 @@ public class GetEntries extends HttpServlet {
 		}
 		String msg = result.getString("rawline");
 		msg = msg.substring(msg.indexOf("]:") + 2);
-		return new Other(date, time, s, result.getInt("connectid"), msg, result.getString("rawline"));
+		return new Other(time, s, result.getInt("connectid"), msg, result.getString("rawline"));
 	}
 
 	private Line loadInvalid(ResultSet result) throws SQLException {
-		Date date = result.getDate("timestamp");
-		Time time = result.getTime("timestamp");
+		Timestamp time = result.getTimestamp("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
 			s = new Server(null, null);
 		} else {
 			s = new Server(result.getString("server"), null);
 		}
-		return new Invalid(date, time, s, result.getInt("connectid"), result.getString("user"), result.getString("source"), result.getString("rawlwine"));
+		return new Invalid(time, s, result.getInt("connectid"), result.getString("user"), result.getString("source"), result.getString("rawlwine"));
 	}
 
 	private Line loadSubsystem(ResultSet result) throws SQLException {
-		Date date = result.getDate("timestamp");
-		Time time = result.getTime("timestamp");
+		Timestamp time = result.getTimestamp("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
 			s = new Server(null, null);
@@ -190,24 +240,22 @@ public class GetEntries extends HttpServlet {
 		} else {
 			sub = SubSystem.SCP;
 		}
-		return new SubSystemReq(date, time, s, result.getInt("connectid"), sub, result.getString("rawline"));
+		return new SubSystemReq(time, s, result.getInt("connectid"), sub, result.getString("rawline"));
 	}
 
 	private Line loadDisconnect(ResultSet result) throws SQLException {
-		Date date = result.getDate("timestamp");
-		Time time = result.getTime("timestamp");
+		Timestamp time = result.getTimestamp("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
 			s = new Server(null, null);
 		} else {
 			s = new Server(result.getString("server"), null);
 		}
-		return new Disconnect(date, time, s, result.getInt("connectid"), result.getInt("code"), result.getString("source"), result.getString("rawline"));
+		return new Disconnect(time, s, result.getInt("connectid"), result.getInt("code"), result.getString("source"), result.getString("rawline"));
 	}
 
 	private Line loadConnect(ResultSet result) throws SQLException {
-		Date date = result.getDate("timestamp");
-		Time time = result.getTime("timestamp");
+		Timestamp time = result.getTimestamp("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
 			s = new Server(null, null);
@@ -236,7 +284,7 @@ public class GetEntries extends HttpServlet {
 			status = Status.FAILED;
 		}
 
-		return new Connect(date, time, s, result.getInt("connectid"), status, auth, result.getString("user"), result.getString("source"), result.getInt("port"), result.getBoolean("isfreqtime"), result.getBoolean("isfreqloc"), result.getString("rawline"));
+		return new Connect(time, s, result.getInt("connectid"), status, auth, result.getString("user"), result.getString("source"), result.getInt("port"), result.getBoolean("isfreqtime"), result.getBoolean("isfreqloc"), result.getString("rawline"));
 	}
 
 }

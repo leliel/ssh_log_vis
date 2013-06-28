@@ -14,6 +14,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ import enums.SubSystem;
 //TODO refactor database connection.
 public class Parser {
 
-	private final static String url = "jdbc:mysql://localhost:3306/";
+	private final static String url = "jdbc:mysql://depot:3306/";
 	private final static String dbName = "leliel_engr489_2013";
 	private final static String userName = "leliel";
 	private final static String pass = "iBoo3Ang";
@@ -107,12 +108,9 @@ public class Parser {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+");
 
-		SimpleDateFormat format = new SimpleDateFormat("MMM:dd", Locale.ENGLISH);
-		Date date = new Date(format.parse(parts[idx++] + ":" + parts[idx++])
+		SimpleDateFormat format = new SimpleDateFormat("YYYY:MMM:dd HH:mm:ss", Locale.ENGLISH);
+		Timestamp time = new Timestamp(format.parse("2013:" + parts[idx++] + ":" + parts[idx++] + " " + parts[idx++])
 				.getTime());
-
-		format.applyPattern("HH:mm:ss");
-		Time time = new Time(format.parse(parts[idx++]).getTime());
 
 		Server s = getServer(parts[idx++]);
 
@@ -132,7 +130,7 @@ public class Parser {
 		String msg = line.substring(offset); // we're just gonna treat the bulk
 												// as a text for now.
 
-		return new Other(date, time, s, connectID, msg, line);
+		return new Other(time, s, connectID, msg, line);
 	}
 
 	private Line parseConn(String line) throws ParseException,
@@ -140,12 +138,9 @@ public class Parser {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+");
 
-		SimpleDateFormat format = new SimpleDateFormat("MMM:dd", Locale.ENGLISH);
-		Date date = new Date(format.parse(parts[idx++] + ":" + parts[idx++])
+		SimpleDateFormat format = new SimpleDateFormat("YYYY:MMM:dd HH:mm:ss", Locale.ENGLISH);
+		Timestamp time = new Timestamp(format.parse("2013:" + parts[idx++] + ":" + parts[idx++] + " " + parts[idx++])
 				.getTime());
-
-		format.applyPattern("HH:mm:ss");
-		Time time = new Time(format.parse(parts[idx++]).getTime());
 
 		Server s = getServer(parts[idx++]);
 
@@ -206,7 +201,7 @@ public class Parser {
 													// java doesn't have
 													// unsigned. why?
 
-		return new Connect(date, new Time(time.getTime()), s, connectID,
+		return new Connect(time, s, connectID,
 				status, auth, user, address, port, line);
 	}
 
@@ -215,12 +210,9 @@ public class Parser {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+");
 
-		SimpleDateFormat format = new SimpleDateFormat("MMM:dd", Locale.ENGLISH);
-		Date date = new Date(format.parse(parts[idx++] + ":" + parts[idx++])
+		SimpleDateFormat format = new SimpleDateFormat("YYYY:MMM:dd HH:mm:ss", Locale.ENGLISH);
+		Timestamp time = new Timestamp(format.parse("2013:" + parts[idx++] + ":" + parts[idx++] + " " + parts[idx++])
 				.getTime());
-
-		format.applyPattern("HH:mm:ss");
-		Time time = new Time(format.parse(parts[idx++]).getTime());
 
 		Server s = getServer(parts[idx++]);
 
@@ -246,7 +238,7 @@ public class Parser {
 
 		InetAddress addr = anonymiseIP(InetAddress.getByName(parts[idx]));
 
-		return new Invalid(date, time, s, connectID, user, addr, line);
+		return new Invalid(time, s, connectID, user, addr, line);
 	}
 
 	private Line parseDiscon(String line) throws ParseException,
@@ -254,12 +246,9 @@ public class Parser {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+");
 
-		SimpleDateFormat format = new SimpleDateFormat("MMM:dd", Locale.ENGLISH);
-		Date date = new Date(format.parse(parts[idx++] + ":" + parts[idx++])
+		SimpleDateFormat format = new SimpleDateFormat("YYYY:MMM:dd HH:mm:ss", Locale.ENGLISH);
+		Timestamp time = new Timestamp(format.parse("2013:" + parts[idx++] + ":" + parts[idx++] + " " + parts[idx++])
 				.getTime());
-
-		format.applyPattern("HH:mm:ss");
-		Time time = new Time(format.parse(parts[idx++]).getTime());
 
 		Server s = getServer(parts[idx++]);
 
@@ -286,19 +275,16 @@ public class Parser {
 																	// before
 																	// parsing
 
-		return new Disconnect(date, time, s, connectID, code, addr, line);
+		return new Disconnect(time, s, connectID, code, addr, line);
 	}
 
 	private Line parseSubsystem(String line) throws ParseException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+");
 
-		SimpleDateFormat format = new SimpleDateFormat("MMM:dd", Locale.ENGLISH);
-		Date date = new Date(format.parse(parts[idx++] + ":" + parts[idx++])
+		SimpleDateFormat format = new SimpleDateFormat("YYYY:MMM:dd HH:mm:ss", Locale.ENGLISH);
+		Timestamp time = new Timestamp(format.parse("2013:" + parts[idx++] + ":" + parts[idx++] + " " + parts[idx++])
 				.getTime());
-
-		format.applyPattern("HH:mm:ss");
-		Time time = new Time(format.parse(parts[idx++]).getTime());
 
 		Server s = getServer(parts[idx++]);
 
@@ -323,7 +309,7 @@ public class Parser {
 			throw new ParseException(
 					"unrecognised subsystem in subsystem request", 0);
 
-		return new SubSystemReq(date, time, s, connectID, sys, line);
+		return new SubSystemReq(time, s, connectID, sys, line);
 	}
 
 	private Server getServer(String name) {

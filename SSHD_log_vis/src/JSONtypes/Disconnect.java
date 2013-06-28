@@ -1,21 +1,18 @@
 package JSONtypes;
 
-import java.sql.Date;
-import java.sql.Time;
+import java.sql.Timestamp;
 
 public class Disconnect implements JSONtypes.Line {
-	private final Date date;
-	private final Time time;
+	private final Timestamp time;
 	private final Server server;
 	private final int connectID;
 	private final int code;
 	private final String addr;
 	private final String rawLine;
 
-	public Disconnect(Date date, Time time, Server server,
+	public Disconnect(Timestamp time, Server server,
 			int connectID, int code, String addr2, String rawLine) {
 		super();
-		this.date = date;
 		this.time = time;
 		this.server = server;
 		this.connectID = connectID;
@@ -24,11 +21,7 @@ public class Disconnect implements JSONtypes.Line {
 		this.rawLine = rawLine;
 	}
 
-	public Date getDate() {
-		return date;
-	}
-
-	public Time getTime() {
+	public Timestamp getTime() {
 		return time;
 	}
 
@@ -59,7 +52,6 @@ public class Disconnect implements JSONtypes.Line {
 		result = prime * result + ((addr == null) ? 0 : addr.hashCode());
 		result = prime * result + code;
 		result = prime * result + connectID;
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
 		result = prime * result + ((time == null) ? 0 : time.hashCode());
@@ -89,13 +81,6 @@ public class Disconnect implements JSONtypes.Line {
 			return false;
 		}
 		if (connectID != other.connectID) {
-			return false;
-		}
-		if (date == null) {
-			if (other.date != null) {
-				return false;
-			}
-		} else if (!date.equals(other.date)) {
 			return false;
 		}
 		if (rawLine == null) {
