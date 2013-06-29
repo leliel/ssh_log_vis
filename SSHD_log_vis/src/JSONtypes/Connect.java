@@ -16,13 +16,13 @@ public class Connect implements JSONtypes.Line {
 	private final String user;
 	private final String source;
 	private final int port;
-	private final boolean freqTime;
-	private final boolean freqLoc;
+	private final long freqTime;
+	private final int freqLoc;
 	private final String rawLine;
 
 	public Connect(Timestamp time, Server server, int connectID,
 			Status status, AuthType type, String user, String address, int port,
-			boolean freqTime, boolean freqLoc, String rawLine) {
+			long freqTime, int freqLoc, String rawLine) {
 		super();
 		this.time = time;
 		this.server = server;
@@ -69,11 +69,11 @@ public class Connect implements JSONtypes.Line {
 		return port;
 	}
 
-	public boolean isFreqTime() {
+	public long getFreqTime() {
 		return freqTime;
 	}
 
-	public boolean isFreqLoc() {
+	public int getFreqLoc() {
 		return freqLoc;
 	}
 
@@ -81,14 +81,13 @@ public class Connect implements JSONtypes.Line {
 		return rawLine;
 	}
 
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + connectID;
-		result = prime * result + (freqLoc ? 1231 : 1237);
-		result = prime * result + (freqTime ? 1231 : 1237);
+		result = prime * result + freqLoc;
+		result = prime * result + (int) (freqTime ^ (freqTime >>> 32));
 		result = prime * result + port;
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
@@ -155,7 +154,7 @@ public class Connect implements JSONtypes.Line {
 		} else if (!time.equals(other.time)) {
 			return false;
 		}
-		if (type != other.type) {
+		if (type != other.type) {				
 			return false;
 		}
 		if (user == null) {

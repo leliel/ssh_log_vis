@@ -1,5 +1,6 @@
 package dataTypes;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -58,8 +59,8 @@ public class SubSystemReq implements dataTypes.Line {
 		insert.setNull(9, Types.INTEGER);
 		insert.setString(10, this.system.toString().toLowerCase());
 		insert.setNull(11, Types.INTEGER);
-		insert.setNull(12, Types.BOOLEAN);
-		insert.setNull(13, Types.BOOLEAN);
+		insert.setNull(12, Types.INTEGER);
+		insert.setNull(13, Types.INTEGER);
 		insert.setString(14, this.rawLine);
 		insert.addBatch();
 	}
@@ -119,7 +120,7 @@ public class SubSystemReq implements dataTypes.Line {
 	}
 
 	@Override
-	public void writeLoc(Connection conn) throws SQLException {
+	public void writeLoc(CallableStatement freq_loc_add, PreparedStatement geoIP, PreparedStatement lookup) throws SQLException {
 		return; //nothing to do
 	}
 

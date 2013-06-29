@@ -9,11 +9,9 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -40,10 +38,10 @@ import enums.SubSystem;
 //TODO refactor database connection.
 public class Parser {
 
-	private final static String url = "jdbc:mysql://depot:3306/";
-	private final static String dbName = "leliel_engr489_2013";
-	private final static String userName = "leliel";
-	private final static String pass = "iBoo3Ang";
+	private final static String url = Messages.getString("Parser.dbLoc"); //$NON-NLS-1$
+	private final static String dbName = Messages.getString("Parser.dbName"); //$NON-NLS-1$
+	private final static String userName = Messages.getString("Parser.dbUser"); //$NON-NLS-1$
+	private final static String pass = Messages.getString("Parser.dbPass"); //$NON-NLS-1$
 
 	private Map<String, User> users;
 	private Map<InetAddress, InetAddress> addresses;
@@ -90,15 +88,15 @@ public class Parser {
 
 	public Line parseLine(String line) throws ParseException,
 			UnknownHostException {
-		if (line.contains("subsystem")) {
+		if (line.contains("subsystem")) { //$NON-NLS-1$
 			return parseSubsystem(line);
-		} else if (line.contains("disconnect")) {
+		} else if (line.contains("disconnect")) { //$NON-NLS-1$
 			return parseDiscon(line);
-		} else if (line.contains("Accept") || line.contains("Fail")) {
+		} else if (line.contains("Accept") || line.contains("Fail")) { //$NON-NLS-1$ //$NON-NLS-2$
 			return parseConn(line);
-		} else if (line.contains("Invalid")) {
+		} else if (line.contains("Invalid")) { //$NON-NLS-1$
 			return parseInvalid(line);
-		} else if (line.contains("Server") || line.contains("error")) {
+		} else if (line.contains("Server") || line.contains("error")) { //$NON-NLS-1$ //$NON-NLS-2$
 			return parseOther(line);
 		} else
 			return null;
@@ -106,20 +104,20 @@ public class Parser {
 
 	private Line parseOther(String line) throws ParseException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split("\\s+");
+		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat("YYYY:MMM:dd HH:mm:ss", Locale.ENGLISH);
-		Timestamp time = new Timestamp(format.parse("2013:" + parts[idx++] + ":" + parts[idx++] + " " + parts[idx++])
+		SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
+		Timestamp time = new Timestamp(format.parse(Messages.getString("Parser.Year") +Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				.getTime());
 
 		Server s = getServer(parts[idx++]);
 
-		String service = parts[idx].substring(0, parts[idx].indexOf("["));
-		if (!"sshd".equals(service)) {
-			throw new ParseException("invalid daemon", 0);
+		String service = parts[idx].substring(0, parts[idx].indexOf("[")); //$NON-NLS-1$
+		if (!"sshd".equals(service)) { //$NON-NLS-1$
+			throw new ParseException("invalid daemon", 0); //$NON-NLS-1$
 		}
-		String temp = parts[idx].substring(1 + parts[idx].indexOf("["),
-				parts[idx++].indexOf("]"));
+		String temp = parts[idx].substring(1 + parts[idx].indexOf("["), //$NON-NLS-1$
+				parts[idx++].indexOf("]")); //$NON-NLS-1$
 		int connectID = Integer.parseInt(temp);
 
 		int offset = 5; // spaces
@@ -136,55 +134,55 @@ public class Parser {
 	private Line parseConn(String line) throws ParseException,
 			UnknownHostException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split("\\s+");
+		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat("YYYY:MMM:dd HH:mm:ss", Locale.ENGLISH);
-		Timestamp time = new Timestamp(format.parse("2013:" + parts[idx++] + ":" + parts[idx++] + " " + parts[idx++])
+		SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
+		Timestamp time = new Timestamp(format.parse(Messages.getString("Parser.Year") +Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				.getTime());
 
 		Server s = getServer(parts[idx++]);
 
-		String service = parts[idx].substring(0, parts[idx].indexOf("["));
-		if (!"sshd".equals(service)) {
-			throw new ParseException("invalid daemon", 0);
+		String service = parts[idx].substring(0, parts[idx].indexOf("[")); //$NON-NLS-1$
+		if (!"sshd".equals(service)) { //$NON-NLS-1$
+			throw new ParseException("invalid daemon", 0); //$NON-NLS-1$
 		}
-		String temp = parts[idx].substring(1 + parts[idx].indexOf("["),
-				parts[idx++].indexOf("]"));
+		String temp = parts[idx].substring(1 + parts[idx].indexOf("["), //$NON-NLS-1$
+				parts[idx++].indexOf("]")); //$NON-NLS-1$
 		int connectID = Integer.parseInt(temp);
 
 		Status status;
-		if (parts[idx].equals("Accepted")) {
+		if (parts[idx].equals("Accepted")) { //$NON-NLS-1$
 			status = Status.ACCEPTED;
 			idx++;
-		} else if (parts[idx].equals("Failed")) {
+		} else if (parts[idx].equals("Failed")) { //$NON-NLS-1$
 			status = Status.FAILED;
 			idx++;
 		} else
-			throw new ParseException("Illegal status for connection attempt", 0);
+			throw new ParseException("Illegal status for connection attempt", 0); //$NON-NLS-1$
 
 		AuthType auth;
-		if (parts[idx].equalsIgnoreCase("password")) {
+		if (parts[idx].equalsIgnoreCase("password")) { //$NON-NLS-1$
 			auth = AuthType.PASS;
 			idx++;
-		} else if (parts[idx].equalsIgnoreCase("host")) {
+		} else if (parts[idx].equalsIgnoreCase("host")) { //$NON-NLS-1$
 			auth = AuthType.HOST;
 			idx += 2;
-		} else if (parts[idx].equalsIgnoreCase("publickey")) {
+		} else if (parts[idx].equalsIgnoreCase("publickey")) { //$NON-NLS-1$
 			auth = AuthType.KEY;
 			idx++;
-		} else if (parts[idx].startsWith("gssapi-")) {
+		} else if (parts[idx].startsWith("gssapi-")) { //$NON-NLS-1$
 			auth = AuthType.GSSAPI;
 			idx++;
-		} else if (parts[idx].equalsIgnoreCase("none")) {
+		} else if (parts[idx].equalsIgnoreCase("none")) { //$NON-NLS-1$
 			auth = AuthType.NONE;
 			idx++;
 		} else
-			throw new ParseException("Illegal authentication method string", 0);
+			throw new ParseException("Illegal authentication method string", 0); //$NON-NLS-1$
 
 		idx++; // there's a constant string here, just skip over it.
 
 		User user;
-		if (parts[idx].equals("invalid")) {
+		if (parts[idx].equals("invalid")) { //$NON-NLS-1$
 			idx += 2; // skip over the word user, it's a constant string.
 			user = getUser(parts[idx++]);
 		} else { // User must be valid, so parts[idx] is a username.
@@ -208,30 +206,30 @@ public class Parser {
 	private Line parseInvalid(String line) throws ParseException,
 			UnknownHostException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split("\\s+");
+		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat("YYYY:MMM:dd HH:mm:ss", Locale.ENGLISH);
-		Timestamp time = new Timestamp(format.parse("2013:" + parts[idx++] + ":" + parts[idx++] + " " + parts[idx++])
+		SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
+		Timestamp time = new Timestamp(format.parse(Messages.getString("Parser.Year") +Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				.getTime());
-
+		
 		Server s = getServer(parts[idx++]);
 
-		String service = parts[idx].substring(0, parts[idx].indexOf("["));
+		String service = parts[idx].substring(0, parts[idx].indexOf("[")); //$NON-NLS-1$
 		int connectID;
-		if (!"sshd".equals(service)) {
-			throw new ParseException("invalid daemon", 0);
+		if (!"sshd".equals(service)) { //$NON-NLS-1$
+			throw new ParseException("invalid daemon", 0); //$NON-NLS-1$
 		} else {
-			String temp = parts[idx].substring(1 + parts[idx].indexOf("["),
-					parts[idx++].indexOf("]"));
+			String temp = parts[idx].substring(1 + parts[idx].indexOf("["), //$NON-NLS-1$
+					parts[idx++].indexOf("]")); //$NON-NLS-1$
 			connectID = Integer.parseInt(temp);
 		}
 
 		User user;
-		if (parts[idx].equalsIgnoreCase("Invalid")) {
+		if (parts[idx].equalsIgnoreCase("Invalid")) { //$NON-NLS-1$
 			idx += 2;
 			user = getUser(parts[idx++]);
 		} else {
-			throw new ParseException("user is not invalid", 0);
+			throw new ParseException("user is not invalid", 0); //$NON-NLS-1$
 		}
 
 		idx++; // constant string, skip past it.
@@ -244,32 +242,32 @@ public class Parser {
 	private Line parseDiscon(String line) throws ParseException,
 			UnknownHostException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split("\\s+");
+		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat("YYYY:MMM:dd HH:mm:ss", Locale.ENGLISH);
-		Timestamp time = new Timestamp(format.parse("2013:" + parts[idx++] + ":" + parts[idx++] + " " + parts[idx++])
+		SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
+		Timestamp time = new Timestamp(format.parse(Messages.getString("Parser.Year") +Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				.getTime());
 
 		Server s = getServer(parts[idx++]);
 
-		String service = parts[idx].substring(0, parts[idx].indexOf("["));
+		String service = parts[idx].substring(0, parts[idx].indexOf("[")); //$NON-NLS-1$
 		int connectID;
-		if (!"sshd".equals(service)) {
-			throw new ParseException("invalid daemon", 0);
+		if (!"sshd".equals(service)) { //$NON-NLS-1$
+			throw new ParseException("invalid daemon", 0); //$NON-NLS-1$
 		} else {
 			connectID = Integer.parseInt(parts[idx].substring(
-					1 + parts[idx].indexOf("["), parts[idx++].indexOf("]")));
+					1 + parts[idx].indexOf("["), parts[idx++].indexOf("]"))); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		idx += 3; // constant words "recieved disconnect from", skipping
 
 		InetAddress addr = anonymiseIP(InetAddress.getByName((parts[idx++]
-				.replace(":", "")))); // strip
+				.replace(":", "")))); // strip //$NON-NLS-1$ //$NON-NLS-2$
 		// trailing
 		// colon
 		// before
 		// parsing
-		int code = Integer.parseInt(parts[idx].replace(":", "")); // strip
+		int code = Integer.parseInt(parts[idx].replace(":", "")); // strip //$NON-NLS-1$ //$NON-NLS-2$
 																	// trailing
 																	// colon
 																	// before
@@ -280,34 +278,34 @@ public class Parser {
 
 	private Line parseSubsystem(String line) throws ParseException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split("\\s+");
+		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat("YYYY:MMM:dd HH:mm:ss", Locale.ENGLISH);
-		Timestamp time = new Timestamp(format.parse("2013:" + parts[idx++] + ":" + parts[idx++] + " " + parts[idx++])
+		SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
+		Timestamp time = new Timestamp(format.parse(Messages.getString("Parser.Year") +Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				.getTime());
-
+		
 		Server s = getServer(parts[idx++]);
 
-		String service = parts[idx].substring(0, parts[idx].indexOf("["));
+		String service = parts[idx].substring(0, parts[idx].indexOf("[")); //$NON-NLS-1$
 		int connectID;
-		if (!"sshd".equals(service)) {
-			throw new ParseException("invalid daemon", 0);
+		if (!"sshd".equals(service)) { //$NON-NLS-1$
+			throw new ParseException("invalid daemon", 0); //$NON-NLS-1$
 		} else {
 			connectID = Integer.parseInt(parts[idx].substring(
-					1 + parts[idx].indexOf("["), parts[idx++].indexOf("]")));
+					1 + parts[idx].indexOf("["), parts[idx++].indexOf("]"))); //$NON-NLS-1$ //$NON-NLS-2$
 			idx++;
 		}
 
 		idx += 2; // skip constant string "subsystem request for"
 
 		SubSystem sys;
-		if (parts[idx].equals("sftp")) {
+		if (parts[idx].equals("sftp")) { //$NON-NLS-1$
 			sys = SubSystem.SFTP;
-		} else if (parts[idx].equals("scp")) {
+		} else if (parts[idx].equals("scp")) { //$NON-NLS-1$
 			sys = SubSystem.SCP;
 		} else
 			throw new ParseException(
-					"unrecognised subsystem in subsystem request", 0);
+					"unrecognised subsystem in subsystem request", 0); //$NON-NLS-1$
 
 		return new SubSystemReq(time, s, connectID, sys, line);
 	}
@@ -316,7 +314,7 @@ public class Parser {
 		if (servers.containsKey(name)) {
 			return servers.get(name);
 		} else {
-			Server s = new Server(name, "");
+			Server s = new Server(name, ""); //$NON-NLS-1$
 			servers.put(name, s);
 			return s;
 		}
@@ -350,25 +348,40 @@ public class Parser {
 		try {
 			Connection conn = DriverManager.getConnection(url + dbName,
 					userName, pass);
+			conn.setAutoCommit(false);
 
 			writeUsersToDB(conn); // ensures users updated with ID's
+			conn.commit();
 			writeServersToDB(conn); // ensures users updated with ID's
-
+			conn.commit();
+			//inserts a line into the database.
 			PreparedStatement insertLine = conn
-					.prepareStatement("INSERT INTO entry VALUES("
-							+ "DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,? ,? ,?, ?)");
+					.prepareStatement("INSERT INTO entry VALUES(" //$NON-NLS-1$
+							+ "DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,? ,? ,?, ?)"); //$NON-NLS-1$
+			
+			//find a single location record matching the source.
+			PreparedStatement geoIp = conn.prepareStatement("SELECT geo.locId FROM geo LEFT JOIN " +
+					"ip ON geo.locId=ip.locId WHERE MBRCONTAINS(ip.ip_poly, POINTFROMWKB(POINT(INET_ATON(?), 0)))"); //where are we?
+			
+			//find out how many times we've logged in from this location before
+			PreparedStatement freq_loc_query = conn.prepareStatement("SELECT id, count FROM freq_loc WHERE freq_loc.user=? AND freq_loc.locId=?"); 
+			
+			//updates freq_loc entries, incrementing count if exists, or creating new entry.
+			CallableStatement freq_loc_add = conn.prepareCall("{call freq_loc_add(?, ?, ?, ?)}"); //update freq_loc entry, increments if there's a matching one.
 			for (int i = 0; i < lines.size(); i++) {
 				//writing location/time also tests if entry prompting write counts as frequent.
-				lines.get(i).writeLoc(conn); //must be written before entries are written to db.
+				lines.get(i).writeLoc(freq_loc_add, geoIp, freq_loc_query); //must be written before entries are written to db.
 				// lines.get(i).writeTime(conn);
 				lines.get(i).writeToDB(insertLine);
 				if ((i % 1000) == 0) { // write it out every thousand lines,
 										// just to be sure it all writes.
 					insertLine.executeBatch();
-					System.out.printf("inserted %d lines\n", i);
+					conn.commit();
+					System.out.printf("inserted %d lines\n", i); //$NON-NLS-1$
 				}
 			}
 			insertLine.executeBatch(); // flush what's left.
+			conn.commit();
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -376,7 +389,7 @@ public class Parser {
 	}
 
 	private void writeUsersToDB(Connection conn) throws SQLException {
-		CallableStatement s = conn.prepareCall("{call insert_user(?, ?)}");
+		CallableStatement s = conn.prepareCall("{call insert_user(?, ?)}"); //$NON-NLS-1$
 		for (Entry<String, User> u : this.users.entrySet()) {
 			u.getValue().writeToDB(s);
 		}
@@ -384,7 +397,7 @@ public class Parser {
 
 	private void writeServersToDB(Connection conn) throws SQLException {
 		CallableStatement serve = conn
-				.prepareCall("{call insert_server(?, ?)}");
+				.prepareCall("{call insert_server(?, ?)}"); //$NON-NLS-1$
 		for (Server s : this.servers.values()) {
 			s.writeToDB(serve);
 		}
@@ -392,9 +405,9 @@ public class Parser {
 
 	public static void main(String[] args) {
 		if (args.length == 0) {
-			System.out.print("Logfile parser and database loader for SSHDVis");
+			System.out.print(Messages.getString("Parser.Usage1")); //$NON-NLS-1$
 			System.out
-					.print("Usage: commandline arguments should be a space seperated list of filenames, full paths allowable.");
+					.print(Messages.getString("Parser.Usage2")); //$NON-NLS-1$
 			System.exit(0);
 		} else {
 			Parser p = new Parser(false);

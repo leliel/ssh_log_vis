@@ -4,8 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.net.UnknownHostException;
-import java.sql.Date;
-import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -22,7 +21,7 @@ import enums.SubSystem;
 
 public class TestSubParsing {
 	private Parser p;
-	private SimpleDateFormat d, t;
+	private SimpleDateFormat t;
 
 	@Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -30,8 +29,7 @@ public class TestSubParsing {
 	@Before
 	public void setUp() {
 		p = new Parser(true);
-		d = new SimpleDateFormat("MMM dd", Locale.ENGLISH);
-		t = new SimpleDateFormat("HH:mm:ss");
+		t = new SimpleDateFormat("YYYY MMM dd HH:mm:ss", Locale.ENGLISH);
 	}
 
 	@Test
@@ -42,15 +40,13 @@ public class TestSubParsing {
 		try {
 			SubSystemReq[] output = {
 					new SubSystemReq(
-							new Date(d.parse("Jan 28").getTime()),
-							new Time(t.parse("11:43:11").getTime()),
+							new Timestamp(t.parse("2013 Jan 28 11:43:11").getTime()),
 							new Server("server", ""),
 							9813,
 							SubSystem.SFTP,
 							"Jan 28 11:43:11 server sshd[9813]: subsystem request for sftp"),
 					new SubSystemReq(
-							new Date(d.parse("Apr 20").getTime()),
-							new Time(t.parse("12:02:49").getTime()),
+							new Timestamp(t.parse("2013 Apr 20 12:02:49").getTime()),
 							new Server("app-1", ""),
 							30800,
 							SubSystem.SCP,

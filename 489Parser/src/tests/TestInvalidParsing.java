@@ -5,8 +5,7 @@ import static org.junit.Assert.fail;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.sql.Date;
-import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -24,7 +23,7 @@ import dataTypes.User;
 public class TestInvalidParsing {
 
 	private Parser p;
-	private SimpleDateFormat d, t;
+	private SimpleDateFormat t;
 
 	@Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -32,8 +31,7 @@ public class TestInvalidParsing {
 	@Before
 	public void setUp() {
 		p = new Parser(true);
-		d = new SimpleDateFormat("MMM dd", Locale.ENGLISH);
-		t = new SimpleDateFormat("HH:mm:ss");
+		t = new SimpleDateFormat("YYYY MMM dd HH:mm:ss", Locale.ENGLISH);
 	}
 
 	@Test
@@ -42,8 +40,7 @@ public class TestInvalidParsing {
 		try {
 			Invalid output =
 					new Invalid(
-							new Date(d.parse("Apr 19").getTime()),
-							new Time(t.parse("04:36:49").getTime()),
+							new Timestamp(t.parse("2013 Apr 19 04:36:49").getTime()),
 							new Server("app-1", ""),
 							6990,
 							new User("user1"),

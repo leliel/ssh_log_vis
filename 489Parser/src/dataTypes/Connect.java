@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -13,7 +14,8 @@ import enums.AuthType;
 import enums.Status;
 
 public class Connect implements dataTypes.Line {
-	private static final int frequency = 5; //how often do we have to login somewhere before it's frequent?
+	private static final int frequency = 5; // how often do we have to login
+											// somewhere before it's frequent?
 
 	private final Timestamp time;
 	private final Server server;
@@ -24,10 +26,11 @@ public class Connect implements dataTypes.Line {
 	private final InetAddress source;
 	private final int port;
 	private final String rawLine;
-	private boolean isFreqLoc;
+	private int isFreqLoc;
+	private long isFreqTime;
 
-	public Connect(Timestamp time, Server server, int connectID,
-			Status status, AuthType type, User user, InetAddress address, int port,
+	public Connect(Timestamp time, Server server, int connectID, Status status,
+			AuthType type, User user, InetAddress address, int port,
 			String rawLine) {
 		super();
 		this.time = time;
@@ -90,32 +93,56 @@ public class Connect implements dataTypes.Line {
 		insert.setInt(9, this.port);
 		insert.setNull(10, Types.CHAR);
 		insert.setNull(11, Types.INTEGER);
-		insert.setBoolean(12, false);
-		insert.setBoolean(13, this.isFreqLoc);
+		insert.setNull(12, Types.INTEGER);
+		insert.setInt(13, this.isFreqLoc);
 		insert.setString(14, this.rawLine);
 		insert.addBatch();
 	}
 
 	@Override
-	public void writeLoc(Connection conn) throws SQLException {
-		if (this.status == Status.ACCEPTED) { // don't record locations for failed logins
-			CallableStatement s = conn.prepareCall("{call freq_loc_add(?, ?, ?)}");
-			int loc = GeoLocator.getLocFromIp(this.source, conn);
-			if (loc != -1) {
-				s.setInt(1, this.user.getId());
-				s.setInt(2, loc);
-				s.registerOutParameter(3, Types.INTEGER);
-				s.execute();
-				int count = s.getInt(3);
-				if (count >= Connect.frequency){
-					this.isFreqLoc = true;
+	public void writeLoc(CallableStatement freq_loc_add,
+			PreparedStatement geoIP, PreparedStatement lookup)
+			throws SQLException {
+		int loc = GeoLocator.getLocFromIp(this.source, geoIP);
+		if (loc != -1) { //do we even have a valid location?
+			if (this.status == Status.ACCEPTED) { // don't record locations for
+													// failed logins
+				freq_loc_add.setInt(1, this.user.getId());
+				freq_loc_add.setInt(2, loc);
+				freq_loc_add.registerOutParameter(3, Types.INTEGER);
+				freq_loc_add.registerOutParameter(4, Types.INTEGER);
+				freq_loc_add.execute();
+				int count = freq_loc_add.getInt(3);
+				if (count >= Connect.frequency) {
+					this.isFreqLoc = freq_loc_add.getInt(4);
 				} else {
-					this.isFreqLoc = false;
+					this.isFreqLoc = -1;
 				}
 				return;
-			} else {
-				System.out.println("Unknown location for ip: " + this.source.getHostAddress() +  "user: " + this.user.getName());
+			} else { // it's failed, don't record, just lookup
+				lookup.setInt(1, this.user.getId());
+				lookup.setInt(2, loc);
+				ResultSet rs = lookup.executeQuery();
+				if (!rs.first()) {
+					rs.close();
+					this.isFreqLoc = -1;
+					return;
+				} else {
+					int count = rs.getInt("count");
+					rs.close();
+					if (count >= Connect.frequency) {
+						this.isFreqLoc = rs.getInt("id");
+						return;
+					} else {
+						this.isFreqLoc = -1;
+						return;
+					}
+				}
 			}
+		} else {
+			System.out.println("Unknown location for ip: "
+					+ this.source.getHostAddress() + "user: "
+					+ this.user.getName());
 		}
 	}
 
