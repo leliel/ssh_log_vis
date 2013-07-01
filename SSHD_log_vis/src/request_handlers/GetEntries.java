@@ -22,6 +22,8 @@ import data_source_interface.Mysql_Datasource;
 import data_source_interface.SSHD_log_vis_datasource;
 import enums.Status;
 
+
+
 /**
  * Servlet implementation class GetEntries
  */
@@ -53,7 +55,6 @@ public class GetEntries extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub\
 		int bins;
 		List<Line> lines = new ArrayList<Line>();
 		List<Entry> entries = new ArrayList<Entry>();

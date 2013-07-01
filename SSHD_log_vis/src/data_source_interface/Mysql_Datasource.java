@@ -51,56 +51,75 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 		}
 		List<Line> lines = null;
 		Context context = null;
+		Connection connection = null;
+		PreparedStatement state = null;
+		ResultSet result = null;
 		try {
 			context = new InitialContext();
 
-			try (Connection connection = ((DataSource) context
+			connection = ((DataSource) context
 					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
-					PreparedStatement state = connection
-							.prepareStatement(query);) {
+			state = connection.prepareStatement(query);
 
-				SimpleDateFormat formatter = new SimpleDateFormat("",
-						Locale.ENGLISH);
-				if (serverName != null) {
-					state.setString(1, serverName);
-					state.setTimestamp(2,
-							new Timestamp(formatter.parse(startTime).getTime()));
-					state.setTimestamp(3, new Timestamp(formatter
-							.parse(endTime).getTime()));
-				} else {
-					state.setTimestamp(1,
-							new Timestamp(formatter.parse(startTime).getTime()));
-					state.setTimestamp(2, new Timestamp(formatter
-							.parse(endTime).getTime()));
-				}
-				state.execute();
-				try (ResultSet result = state.getResultSet()) {
-					lines = new ArrayList<Line>();
-					Line res;
-					while (result.next()) {
-						if (result.getString("entry.reqtype") == "connect") {
-							res = loadConnect(result);
-						} else if (result.getString("entry.reqtype") == "disconnect") {
-							res = loadDisconnect(result);
-						} else if (result.getString("entry.reqtype") == "subsystem") {
-							res = loadSubsystem(result);
-						} else if (result.getString("entry.reqtype") == "invalid") {
-							res = loadInvalid(result);
-						} else {
-							res = loadOther(result);
-						}
-						lines.add(res);
-					}
-				}
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			SimpleDateFormat formatter = new SimpleDateFormat("",
+					Locale.ENGLISH);
+			if (serverName != null) {
+				state.setString(1, serverName);
+				state.setTimestamp(2, new Timestamp(formatter.parse(startTime)
+						.getTime()));
+				state.setTimestamp(3, new Timestamp(formatter.parse(endTime)
+						.getTime()));
+			} else {
+				state.setTimestamp(1, new Timestamp(formatter.parse(startTime)
+						.getTime()));
+				state.setTimestamp(2, new Timestamp(formatter.parse(endTime)
+						.getTime()));
 			}
+			state.execute();
+			result = state.getResultSet();
+			lines = new ArrayList<Line>();
+			Line res;
+			while (result.next()) {
+				if (result.getString("entry.reqtype") == "connect") {
+					res = loadConnect(result);
+				} else if (result.getString("entry.reqtype") == "disconnect") {
+					res = loadDisconnect(result);
+				} else if (result.getString("entry.reqtype") == "subsystem") {
+					res = loadSubsystem(result);
+				} else if (result.getString("entry.reqtype") == "invalid") {
+					res = loadInvalid(result);
+				} else {
+					res = loadOther(result);
+				}
+				lines.add(res);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} catch (NamingException e1) {
 			e1.printStackTrace();
+		} finally {
+			try {
+				if (result != null) {
+					result.close();
+				}
+				if (state != null) {
+					state.close();
+				}
+				if (connection != null) {
+					connection.close();
+				}
+				if (context != null) {
+					context.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (NamingException e) {
+				e.printStackTrace();
+			}
 		}
 		return lines;
 	}
