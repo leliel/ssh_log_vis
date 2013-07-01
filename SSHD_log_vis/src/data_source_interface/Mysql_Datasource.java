@@ -61,6 +61,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
 			state = connection.prepareStatement(query);
 
+			//TODO fix date format
 			SimpleDateFormat formatter = new SimpleDateFormat("",
 					Locale.ENGLISH);
 			if (serverName != null) {
