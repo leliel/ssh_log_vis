@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.5.31, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 5.5.32, for Linux (x86_64)
 --
 -- Host: localhost    Database: leliel_engr489_2013
 -- ------------------------------------------------------
--- Server version	5.5.31
+-- Server version	5.5.32
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -41,15 +41,19 @@ CREATE TABLE `entry` (
   `port` smallint(5) unsigned DEFAULT NULL,
   `subsystem` enum('sftp','scp') DEFAULT NULL,
   `code` int(11) DEFAULT NULL,
-  `isfreqtime` tinyint(1) DEFAULT NULL,
-  `isfreqloc` tinyint(1) DEFAULT NULL,
+  `isfreqtime` int(10) unsigned DEFAULT NULL,
+  `isfreqloc` int(11) DEFAULT NULL,
   `rawline` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `server_entry_ind` (`server`),
   KEY `user_entry_ind` (`user`),
   KEY `time_idx` (`timestamp`),
+  KEY `entry_freq_loc` (`isfreqloc`),
+  KEY `entry_freq_time` (`isfreqtime`),
   CONSTRAINT `entry_ibfk_1` FOREIGN KEY (`server`) REFERENCES `server` (`id`),
-  CONSTRAINT `entry_ibfk_2` FOREIGN KEY (`user`) REFERENCES `user` (`id`)
+  CONSTRAINT `entry_ibfk_2` FOREIGN KEY (`user`) REFERENCES `user` (`id`),
+  CONSTRAINT `entry_ibfk_3` FOREIGN KEY (`isfreqloc`) REFERENCES `freq_loc` (`id`),
+  CONSTRAINT `entry_ibfk_4` FOREIGN KEY (`isfreqtime`) REFERENCES `freq_time` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -70,7 +74,7 @@ CREATE TABLE `freq_loc` (
   KEY `freq_loc_locId` (`locId`),
   CONSTRAINT `freq_loc_ibfk_1` FOREIGN KEY (`user`) REFERENCES `user` (`id`),
   CONSTRAINT `freq_loc_ibfk_2` FOREIGN KEY (`locId`) REFERENCES `geo` (`locId`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -124,7 +128,9 @@ CREATE TABLE `ip` (
   `startIpNum` int(10) unsigned NOT NULL,
   `endIpNum` int(10) unsigned NOT NULL,
   `locId` int(10) unsigned NOT NULL,
-  KEY `ip_loc` (`locId`)
+  `ip_poly` polygon NOT NULL,
+  KEY `ip_loc` (`locId`),
+  SPATIAL KEY `ip_spatial` (`ip_poly`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -178,7 +184,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `name_2` (`name`),
   KEY `users` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -194,18 +200,20 @@ CREATE TABLE `user` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-CREATE DEFINER=`leliel`@`localhost` PROCEDURE `freq_loc_add`(IN user INT, IN loc INT, OUT freq INT)
-BEGIN 
-DECLARE temp INT DEFAULT NULL; 
-SELECT freq_loc.id INTO temp FROM freq_loc WHERE freq_loc.user=user AND freq_loc.locId=loc; 
-IF temp IS NULL THEN 
-INSERT INTO freq_loc VALUE(DEFAULT, user, loc, DEFAULT);
-SET freq = 1; 
-ELSE 
-UPDATE freq_loc SET count=count+1 WHERE freq_loc.id=temp; 
-SELECT freq_loc.count INTO freq FROM freq_loc WHERE freq_loc.id=temp;
-END IF; 
-END ;;
+CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_loc_add`(in name int, in loc int, out num int, out ids int)
+begin 
+declare temp int default null; 
+select freq_loc.id into temp from freq_loc where freq_loc.user=name and freq_loc.locId=loc;  
+if temp is null then 
+insert into freq_loc value(default, name, loc, default); 
+set num = 1; 
+set ids = last_insert_id(); 
+else 
+update freq_loc set freq_loc.count=freq_loc.count+1 where freq_loc.id=temp; 
+set num = freq_loc.count; 
+set ids = temp; 
+end if; 
+end ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -238,12 +246,25 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-CREATE DEFINER=`leliel`@`localhost` PROCEDURE `insert_user`(IN name CHAR(50), OUT id INT UNSIGNED)
+CREATE DEFINER=`leliel`@`%` PROCEDURE `insert_user`(IN name CHAR(50), OUT id INT UNSIGNED)
 BEGIN
 INSERT INTO user VALUES(DEFAULT, name);
 SET id = LAST_INSERT_ID();
 END ;;
 DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `make_polys` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
@@ -258,4 +279,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2013-06-27 22:16:09
+-- Dump completed on 2013-07-02  0:22:24
