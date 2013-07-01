@@ -9,4 +9,12 @@
     <welcome-file>default.htm</welcome-file>
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
+  <servlet>
+      <servlet-name>getEntries</servlet-name>
+      <servlet-class>request_handlers.getEntries</servlet-class>
+  </servlet>
+  <servlet-mapping>
+      <servlet-name>getEntries</servlet-name>
+      <url-pattern>/getEntries</url-pattern>
+  </servlet-mapping>
 </web-app>

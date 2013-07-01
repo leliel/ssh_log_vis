@@ -91,12 +91,17 @@ public class Entry {
 		return elem;
 	}
 
-	public String toJSONString(){
-		String res = "";
+	public StringBuilder toJSONString(StringBuilder json){
+		json.append("{");
 		//TODO complete Entry toJSON method.
-		if (elem != null){
-			res += "{" + elem.toJSONString() + "}";
-		}
-		return res;
+		json.append("startTime : "); json.append(this.start.getTime());
+		json.append("endTime : "); json.append(this.end.getTime());
+		json.append("flags : "); json.append(this.flags);
+		json.append("subElemCount : "); json.append(this.subElemCount);
+		json.append("acceptedConn : "); json.append(this.acceptedConn);
+		json.append("failedConn : "); json.append(this.failedConn);
+		json.append("invalidAttempts : "); json.append(this.invalidAttempts);
+		json.append("elem : "); json = (this.elem != null) ? json.append(this.elem.toJSONString(json)) : json.append("null");
+		return json;
 	}
 }

@@ -1,0 +1,21 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="/scripts/d3.v3.js"></script>
+<script type="text/javascript">
+var temp = d3.xhr("/getEntries");
+temp.header("Accept-Encoding:", "gzip");
+temp.send("Post", "startTime=1970-03-15+20:26:06&endTime=1970-03-15+20:26:06", displayJson);
+
+function displayJson(text){
+	var obj = JSON.parse(text);
+	//display this somehow. not sure yet how to.
+}
+</script>
+<title>Testing d3 json requests</title>
+</head>
+<body>
+also testing jsp getEntries servlet.
+</body>
+</html>

@@ -154,7 +154,7 @@ public class Connect implements JSONtypes.Line {
 		} else if (!time.equals(other.time)) {
 			return false;
 		}
-		if (type != other.type) {				
+		if (type != other.type) {
 			return false;
 		}
 		if (user == null) {
@@ -168,9 +168,22 @@ public class Connect implements JSONtypes.Line {
 	}
 
 	@Override
-	public String toJSONString() {
-		// TODO Auto-generated method stub
-		return null;
+	public StringBuilder toJSONString(StringBuilder jsonString) {
+		// jsonString reassigned to self in ternaries as compiler error without assignment of result to something
+		jsonString.append("{");
+		jsonString.append("time : "); jsonString.append(time.getTime());
+		jsonString.append("server : "); jsonString = (this.server != null) ? jsonString.append(server.getName()) :  jsonString.append("null");
+		jsonString.append("connectId : "); jsonString.append(this.connectID);
+		jsonString.append("status : "); jsonString.append(this.status.toString());
+		jsonString.append("authtype : "); jsonString.append(this.type.toString());
+		jsonString.append("user : "); jsonString.append(this.user);
+		jsonString.append("source : "); jsonString.append(this.source);
+		jsonString.append("port : "); jsonString.append(this.port);
+		jsonString.append("freqTime : "); jsonString.append(this.freqTime);
+		jsonString.append("freqLoc : "); jsonString.append(this.freqLoc);
+		jsonString.append("rawLine : "); jsonString.append(this.rawLine);
+		jsonString.append("}");
+		return jsonString;
 	}
 
 }
