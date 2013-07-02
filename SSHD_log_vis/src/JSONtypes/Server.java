@@ -77,5 +77,17 @@ public class Server {
 		return true;
 	}
 
+	public StringBuilder toJsonString(StringBuilder json){
+		json.append("{");
+		json.append("name : \""); json.append(this.name);
+		json.append("\", block : ");
+		if (this.block != null && !this.block.equalsIgnoreCase("")){
+			json.append("\"" + this.block + "\"");
+		} else {
+			json.append("null");
+		}
+		json.append("}");
+		return json;
+	}
 
 }

@@ -16,7 +16,7 @@ public class Entry {
 	public Entry(Timestamp start, Timestamp end, String flags,
 			int subElemCount, int acceptedConn, int failedConn, int invalidAttempts, Line elem) {
 		super();
-		if (subElemCount != 0 && elem != null){
+		if (subElemCount != 1 && elem != null){
 			throw new IllegalArgumentException("elem only exists for singleton Entries");
 		}
 		this.start = start;
@@ -52,7 +52,9 @@ public class Entry {
 	}
 
 	public void addFlag(String f){
-		this.flags += f;
+		if (f != null && !f.equals("")){
+			this.flags += f;
+		}
 	}
 
 	public boolean hasFlag(String f){
@@ -93,15 +95,19 @@ public class Entry {
 
 	public StringBuilder toJSONString(StringBuilder json){
 		json.append("{");
-		//TODO complete Entry toJSON method.
-		json.append("startTime : "); json.append(this.start.getTime());
-		json.append("endTime : "); json.append(this.end.getTime());
-		json.append("flags : "); json.append(this.flags);
-		json.append("subElemCount : "); json.append(this.subElemCount);
-		json.append("acceptedConn : "); json.append(this.acceptedConn);
-		json.append("failedConn : "); json.append(this.failedConn);
-		json.append("invalidAttempts : "); json.append(this.invalidAttempts);
-		json.append("elem : "); json = (this.elem != null) ? json.append(this.elem.toJSONString(json)) : json.append("null");
+		json.append("startTime : \""); json.append(this.start.getTime());
+		json.append("\", endTime : \""); json.append(this.end.getTime());
+		if (this.flags == null || this.flags.equals("")) {
+			json.append("\", flags : "); json.append("null");
+		} else {
+			json.append("\", flags : \""); json.append(this.flags + "\"");
+		}
+		json.append(", subElemCount : "); json.append(this.subElemCount);
+		json.append(", acceptedConn : "); json.append(this.acceptedConn);
+		json.append(", failedConn : "); json.append(this.failedConn);
+		json.append(", invalidAttempts : "); json.append(this.invalidAttempts);
+		json.append(", elem : "); json = (this.elem != null) ? json.append(this.elem.toJSONString(json)) : json.append("null");
+		json.append("}");
 		return json;
 	}
 }

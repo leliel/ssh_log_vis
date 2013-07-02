@@ -72,8 +72,11 @@ public class GetEntries extends HttpServlet {
 			w = response.getWriter();
 		}
 
-		if (Math.round(Math.sqrt(lines.size())) < Integer.parseInt(request
-				.getParameter("maxBins"))) {
+		//TODO handle getting no data - send response indicating no data to send.
+
+		String bins1 = request.getParameter("maxBins");
+		int maxBins = Integer.parseInt(bins1);
+		if (Math.round(Math.sqrt(lines.size())) < maxBins) {
 			bins = (int) Math.round(Math.sqrt(lines.size()));
 		} else {
 			bins = Integer.parseInt(request.getParameter("maxBins"));

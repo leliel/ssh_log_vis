@@ -98,12 +98,12 @@ public class Other implements Line {
 	public StringBuilder toJSONString(StringBuilder jsonString) {
 		// jsonString reassigned to self in ternaries as compiler error without assignment of result to something
 		jsonString.append("{");
-		jsonString.append("time : "); jsonString.append(time.getTime());
-		jsonString.append("server : "); jsonString = (this.server != null) ? jsonString.append(server.getName()) :  jsonString.append("null");
-		jsonString.append("connectId : "); jsonString.append(this.connectID);
-		jsonString.append("message : "); jsonString.append(this.message);
-		jsonString.append("rawLine : "); jsonString.append(this.rawLine);
-		jsonString.append("}");
+		jsonString.append("time : \""); jsonString.append(time.getTime());
+		jsonString.append("\", server : "); jsonString = (this.server != null) ? jsonString.append("\"" + server.getName() + "\"") :  jsonString.append("null");
+		jsonString.append(", connectId : "); jsonString.append(this.connectID);
+		jsonString.append(", message : \""); jsonString.append(this.message);
+		jsonString.append("\", rawLine : \""); jsonString.append(this.rawLine);
+		jsonString.append("\"}");
 		return jsonString;
 	}
 }

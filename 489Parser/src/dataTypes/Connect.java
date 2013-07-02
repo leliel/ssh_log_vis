@@ -27,7 +27,7 @@ public class Connect implements dataTypes.Line {
 	private final int port;
 	private final String rawLine;
 	private int isFreqLoc;
-	private long isFreqTime;
+	private long isFreqTime = -1;//not yet implemented.
 
 	public Connect(Timestamp time, Server server, int connectID, Status status,
 			AuthType type, User user, InetAddress address, int port,
@@ -93,8 +93,16 @@ public class Connect implements dataTypes.Line {
 		insert.setInt(9, this.port);
 		insert.setNull(10, Types.CHAR);
 		insert.setNull(11, Types.INTEGER);
-		insert.setNull(12, Types.INTEGER);
-		insert.setInt(13, this.isFreqLoc);
+		if (this.isFreqTime == -1) {
+			insert.setNull(12, Types.INTEGER);
+		} else {
+			insert.setLong(12, this.isFreqTime);
+		}
+		if (this.isFreqLoc == -1) {
+			insert.setNull(13, Types.INTEGER);
+		} else {
+			insert.setInt(13, this.isFreqLoc);
+		};
 		insert.setString(14, this.rawLine);
 		insert.addBatch();
 	}
@@ -104,7 +112,7 @@ public class Connect implements dataTypes.Line {
 			PreparedStatement geoIP, PreparedStatement lookup)
 			throws SQLException {
 		int loc = GeoLocator.getLocFromIp(this.source, geoIP);
-		if (loc != -1) { //do we even have a valid location?
+		if (loc != -1) { // do we even have a valid location?
 			if (this.status == Status.ACCEPTED) { // don't record locations for
 													// failed logins
 				freq_loc_add.setInt(1, this.user.getId());
@@ -124,19 +132,18 @@ public class Connect implements dataTypes.Line {
 				lookup.setInt(2, loc);
 				ResultSet rs = lookup.executeQuery();
 				if (!rs.first()) {
-					rs.close();
 					this.isFreqLoc = -1;
+					rs.close();
 					return;
 				} else {
 					int count = rs.getInt("count");
-					rs.close();
 					if (count >= Connect.frequency) {
 						this.isFreqLoc = rs.getInt("id");
-						return;
 					} else {
 						this.isFreqLoc = -1;
-						return;
 					}
+					rs.close();
+					return;
 				}
 			}
 		} else {

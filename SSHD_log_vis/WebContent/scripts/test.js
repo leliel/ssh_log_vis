@@ -2,7 +2,7 @@
 //temp.mimeType("application/json");
 //temp.header("Accept-Encoding", "gzip");
 //temp.post("startTime=1970-03-15%2020:26:06&endTime=1970-03-15%2020:26:06&maxBins=1", displayJson);
-d3.json("getEntries?startTime=1970-03-15%2020:26:06&endTime=1970-03-15%2020:26:06&maxBins=1", displayJson);
+d3.json("getEntries?startTime=2013-03-16%2008:26:06&endTime=2013-03-16%2008:26:06&maxBins=1", displayJson);
 
 function displayJson(text) {
 	var obj = JSON.parse(text);

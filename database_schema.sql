@@ -209,8 +209,8 @@ insert into freq_loc value(default, name, loc, default);
 set num = 1; 
 set ids = last_insert_id(); 
 else 
-update freq_loc set freq_loc.count=freq_loc.count+1 where freq_loc.id=temp; 
-set num = freq_loc.count; 
+update freq_loc set freq_loc.count=freq_loc.count+1 where freq_loc.id=temp;
+select freq_loc.count into num from freq_loc where freq_loc.id=temp; 
 set ids = temp; 
 end if; 
 end ;;

@@ -34,6 +34,13 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 			String startTime, String endTime) {
 		String query;
 		if (serverName == null) {
+			query = "SELECT entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
+					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
+					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
+					+ "FROM entry LEFT JOIN server ON entry.server = server.id "
+					+ "LEFT JOIN user ON entry.user = user.id "
+					+ "WHERE entry.timestamp BETWEEN ? AND ?;";
+		} else {
 			query = "SELECT entry.timestamp, entry.connid, entry.reqtype, "
 					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
 					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
@@ -41,13 +48,6 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 					+ "LEFT JOIN user ON entry.user = user.id "
 					+ "WHERE server.name = ? AND "
 					+ "entry.timestamp BETWEEN ? AND ?;";
-		} else {
-			query = "SELECT entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
-					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
-					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
-					+ "FROM entry LEFT JOIN server ON entry.server = server.id "
-					+ "LEFT JOIN user ON entry.user = user.id "
-					+ "WHERE entry.timestamp BETWEEN ? AND ?;";
 		}
 		List<Line> lines = null;
 		Context context = null;
@@ -61,8 +61,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
 			state = connection.prepareStatement(query);
 
-			//TODO fix date format
-			SimpleDateFormat formatter = new SimpleDateFormat("",
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss",
 					Locale.ENGLISH);
 			if (serverName != null) {
 				state.setString(1, serverName);
@@ -80,14 +79,16 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 			result = state.getResultSet();
 			lines = new ArrayList<Line>();
 			Line res;
+			String colVal;
 			while (result.next()) {
-				if (result.getString("entry.reqtype") == "connect") {
+				colVal = result.getString("entry.reqtype");
+				if ("connect".equalsIgnoreCase(colVal)) {
 					res = loadConnect(result);
-				} else if (result.getString("entry.reqtype") == "disconnect") {
+				} else if ("disconnect".equalsIgnoreCase(colVal)) {
 					res = loadDisconnect(result);
-				} else if (result.getString("entry.reqtype") == "subsystem") {
+				} else if ("subsystem".equalsIgnoreCase(colVal)) {
 					res = loadSubsystem(result);
-				} else if (result.getString("entry.reqtype") == "invalid") {
+				} else if ("invalid".equalsIgnoreCase(colVal)) {
 					res = loadInvalid(result);
 				} else {
 					res = loadOther(result);
@@ -95,10 +96,8 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 				lines.add(res);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NamingException e1) {
 			e1.printStackTrace();
@@ -135,7 +134,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 		}
 		String msg = result.getString("rawline");
 		msg = msg.substring(msg.indexOf("]:") + 2);
-		return new Other(time, s, result.getInt("connectid"), msg,
+		return new Other(time, s, result.getInt("connid"), msg,
 				result.getString("rawline"));
 	}
 
@@ -147,7 +146,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 		} else {
 			s = new Server(result.getString("server"), null);
 		}
-		return new Invalid(time, s, result.getInt("connectid"),
+		return new Invalid(time, s, result.getInt("connid"),
 				result.getString("user"), result.getString("source"),
 				result.getString("rawlwine"));
 	}
@@ -166,7 +165,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 		} else {
 			sub = SubSystem.SCP;
 		}
-		return new SubSystemReq(time, s, result.getInt("connectid"), sub,
+		return new SubSystemReq(time, s, result.getInt("connid"), sub,
 				result.getString("rawline"));
 	}
 
@@ -178,7 +177,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 		} else {
 			s = new Server(result.getString("server"), null);
 		}
-		return new Disconnect(time, s, result.getInt("connectid"),
+		return new Disconnect(time, s, result.getInt("connid"),
 				result.getInt("code"), result.getString("source"),
 				result.getString("rawline"));
 	}
@@ -213,7 +212,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 			status = Status.FAILED;
 		}
 
-		return new Connect(time, s, result.getInt("connectid"), status, auth,
+		return new Connect(time, s, result.getInt("connid"), status, auth,
 				result.getString("user"), result.getString("source"),
 				result.getInt("port"), result.getLong("isfreqtime"),
 				result.getInt("isfreqloc"), result.getString("rawline"));
