@@ -83,27 +83,30 @@ public class GetEntries extends HttpServlet {
 		}
 		int elemPerBin = lines.size() / bins;
 		int count = 1;
-		Entry e = new Entry(elemPerBin, null);
+		Entry e = new Entry(0, elemPerBin, null);
 		StringBuilder json = new StringBuilder();
 		if (lines.size() == 1) {
 			Line l = lines.get(0);
-			e = new Entry(l.getTime(), l.getTime(), null, 1, 0, 0, 0, l);
+			e = new Entry(0, l.getTime(), l.getTime(), null, 1, 0, 0, 0, l);
 			setFlags(l, e);
-			w.print(e.toJSONString(json).toString());
+			String out = e.toJSONString();
+			w.print(out);
 			return; // all done here, we've sent the one line.
 		}
 
 		for (Line l : lines) {
 			setFlags(l, e);
 			if (count % elemPerBin == 0) {
+				e.setEnd(l.getTime());
 				entries.add(e);
-				e = new Entry(elemPerBin, null);
+				e = new Entry((count/bins),elemPerBin, null);
+				e.setStart(l.getTime());
 			}
 		}
 
 		json.append("[");
 		for (Entry es : entries) {
-			es.toJSONString(json);
+			json.append(es.toJSONString());
 			json.append(",");
 		}
 		json.append("]");

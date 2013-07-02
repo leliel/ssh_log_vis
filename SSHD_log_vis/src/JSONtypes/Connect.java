@@ -8,6 +8,7 @@ import enums.Status;
 
 
 public class Connect implements JSONtypes.Line {
+	private final int id;
 	private final Timestamp time;
 	private final Server server;
 	private final int connectID;
@@ -20,10 +21,11 @@ public class Connect implements JSONtypes.Line {
 	private final int freqLoc;
 	private final String rawLine;
 
-	public Connect(Timestamp time, Server server, int connectID,
+	public Connect(int id, Timestamp time, Server server, int connectID,
 			Status status, AuthType type, String user, String address, int port,
 			long freqTime, int freqLoc, String rawLine) {
 		super();
+		this.id = id;
 		this.time = time;
 		this.server = server;
 		this.connectID = connectID;
@@ -37,6 +39,9 @@ public class Connect implements JSONtypes.Line {
 		this.rawLine = rawLine;
 	}
 
+	public int getId(){
+		return id;
+	}
 	public Timestamp getTime() {
 		return time;
 	}
@@ -81,6 +86,8 @@ public class Connect implements JSONtypes.Line {
 		return rawLine;
 	}
 
+
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -88,6 +95,7 @@ public class Connect implements JSONtypes.Line {
 		result = prime * result + connectID;
 		result = prime * result + freqLoc;
 		result = prime * result + (int) (freqTime ^ (freqTime >>> 32));
+		result = prime * result + id;
 		result = prime * result + port;
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
@@ -118,6 +126,9 @@ public class Connect implements JSONtypes.Line {
 			return false;
 		}
 		if (freqTime != other.freqTime) {
+			return false;
+		}
+		if (id != other.id) {
 			return false;
 		}
 		if (port != other.port) {
@@ -168,22 +179,26 @@ public class Connect implements JSONtypes.Line {
 	}
 
 	@Override
-	public StringBuilder toJSONString(StringBuilder jsonString) {
-		// jsonString reassigned to self in ternaries as compiler error without assignment of result to something
-		jsonString.append("{");
-		jsonString.append("time : \""); jsonString.append(time.getTime());
-		jsonString.append("\", server : "); jsonString = (this.server != null) ? jsonString.append("\"" + server.getName() + "\"") :  jsonString.append("null");
-		jsonString.append(", connectId : "); jsonString.append(this.connectID);
-		jsonString.append(", status : \""); jsonString.append(this.status.toString());
-		jsonString.append("\", authtype : \""); jsonString.append(this.type.toString());
-		jsonString.append("\", user : \""); jsonString.append(this.user);
-		jsonString.append("\", source : \""); jsonString.append(this.source);
-		jsonString.append("\", port : "); jsonString.append(this.port);
-		jsonString.append(", freqTime : "); jsonString.append(this.freqTime);
-		jsonString.append(", freqLoc : "); jsonString.append(this.freqLoc);
-		jsonString.append(", rawLine : \""); jsonString.append(this.rawLine);
+	public String toJSONString() {
+		StringBuilder jsonString = new StringBuilder("{");
+		jsonString.append("\"id\":"); jsonString.append(this.id);
+		jsonString.append(",\"time\":"); jsonString.append(time.getTime());
+		if (this.server == null){
+		jsonString.append(",\"server\":"); jsonString.append("\"" + server.getName() + "\"");
+		} else {
+			jsonString.append(",\"server\":"); jsonString.append("null");
+		}
+		jsonString.append(",\"connectId\":"); jsonString.append(this.connectID);
+		jsonString.append(",\"status\":\""); jsonString.append(this.status.toString());
+		jsonString.append("\",\"authtype\":\""); jsonString.append(this.type.toString());
+		jsonString.append("\",\"user\":\""); jsonString.append(this.user);
+		jsonString.append("\",\"source\":\""); jsonString.append(this.source);
+		jsonString.append("\",\"port\":"); jsonString.append(this.port);
+		jsonString.append(",\"freqTime\":"); jsonString.append(this.freqTime);
+		jsonString.append(",\"freqLoc\":"); jsonString.append(this.freqLoc);
+		jsonString.append(",\"rawLine\":\""); jsonString.append(this.rawLine);
 		jsonString.append("\"}");
-		return jsonString;
+		return jsonString.toString();
 	}
 
 }

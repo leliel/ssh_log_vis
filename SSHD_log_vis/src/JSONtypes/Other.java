@@ -3,15 +3,17 @@ package JSONtypes;
 import java.sql.Timestamp;
 
 public class Other implements Line {
+	private final int id;
 	private final Timestamp time;
 	private final Server server;
 	private final int connectID;
 	private final String message;
 	private final String rawLine;
 
-	public Other(Timestamp time, Server server, int connectID, String message,
+	public Other(int id, Timestamp time, Server server, int connectID, String message,
 			String rawLine) {
 		super();
+		this.id = id;
 		this.time = time;
 		this.server = server;
 		this.connectID = connectID;
@@ -41,6 +43,7 @@ public class Other implements Line {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + connectID;
+		result = prime * result + id;
 		result = prime * result + ((message == null) ? 0 : message.hashCode());
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
@@ -61,6 +64,9 @@ public class Other implements Line {
 		}
 		Other other = (Other) obj;
 		if (connectID != other.connectID) {
+			return false;
+		}
+		if (id != other.id) {
 			return false;
 		}
 		if (message == null) {
@@ -95,15 +101,19 @@ public class Other implements Line {
 	}
 
 	@Override
-	public StringBuilder toJSONString(StringBuilder jsonString) {
-		// jsonString reassigned to self in ternaries as compiler error without assignment of result to something
-		jsonString.append("{");
-		jsonString.append("time : \""); jsonString.append(time.getTime());
-		jsonString.append("\", server : "); jsonString = (this.server != null) ? jsonString.append("\"" + server.getName() + "\"") :  jsonString.append("null");
-		jsonString.append(", connectId : "); jsonString.append(this.connectID);
-		jsonString.append(", message : \""); jsonString.append(this.message);
-		jsonString.append("\", rawLine : \""); jsonString.append(this.rawLine);
+	public String toJSONString() {
+		StringBuilder jsonString = new StringBuilder("{");
+		jsonString.append("\"id\":"); jsonString.append(this.id);
+		jsonString.append(",\"time\":"); jsonString.append(time.getTime());
+		if (this.server == null){
+		jsonString.append(",\"server\":"); jsonString.append("\"" + server.getName() + "\"");
+		} else {
+			jsonString.append(",\"server\":"); jsonString.append("null");
+		}
+		jsonString.append(",\"connectId\":"); jsonString.append(this.connectID);
+		jsonString.append(",\"message\":\""); jsonString.append(this.message);
+		jsonString.append("\",\"rawLine\":\""); jsonString.append(this.rawLine);
 		jsonString.append("\"}");
-		return jsonString;
+		return jsonString.toString();
 	}
 }

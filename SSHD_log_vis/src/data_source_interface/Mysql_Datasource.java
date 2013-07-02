@@ -34,14 +34,14 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 			String startTime, String endTime) {
 		String query;
 		if (serverName == null) {
-			query = "SELECT entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
+			query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
 					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
 					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
 					+ "FROM entry LEFT JOIN server ON entry.server = server.id "
 					+ "LEFT JOIN user ON entry.user = user.id "
 					+ "WHERE entry.timestamp BETWEEN ? AND ?;";
 		} else {
-			query = "SELECT entry.timestamp, entry.connid, entry.reqtype, "
+			query = "SELECT entry.id, entry.timestamp, entry.connid, entry.reqtype, "
 					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
 					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
 					+ "FROM entry LEFT JOIN server ON entry.server = server.id "
@@ -134,7 +134,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 		}
 		String msg = result.getString("rawline");
 		msg = msg.substring(msg.indexOf("]:") + 2);
-		return new Other(time, s, result.getInt("connid"), msg,
+		return new Other(result.getInt("id"), time, s, result.getInt("connid"), msg,
 				result.getString("rawline"));
 	}
 
@@ -146,7 +146,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 		} else {
 			s = new Server(result.getString("server"), null);
 		}
-		return new Invalid(time, s, result.getInt("connid"),
+		return new Invalid(result.getInt("id"), time, s, result.getInt("connid"),
 				result.getString("user"), result.getString("source"),
 				result.getString("rawlwine"));
 	}
@@ -165,7 +165,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 		} else {
 			sub = SubSystem.SCP;
 		}
-		return new SubSystemReq(time, s, result.getInt("connid"), sub,
+		return new SubSystemReq(result.getInt("id"), time, s, result.getInt("connid"), sub,
 				result.getString("rawline"));
 	}
 
@@ -177,7 +177,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 		} else {
 			s = new Server(result.getString("server"), null);
 		}
-		return new Disconnect(time, s, result.getInt("connid"),
+		return new Disconnect(result.getInt("id"), time, s, result.getInt("connid"),
 				result.getInt("code"), result.getString("source"),
 				result.getString("rawline"));
 	}
@@ -212,7 +212,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 			status = Status.FAILED;
 		}
 
-		return new Connect(time, s, result.getInt("connid"), status, auth,
+		return new Connect(result.getInt("id"), time, s, result.getInt("connid"), status, auth,
 				result.getString("user"), result.getString("source"),
 				result.getInt("port"), result.getLong("isfreqtime"),
 				result.getInt("isfreqloc"), result.getString("rawline"));

@@ -4,6 +4,7 @@ package JSONtypes;
 import java.sql.Timestamp;
 
 public class Invalid implements JSONtypes.Line {
+	private final int id;
 	private final Timestamp time;
 	private final Server server;
 	private final int connectID;
@@ -11,9 +12,10 @@ public class Invalid implements JSONtypes.Line {
 	private final String source;
 	private final String rawLine;
 
-	public Invalid(Timestamp time, Server server, int connectID,
+	public Invalid(int i, Timestamp time, Server server, int connectID,
 			String user, String addr, String rawLine) {
 		super();
+		this.id = i;
 		this.time = time;
 		this.server = server;
 		this.connectID = connectID;
@@ -22,6 +24,10 @@ public class Invalid implements JSONtypes.Line {
 		this.rawLine = rawLine;
 	}
 
+	public int getId(){
+		return id;
+	}
+	
 	public Timestamp getTime() {
 		return time;
 	}
@@ -51,6 +57,7 @@ public class Invalid implements JSONtypes.Line {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + connectID;
+		result = prime * result + id;
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
@@ -72,6 +79,9 @@ public class Invalid implements JSONtypes.Line {
 		}
 		Invalid other = (Invalid) obj;
 		if (connectID != other.connectID) {
+			return false;
+		}
+		if (id != other.id) {
 			return false;
 		}
 		if (rawLine == null) {
@@ -113,16 +123,20 @@ public class Invalid implements JSONtypes.Line {
 	}
 
 	@Override
-	public StringBuilder toJSONString(StringBuilder jsonString) {
-		// jsonString reassigned to self in ternaries as compiler error without assignment of result to something
-		jsonString.append("{");
-		jsonString.append("time : \""); jsonString.append(time.getTime());
-		jsonString.append("\", server : "); jsonString = (this.server != null) ? jsonString.append("\"" + server.getName() + "\"") :  jsonString.append("null");
-		jsonString.append(", connectId : "); jsonString.append(this.connectID);
-		jsonString.append(", user : \""); jsonString.append(this.user);
-		jsonString.append("\", source : \""); jsonString.append(this.source);
-		jsonString.append("\", rawLine : \""); jsonString.append(this.rawLine);
+	public String toJSONString() {
+		StringBuilder jsonString = new StringBuilder("{");
+		jsonString.append("\"id\":"); jsonString.append(this.id);
+		jsonString.append(",\"time\":"); jsonString.append(time.getTime());
+		if (this.server == null){
+		jsonString.append(",\"server\":"); jsonString.append("\"" + server.getName() + "\"");
+		} else {
+			jsonString.append(",\"server\":"); jsonString.append("null");
+		}
+		jsonString.append(",\"connectId\":"); jsonString.append(this.connectID);
+		jsonString.append(",\"user\":\""); jsonString.append(this.user);
+		jsonString.append("\",\"source\":\""); jsonString.append(this.source);
+		jsonString.append("\",\"rawLine\":\""); jsonString.append(this.rawLine);
 		jsonString.append("\"}");
-		return jsonString;
+		return jsonString.toString();
 	}
 }

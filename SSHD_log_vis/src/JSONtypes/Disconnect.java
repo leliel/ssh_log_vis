@@ -3,6 +3,7 @@ package JSONtypes;
 import java.sql.Timestamp;
 
 public class Disconnect implements JSONtypes.Line {
+	private final int id;
 	private final Timestamp time;
 	private final Server server;
 	private final int connectID;
@@ -10,9 +11,10 @@ public class Disconnect implements JSONtypes.Line {
 	private final String addr;
 	private final String rawLine;
 
-	public Disconnect(Timestamp time, Server server,
+	public Disconnect(int id, Timestamp time, Server server,
 			int connectID, int code, String addr2, String rawLine) {
 		super();
+		this.id = id;
 		this.time = time;
 		this.server = server;
 		this.connectID = connectID;
@@ -21,6 +23,10 @@ public class Disconnect implements JSONtypes.Line {
 		this.rawLine = rawLine;
 	}
 
+	public int getId(){
+		return id;
+	}
+	
 	public Timestamp getTime() {
 		return time;
 	}
@@ -52,6 +58,7 @@ public class Disconnect implements JSONtypes.Line {
 		result = prime * result + ((addr == null) ? 0 : addr.hashCode());
 		result = prime * result + code;
 		result = prime * result + connectID;
+		result = prime * result + id;
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
 		result = prime * result + ((time == null) ? 0 : time.hashCode());
@@ -83,6 +90,9 @@ public class Disconnect implements JSONtypes.Line {
 		if (connectID != other.connectID) {
 			return false;
 		}
+		if (id != other.id) {
+			return false;
+		}
 		if (rawLine == null) {
 			if (other.rawLine != null) {
 				return false;
@@ -108,16 +118,20 @@ public class Disconnect implements JSONtypes.Line {
 	}
 
 	@Override
-	public StringBuilder toJSONString(StringBuilder jsonString) {
-		// jsonString reassigned to self in ternaries as compiler error without assignment of result to something
-		jsonString.append("{");
-		jsonString.append("time : \""); jsonString.append(time.getTime());
-		jsonString.append("\", server : "); jsonString = (this.server != null) ? jsonString.append("\"" + server.getName() + "\"") :  jsonString.append("null");
-		jsonString.append(", connectId : "); jsonString.append(this.connectID);
-		jsonString.append(", code : "); jsonString.append(this.code);
-		jsonString.append(", source : \""); jsonString.append(this.addr);
-		jsonString.append("\", rawLine : \""); jsonString.append(this.rawLine);
+	public String toJSONString() {
+		StringBuilder jsonString = new StringBuilder("{");
+		jsonString.append("\"id\":"); jsonString.append(this.id);
+		jsonString.append(",\"time\":"); jsonString.append(time.getTime());
+		if (this.server == null){
+		jsonString.append(",\"server\":"); jsonString.append("\"" + server.getName() + "\"");
+		} else {
+			jsonString.append(",\"server\":"); jsonString.append("null");
+		}
+		jsonString.append(",\"connectId\":"); jsonString.append(this.connectID);
+		jsonString.append(",\"code\":"); jsonString.append(this.code);
+		jsonString.append(",\"source\":\""); jsonString.append(this.addr);
+		jsonString.append("\",\"rawLine\":\""); jsonString.append(this.rawLine);
 		jsonString.append("\"}");
-		return jsonString;
+		return jsonString.toString();
 	}
 }

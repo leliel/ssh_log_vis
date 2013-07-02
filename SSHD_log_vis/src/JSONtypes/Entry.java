@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 
 
 public class Entry {
+	private final int id;
 	private Timestamp start;
 	private Timestamp end;
 	private String flags;
@@ -13,12 +14,13 @@ public class Entry {
 	private int invalidAttempts;
 	private final Line elem;
 
-	public Entry(Timestamp start, Timestamp end, String flags,
+	public Entry(int id, Timestamp start, Timestamp end, String flags,
 			int subElemCount, int acceptedConn, int failedConn, int invalidAttempts, Line elem) {
 		super();
 		if (subElemCount != 1 && elem != null){
 			throw new IllegalArgumentException("elem only exists for singleton Entries");
 		}
+		this.id = id;
 		this.start = start;
 		this.end = end;
 		this.flags = flags;
@@ -29,8 +31,9 @@ public class Entry {
 		this.elem = elem;
 	}
 
-	public Entry(int subElemCount, Line elem) {
+	public Entry(int id, int subElemCount, Line elem) {
 		super();
+		this.id = id;
 		this.subElemCount = subElemCount;
 		this.elem = elem;
 		this.acceptedConn = 0;
@@ -38,13 +41,24 @@ public class Entry {
 		this.invalidAttempts = 0;
 	}
 
+	public int getId(){
+		return id;
+	}
 
 	public Timestamp getStart() {
 		return start;
 	}
+	
+	public void setStart(Timestamp t){
+		this.start = t;
+	}
 
 	public Timestamp getEnd() {
 		return end;
+	}
+	
+	public void setEnd(Timestamp t){
+		this.end = t;
 	}
 
 	public String getFlags() {
@@ -93,21 +107,26 @@ public class Entry {
 		return elem;
 	}
 
-	public StringBuilder toJSONString(StringBuilder json){
-		json.append("{");
-		json.append("startTime : \""); json.append(this.start.getTime());
-		json.append("\", endTime : \""); json.append(this.end.getTime());
+	public String toJSONString(){
+		StringBuilder json = new StringBuilder("{");		
+		json.append("\"id\":"); json.append(this.id);
+		json.append(",\"startTime\":"); json.append(this.start.getTime());
+		json.append(",\"endTime\":"); json.append(this.end.getTime());
 		if (this.flags == null || this.flags.equals("")) {
-			json.append("\", flags : "); json.append("null");
+			json.append(",\"flags\":"); json.append("null");
 		} else {
-			json.append("\", flags : \""); json.append(this.flags + "\"");
+			json.append(",\"flags\":\""); json.append(this.flags + "\"");
 		}
-		json.append(", subElemCount : "); json.append(this.subElemCount);
-		json.append(", acceptedConn : "); json.append(this.acceptedConn);
-		json.append(", failedConn : "); json.append(this.failedConn);
-		json.append(", invalidAttempts : "); json.append(this.invalidAttempts);
-		json.append(", elem : "); json = (this.elem != null) ? json.append(this.elem.toJSONString(json)) : json.append("null");
+		json.append(",\"subElemCount\":"); json.append(this.subElemCount);
+		json.append(",\"acceptedConn\":"); json.append(this.acceptedConn);
+		json.append(",\"failedConn\":"); json.append(this.failedConn);
+		json.append(",\"invalidAttempts\":"); json.append(this.invalidAttempts);
+		if (this.elem == null){
+			json.append(",\"elem\":"); json.append("null");
+		} else {
+			json.append(",\"elem\":"); json.append(this.elem.toJSONString());
+		}
 		json.append("}");
-		return json;
+		return json.toString();
 	}
 }
