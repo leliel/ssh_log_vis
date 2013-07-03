@@ -1,0 +1,18 @@
+@CHARSET "UTF-8";
+bin{
+
+}
+binFailed{
+	fill:#ff0000;
+	stroke:#000000;
+	stroke-width:1;
+}
+binAccepted{
+	fill:#0000ff;
+	stroke:#000000;
+	stroke-width:1;
+}
+binDivider{
+	stroke:#000000;
+	stroke-width:5;
+}

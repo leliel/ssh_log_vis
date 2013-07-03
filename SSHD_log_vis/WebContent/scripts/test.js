@@ -1,12 +1,31 @@
 var temp = d3.xhr("getEntries");
 temp.mimeType("application/json");
 temp.header("Content-type", "application/x-www-form-urlencoded");
-// temp.header("Accept-Encoding", "gzip");
+
+var timelinePlacements = {
+		maxBins : 0,
+		numBins : 0,
+		binWidth: 100,
+		binHeight : 40,
+		numOnLine : 0,
+		rowsx : 10,
+		row1y : 40,
+		row2y : 100,
+		row3y : 160
+};
 
 temp.post(
 		"startTime=2013-03-16+08:26:06&endTime=2013-03-18+08:26:06&maxBins=10",
 		function(error, response) {
-			renderBin(JSON.parse(response.responseText));
+			if (error){
+				//TODO handle error codes nicely.
+			} else {
+				if (response.status == 200){
+					renderBins(JSON.parse(response.responseText));
+				} else if (response.status = 204){
+					//TODO handle displaying lack of data in requested range nicely.
+				}
+			}
 		});
 // d3.json("getEntries?startTime=2013-03-16%2008:26:06&endTime=2013-03-16%2008:26:06&maxBins=1",
 // displayJson);
@@ -20,7 +39,7 @@ function displayJson(text) {
 	for ( var prop in obj) {
 		if (obj.hasOwnProperty(prop)) {
 			data[i++] = {
-				Attribute : prop,	
+				Attribute : prop,
 				Value : obj[prop]
 			};
 		}
@@ -52,26 +71,80 @@ function displayJson(text) {
 
 }
 
-function renderBin(element){
-	var vis = d3.select(".timeline");
+function preComputeBinPlacements(count){
+
+}
+
+function renderBins(element){
+	preComputeBinPlacements(element.length);
+	var timeLineContainer = d3.select(".timeline"); //get the timeline, to nest everything under
+	var vis = timeLineContainer.selectAll(".bin"); //get all the bins, we'll reuse this selection several times.
 	vis.data(element)
 	.enter()
 	.append("g")
 	.attr("id", function(d){
 		return d.id;
 	})
-	.selectAll("rect")
 	.append("rect")
-	.attr("width", 100)
-	.attr("height", function(d, i){
-		return (d.acceptedConn/d.subElemCount)*100;
-	})
-	.style("fill", function(d, i){
-		return "#ffoooo";
-	});
+	.attr("x", getXforRect)
+	.attr("y", getYforRect)
+	.attr("width", timelinePlacements.binWidth)
+	.attr("height", timelinePlacements.binHeight);
+	//.each(entryEnter); //create bin groups with appropriate ID's, we'll need these later.
 }
 
-function makeRect(width, height, colour){
-	return 
+function entryEnter(d, i){
+	var vis = d3.selectAll(".binFailed") //create rectangles for the failed logins
+	.data(d)
+	.enter()
+	.append("rect")
+	.attr("x", getXforRect)
+	.attr("y", getYforRect)
+	.attr("width", timelinePlacements.binWidth)
+	.attr("height", timelinePlacements.binHeight);
+
+	vis.selectAll(".binAccepted") //create rectangles for succeeded logins
+	.data(d)
+	.enter()
+	.append("rect")
+	.attr("x", getXforRect)
+	.attr("y", getYforRect)
+	.attr("width", timelinePlacements.binWidth)
+	.attr("height", getAcceptedPropAsHeight);
+
+	vis.selectAll(".binDivider") //create divider lines.
+	.data(d)
+	.enter()
+	.append("line")
+	.attr("x1", getXforRect)
+	.attr("y1", getYforDiv)
+	.attr("x2", function(d, i){
+		return getXforRect(d, i) + timelinePlacements.binWidth;
+	})
+	.attr("y2", getYforDiv);
+}
+
+function getYforDiv(d, i){
+	return getYforRect(d, i) + getAcceptedPropAsHeight(d, i);
+}
+
+function getAcceptedPropAsHeight(d, i){
+	return timelinePlacement.binHeight*(d.acceptedConn/d.subElemCount);
+}
+
+function getYforRect(d, i){
+	switch (i/timelinePlacements.numOnLine)
+	{
+	case 1:
+		return timelinePlacements.row1y;
+	case 2:
+		return timelinePlacements.row2y;
+	case 3:
+		return timelinePlacements.row3y;
+	}
+}
+
+function getXforRect(d, i){
+	return timelinePlacements.rowsx + (i%timelinePlacements.numOnLine)*timelinePlacement.binWidth;
 }
 

@@ -26,9 +26,11 @@ import enums.Status;
 
 /**
  * Servlet implementation class GetEntries
+ * Implements fetching of timebinned log entries for sshd_log_vis tool.
+ * Requests must provide startTime, endTime and maxBins.
+ * maxBins indicates the maximum number of timebins the server should produce. where the natural number of bins (sqrt(log_entries))
+ * would exceed maxBins, it is clamped to maxBins for displayability reasons.
  */
-// @WebServlet(description = "gets sshd log entries in JSON format", urlPatterns
-// = { "/GetEntries" })
 public class GetEntries extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final String JSONMimeType = "application/json";
@@ -60,10 +62,24 @@ public class GetEntries extends HttpServlet {
 		List<Entry> entries = new ArrayList<Entry>();
 
 		SSHD_log_vis_datasource datasource = new Mysql_Datasource();
-		//TODO modify to be more resilient, return an error or something on malformed data.
+		if (request.getParameter("startTime") == null){
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			return;
+		}
+		if (request.getParameter("endTime") == null){
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			return;
+		}
+		if (request.getParameter("maxBins") == null){
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+		}
 		lines = datasource.getEntriesFromDataSource(request.getParameter("serverName"), request.getParameter("startTime"), request.getParameter("endTime"));
 
-		response.setContentType(GetEntries.JSONMimeType);
+		if (lines.isEmpty()){
+			response.sendError(HttpServletResponse.SC_NO_CONTENT);
+			return;
+		}
+
 		PrintWriter w;
 		if (Request_utils.isGzipSupported(request)
 				&& !Request_utils.isGzipDisabled(request)) {
@@ -72,9 +88,10 @@ public class GetEntries extends HttpServlet {
 			w = response.getWriter();
 		}
 
-		//TODO handle getting no data - send response indicating no data to send.
-
+		response.setContentType(GetEntries.JSONMimeType);
 		String bins1 = request.getParameter("maxBins");
+
+		//TODO math don't work right for little bins, fix this.
 		int maxBins = Integer.parseInt(bins1);
 		if (Math.round(Math.sqrt(lines.size())) < maxBins) {
 			bins = (int) Math.round(Math.sqrt(lines.size()));
@@ -82,33 +99,46 @@ public class GetEntries extends HttpServlet {
 			bins = Integer.parseInt(request.getParameter("maxBins"));
 		}
 		int elemPerBin = lines.size() / bins;
-		int count = 1;
-		Entry e = new Entry(0, elemPerBin, null);
+		//int count = 1;
+
 		StringBuilder json = new StringBuilder();
-		if (lines.size() == 1) {
+		/*if (lines.size() == 1) {
 			Line l = lines.get(0);
 			e = new Entry(0, l.getTime(), l.getTime(), null, 1, 0, 0, 0, l);
 			setFlags(l, e);
 			String out = e.toJSONString();
 			w.print(out);
 			return; // all done here, we've sent the one line.
-		}
-
-		for (Line l : lines) {
+		}*/
+		Entry e = (elemPerBin == 1) ? new Entry(1, elemPerBin, lines.get(0)) : new Entry(1, elemPerBin, null);
+		e.setStart(lines.get(0).getTime()); //if we're here there must be at least one element in lines.
+		Line l;
+		for (int i =0; i< lines.size(); i++){
+			l = lines.get(i);
 			setFlags(l, e);
-			if (count % elemPerBin == 0) {
+			if (i%elemPerBin == 0 && i != 0){
 				e.setEnd(l.getTime());
 				entries.add(e);
-				e = new Entry((count/bins),elemPerBin, null);
+				e = (elemPerBin == 1) ? new Entry(1, elemPerBin, l) : new Entry(i, elemPerBin, null);
 				e.setStart(l.getTime());
 			}
 		}
+		/*for (Line l : lines) {
+			setFlags(l, e);
+			if (count % elemPerBin == 0) { //TODO math not working right for small bins.. needs fixing.
+				e.setEnd(l.getTime());
+				entries.add(e);
+				e = (elemPerBin == 1) ? new Entry((count/bins),elemPerBin, l) : new Entry((count/bins), elemPerBin, null);
+				e.setStart(l.getTime());
+			}
+		}*/
 
 		json.append("[");
 		for (Entry es : entries) {
 			json.append(es.toJSONString());
 			json.append(",");
 		}
+		json.deleteCharAt(json.length()-1); //clunky, but should strip out trailing ,
 		json.append("]");
 		w.print(json.toString());
 	}

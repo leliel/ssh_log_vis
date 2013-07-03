@@ -63,6 +63,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 
 			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss",
 					Locale.ENGLISH);
+			//TODO implement matching dates with no time portion.
 			if (serverName != null) {
 				state.setString(1, serverName);
 				state.setTimestamp(2, new Timestamp(formatter.parse(startTime)

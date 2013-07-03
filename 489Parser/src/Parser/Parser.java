@@ -35,7 +35,6 @@ import enums.Status;
 import enums.SubSystem;
 
 //TODO - get algorithm from ian for IP anonymizing.
-//TODO refactor database connection.
 public class Parser {
 
 	private final static String url = Messages.getString("Parser.dbLoc"); //$NON-NLS-1$
@@ -211,7 +210,7 @@ public class Parser {
 		SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
 		Timestamp time = new Timestamp(format.parse(Messages.getString("Parser.Year") +Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				.getTime());
-		
+
 		Server s = getServer(parts[idx++]);
 
 		String service = parts[idx].substring(0, parts[idx].indexOf("[")); //$NON-NLS-1$
@@ -283,7 +282,7 @@ public class Parser {
 		SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
 		Timestamp time = new Timestamp(format.parse(Messages.getString("Parser.Year") +Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				.getTime());
-		
+
 		Server s = getServer(parts[idx++]);
 
 		String service = parts[idx].substring(0, parts[idx].indexOf("[")); //$NON-NLS-1$
@@ -358,14 +357,14 @@ public class Parser {
 			PreparedStatement insertLine = conn
 					.prepareStatement("INSERT INTO entry VALUES(" //$NON-NLS-1$
 							+ "DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,? ,? ,?, ?)"); //$NON-NLS-1$
-			
+
 			//find a single location record matching the source.
 			PreparedStatement geoIp = conn.prepareStatement("SELECT geo.locId FROM geo LEFT JOIN " +
 					"ip ON geo.locId=ip.locId WHERE MBRCONTAINS(ip.ip_poly, POINTFROMWKB(POINT(INET_ATON(?), 0)))"); //where are we?
-			
+
 			//find out how many times we've logged in from this location before
-			PreparedStatement freq_loc_query = conn.prepareStatement("SELECT id, count FROM freq_loc WHERE freq_loc.user=? AND freq_loc.locId=?"); 
-			
+			PreparedStatement freq_loc_query = conn.prepareStatement("SELECT id, count FROM freq_loc WHERE freq_loc.user=? AND freq_loc.locId=?");
+
 			//updates freq_loc entries, incrementing count if exists, or creating new entry.
 			CallableStatement freq_loc_add = conn.prepareCall("{call freq_loc_add(?, ?, ?, ?)}"); //update freq_loc entry, increments if there's a matching one.
 			for (int i = 0; i < lines.size(); i++) {
