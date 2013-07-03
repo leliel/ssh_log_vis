@@ -7,7 +7,7 @@ var timelinePlacements = {
 		numBins : 0,
 		binWidth: 100,
 		binHeight : 40,
-		numOnLine : 0,
+		numOnLine : 3,
 		rowsx : 10,
 		row1y : 40,
 		row2y : 100,
@@ -125,26 +125,32 @@ function entryEnter(d, i){
 }
 
 function getYforDiv(d, i){
-	return getYforRect(d, i) + getAcceptedPropAsHeight(d, i);
+	var temp = getYforRect(d, i) + getAcceptedPropAsHeight(d, i)
+	return temp;
 }
 
 function getAcceptedPropAsHeight(d, i){
-	return timelinePlacement.binHeight*(d.acceptedConn/d.subElemCount);
+	var temp = timelinePlacements.binHeight*(d.acceptedConn/d.subElemCount);
+	return temp;
 }
 
 function getYforRect(d, i){
+	var temp;
 	switch (i/timelinePlacements.numOnLine)
 	{
 	case 1:
-		return timelinePlacements.row1y;
+		temp = timelinePlacements.row1y;
+		return temp;
 	case 2:
-		return timelinePlacements.row2y;
+		temp = timelinePlacements.row2y;
+		return temp;
 	case 3:
-		return timelinePlacements.row3y;
+		temp = timelinePlacements.row3y;
+		return temp;
 	}
 }
 
 function getXforRect(d, i){
-	return timelinePlacements.rowsx + (i%timelinePlacements.numOnLine)*timelinePlacement.binWidth;
+	return timelinePlacements.rowsx + (i%timelinePlacements.numOnLine)*timelinePlacements.binWidth;
 }
 
