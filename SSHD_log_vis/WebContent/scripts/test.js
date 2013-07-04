@@ -11,12 +11,14 @@ function setupOnLoad(){
 	
 	timelinePlacements = {
 			minBinWidth : 30,
-			maxBins : getPropertyNumberFromCSS(document.getElementById("time"), "width")/this.minBinWidth,
+			maxBins : undefined,
 			binHeight : 40,
 			numOnLine : 3,
 			rowsx : 10,
 			rowHeight : 60
 	};
+	
+	timelinePlacements.maxBins = getPropertyNumberFromCSS(document.getElementById("time"), "width")/timelinePlacements.minBinWidth;
 	
 	locality = {
 			startTime : new Date(2013, 02, 16, 08, 26, 06),
