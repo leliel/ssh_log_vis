@@ -96,8 +96,6 @@ public class GetEntries extends HttpServlet {
 			w = response.getWriter();
 		}
 
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
-				Locale.ENGLISH);
 		long binLength;
 		long requestLength;
 		long bins;
@@ -107,14 +105,10 @@ public class GetEntries extends HttpServlet {
 
 		try {
 			binLength = Long.parseLong(request.getParameter("binLength"));
-			endTime = format.parse(request.getParameter("endTime")).getTime();
-			startTime = format.parse(request.getParameter("startTime"))
-					.getTime();
+			endTime = Long.parseLong(request.getParameter("endTime"));
+			startTime = Long.parseLong(request.getParameter("startTime"));
 			maxBins = Long.parseLong(request.getParameter("maxBins"));
 			requestLength = endTime - startTime;
-		} catch (ParseException e1) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-			return;
 		} catch (NumberFormatException e1) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
 			return;

@@ -61,20 +61,17 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
 			state = connection.prepareStatement(query);
 
-			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
-					Locale.ENGLISH);
-			//TODO implement matching dates with no time portion.
 			Timestamp temp;
 			if (serverName != null) {
 				state.setString(1, serverName);
-				temp = new Timestamp(formatter.parse(startTime).getTime());
+				temp = new Timestamp(Long.parseLong(startTime));
 				state.setTimestamp(2, temp);
-				temp = new Timestamp(formatter.parse(endTime).getTime());
+				temp =new Timestamp(Long.parseLong(endTime));
 				state.setTimestamp(3, temp);
 			} else {
-				temp = new Timestamp(formatter.parse(startTime).getTime());
+				temp = new Timestamp(Long.parseLong(startTime));
 				state.setTimestamp(1, temp);
-				temp = new Timestamp(formatter.parse(endTime).getTime());
+				temp = new Timestamp(Long.parseLong(endTime));
 				state.setTimestamp(2, temp);
 			}
 			state.execute();
@@ -99,7 +96,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 			}
 		} catch (SQLException e) {
 			throw new DataSourceException(e);
-		} catch (ParseException e) {
+		} catch (NumberFormatException e) {
 			throw new DataSourceException(e);
 		} catch (NamingException e) {
 			throw new DataSourceException(e);
@@ -150,7 +147,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 		}
 		return new Invalid(result.getInt("id"), time, s, result.getInt("connid"),
 				result.getString("user"), result.getString("source"),
-				result.getString("rawlwine"));
+				result.getString("rawline"));
 	}
 
 	private Line loadSubsystem(ResultSet result) throws SQLException {
