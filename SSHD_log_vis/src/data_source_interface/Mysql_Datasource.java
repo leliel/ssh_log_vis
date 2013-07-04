@@ -31,7 +31,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 
 	@Override
 	public List<Line> getEntriesFromDataSource(String serverName,
-			String startTime, String endTime) {
+			String startTime, String endTime) throws DataSourceException {
 		String query;
 		if (serverName == null) {
 			query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
@@ -61,20 +61,21 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
 			state = connection.prepareStatement(query);
 
-			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss",
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
 					Locale.ENGLISH);
 			//TODO implement matching dates with no time portion.
+			Timestamp temp;
 			if (serverName != null) {
 				state.setString(1, serverName);
-				state.setTimestamp(2, new Timestamp(formatter.parse(startTime)
-						.getTime()));
-				state.setTimestamp(3, new Timestamp(formatter.parse(endTime)
-						.getTime()));
+				temp = new Timestamp(formatter.parse(startTime).getTime());
+				state.setTimestamp(2, temp);
+				temp = new Timestamp(formatter.parse(endTime).getTime());
+				state.setTimestamp(3, temp);
 			} else {
-				state.setTimestamp(1, new Timestamp(formatter.parse(startTime)
-						.getTime()));
-				state.setTimestamp(2, new Timestamp(formatter.parse(endTime)
-						.getTime()));
+				temp = new Timestamp(formatter.parse(startTime).getTime());
+				state.setTimestamp(1, temp);
+				temp = new Timestamp(formatter.parse(endTime).getTime());
+				state.setTimestamp(2, temp);
 			}
 			state.execute();
 			result = state.getResultSet();
@@ -97,11 +98,11 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 				lines.add(res);
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new DataSourceException(e);
 		} catch (ParseException e) {
-			e.printStackTrace();
-		} catch (NamingException e1) {
-			e1.printStackTrace();
+			throw new DataSourceException(e);
+		} catch (NamingException e) {
+			throw new DataSourceException(e);
 		} finally {
 			try {
 				if (result != null) {
@@ -117,9 +118,9 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 					context.close();
 				}
 			} catch (SQLException e) {
-				e.printStackTrace();
+				throw new DataSourceException(e);
 			} catch (NamingException e) {
-				e.printStackTrace();
+				throw new DataSourceException(e);
 			}
 		}
 		return lines;

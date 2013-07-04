@@ -201,4 +201,9 @@ public class Connect implements JSONtypes.Line {
 		return jsonString.toString();
 	}
 
+	@Override
+	public String toString() {
+		return "Connect [rawLine=" + rawLine + "]";
+	}
+
 }

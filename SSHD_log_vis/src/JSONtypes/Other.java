@@ -116,4 +116,9 @@ public class Other implements Line {
 		jsonString.append("\"}");
 		return jsonString.toString();
 	}
+
+	@Override
+	public String toString() {
+		return "Other [rawLine=" + rawLine + "]";
+	}
 }

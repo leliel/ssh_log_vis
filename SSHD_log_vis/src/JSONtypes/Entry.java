@@ -8,14 +8,14 @@ public class Entry {
 	private Timestamp start;
 	private Timestamp end;
 	private String flags;
-	private final int subElemCount;
+	private long subElemCount;
 	private int acceptedConn;
 	private int failedConn;
 	private int invalidAttempts;
 	private final Line elem;
 
 	public Entry(int id, Timestamp start, Timestamp end, String flags,
-			int subElemCount, int acceptedConn, int failedConn, int invalidAttempts, Line elem) {
+			long subElemCount, int acceptedConn, int failedConn, int invalidAttempts, Line elem) {
 		super();
 		if (subElemCount != 1 && elem != null){
 			throw new IllegalArgumentException("elem only exists for singleton Entries");
@@ -31,11 +31,22 @@ public class Entry {
 		this.elem = elem;
 	}
 
-	public Entry(int id, int subElemCount, Line elem) {
+	public Entry(int id, Line elem) {
 		super();
 		this.id = id;
-		this.subElemCount = subElemCount;
 		this.elem = elem;
+		this.subElemCount = 0;
+		this.acceptedConn = 0;
+		this.failedConn = 0;
+		this.invalidAttempts = 0;
+	}
+
+	public Entry(int id, long elemCount, Line elem){
+		super();
+		this.id = id;
+		this.subElemCount = elemCount;
+		this.elem = elem;
+		this.subElemCount = 0;
 		this.acceptedConn = 0;
 		this.failedConn = 0;
 		this.invalidAttempts = 0;
@@ -48,7 +59,7 @@ public class Entry {
 	public Timestamp getStart() {
 		return start;
 	}
-	
+
 	public void setStart(Timestamp t){
 		this.start = t;
 	}
@@ -56,7 +67,7 @@ public class Entry {
 	public Timestamp getEnd() {
 		return end;
 	}
-	
+
 	public void setEnd(Timestamp t){
 		this.end = t;
 	}
@@ -75,8 +86,12 @@ public class Entry {
 		return this.flags.contains(f);
 	}
 
-	public int getSubElemCount() {
+	public long getSubElemCount() {
 		return subElemCount;
+	}
+
+	public void incSubElemCount(){
+		this.subElemCount++;
 	}
 
 	public int getAcceptedConn() {
@@ -108,7 +123,7 @@ public class Entry {
 	}
 
 	public String toJSONString(){
-		StringBuilder json = new StringBuilder("{");		
+		StringBuilder json = new StringBuilder("{");
 		json.append("\"id\":"); json.append(this.id);
 		json.append(",\"startTime\":"); json.append(this.start.getTime());
 		json.append(",\"endTime\":"); json.append(this.end.getTime());

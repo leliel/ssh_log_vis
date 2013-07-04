@@ -26,7 +26,7 @@ public class SubSystemReq implements JSONtypes.Line {
 	public int getId(){
 		return id;
 	}
-	
+
 	public Timestamp getTime() {
 		return time;
 	}
@@ -121,5 +121,10 @@ public class SubSystemReq implements JSONtypes.Line {
 		jsonString.append("\",\"rawLine\":\""); jsonString.append(this.rawLine);
 		jsonString.append("\"}");
 		return jsonString.toString();
+	}
+
+	@Override
+	public String toString() {
+		return "SubSystemReq [rawLine=" + rawLine + "]";
 	}
 }

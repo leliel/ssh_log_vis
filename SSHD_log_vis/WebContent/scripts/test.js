@@ -1,6 +1,9 @@
 var temp = d3.xhr("getEntries");
 temp.mimeType("application/json");
 temp.header("Content-type", "application/x-www-form-urlencoded");
+var minute = 60000; //milliseconds in a minute.
+var hour = 60 * minute; //milliseconds in an hour.
+var day = 24 * hour; //milliseconds in a day.
 
 var timelinePlacements = {
 		maxBins : 0,
@@ -14,8 +17,9 @@ var timelinePlacements = {
 		row3y : 160
 };
 
+
 temp.post(
-		"startTime=2013-03-16+08:26:06&endTime=2013-03-18+08:26:06&maxBins=10",
+		"startTime=2013-03-16+08:26:06&endTime=2013-03-24+12:00:00&maxBins=10&binLength=" + day,
 		function(error, response) {
 			if (error){
 				//TODO handle error codes nicely.
@@ -27,8 +31,6 @@ temp.post(
 				}
 			}
 		});
-// d3.json("getEntries?startTime=2013-03-16%2008:26:06&endTime=2013-03-16%2008:26:06&maxBins=1",
-// displayJson);
 
 function displayJson(text) {
 	var obj = JSON.parse(text);
@@ -82,39 +84,28 @@ function renderBins(element){
 	vis.data(element)
 	.enter()
 	.append("g")
+	.attr("class", "bin")
 	.attr("id", function(d){
 		return d.id;
 	})
+	.on("mouseover", showToolTip)
+	.on("mouseout", hideToolTip)
 	.append("rect")
-	.attr("x", getXforRect)
-	.attr("y", getYforRect)
-	.attr("width", timelinePlacements.binWidth)
-	.attr("height", timelinePlacements.binHeight);
-	//.each(entryEnter); //create bin groups with appropriate ID's, we'll need these later.
-}
-
-function entryEnter(d, i){
-	var vis = d3.selectAll(".binFailed") //create rectangles for the failed logins
-	.data(d)
-	.enter()
-	.append("rect")
+	.attr("class", "binFailed")
 	.attr("x", getXforRect)
 	.attr("y", getYforRect)
 	.attr("width", timelinePlacements.binWidth)
 	.attr("height", timelinePlacements.binHeight);
 
-	vis.selectAll(".binAccepted") //create rectangles for succeeded logins
-	.data(d)
-	.enter()
+	timeLineContainer.selectAll(".bin")
 	.append("rect")
+	.attr("class", "binAccepted")
 	.attr("x", getXforRect)
 	.attr("y", getYforRect)
 	.attr("width", timelinePlacements.binWidth)
 	.attr("height", getAcceptedPropAsHeight);
 
-	vis.selectAll(".binDivider") //create divider lines.
-	.data(d)
-	.enter()
+	timeLineContainer.selectAll(".bin")
 	.append("line")
 	.attr("x1", getXforRect)
 	.attr("y1", getYforDiv)
@@ -125,7 +116,7 @@ function entryEnter(d, i){
 }
 
 function getYforDiv(d, i){
-	var temp = getYforRect(d, i) + getAcceptedPropAsHeight(d, i)
+	var temp = getYforRect(d, i) + getAcceptedPropAsHeight(d, i);
 	return temp;
 }
 
@@ -136,7 +127,7 @@ function getAcceptedPropAsHeight(d, i){
 
 function getYforRect(d, i){
 	var temp;
-	switch (i/timelinePlacements.numOnLine)
+	switch (i/timelinePlacements.numOnLine) //this math needs fixing.
 	{
 	case 1:
 		temp = timelinePlacements.row1y;
@@ -152,5 +143,29 @@ function getYforRect(d, i){
 
 function getXforRect(d, i){
 	return timelinePlacements.rowsx + (i%timelinePlacements.numOnLine)*timelinePlacements.binWidth;
+}
+
+function showToolTip(d){
+	var x = d3.event.pageX;
+	var y = d3.event.pageY;
+	var selection = d3.select(".tooltip");
+	selection = selection.style("left", (d3.event.pageX + 10) + "px");
+	selection = selection.style("top", d3.event.pageY + "px");
+	/*selection.html("Name: " + d.NAME  + "<br>" + //TODO rewrite to use actual element details.
+						"Mass: " + (Number(d.MASS) == 0.0 ? "Unknown<br>" : trimDecimal(Number(d.MASS), 3) + " Jupiter Masses<br>") +
+						"Radius: " + (Number(d.R) == 0.0 ? "Unknown<br>" : trimDecimal(Number(d.R), 3) + " Jupiter Radii<br>") +
+						"Orbit Distance: " + (Number(d.SEP) == 0.0 ? "Unknown<br>" : trimDecimal(Number(d.SEP), 3) + "AU<br>") +
+						"Orbit Period: " + (Number(d.PER) == 0.0 ? "Unknown<br>" : trimDecimal(Number(d.PER), 3) + " Days<br>") +
+						"Distance: " + trimDecimal(Number(d.DIST)*3.261563777, 1)+" Lightyears"); */
+	selection.transition()
+				.duration(200)
+				.style("opacity", .9);
+}
+
+function hideToolTip(d){
+		d3.select(".tooltip")
+			.transition()
+			.duration(200)
+			.style("opacity", 0);
 }
 
