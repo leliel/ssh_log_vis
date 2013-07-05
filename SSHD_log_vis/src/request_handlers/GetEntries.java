@@ -29,9 +29,9 @@ import enums.Status;
 
 /**
  * Servlet implementation class GetEntries Implements fetching of timebinned log
- * entries for sshd_log_vis tool. Requests must provide startTime, endTime and
- * maxBins. maxBins indicates the maximum number of timebins the server should
- * produce. where the natural number of bins (sqrt(log_entries)) would exceed
+ * entries for sshd_log_vis tool. Requests must provide startTime, endTime, maxBins
+ * and binLength. maxBins indicates the maximum number of timebins the server should
+ * produce. where the natural number of bins ((endTime-startTime)/binLength) would exceed
  * maxBins, it is clamped to maxBins for displayability reasons.
  */
 public class GetEntries extends HttpServlet {
@@ -89,12 +89,13 @@ public class GetEntries extends HttpServlet {
 		}
 
 		PrintWriter w;
-		if (Request_utils.isGzipSupported(request)
+		/*if (Request_utils.isGzipSupported(request)
 				&& !Request_utils.isGzipDisabled(request)) {
 			w = Request_utils.getGzipWriter(response);
-		} else {
+			response.setHeader("Content-Encoding", "gzip");
+		} else {*/
 			w = response.getWriter();
-		}
+		//}
 
 		long binLength;
 		long requestLength;
@@ -119,57 +120,53 @@ public class GetEntries extends HttpServlet {
 			return;
 		}
 
-		// TODO math don't work right for little bins, fix this.
+		/**
+		 * compute bin widths and maximum possible bin count.
+		 * if number of bins based on request length and bin length exceeds max Bins
+		 * set number of bins to max bins, and recompute bin length based on the length
+		 * of request and maxbins
+		 */
 		bins = (int) (Math.ceil(requestLength / (double) binLength));
 		bins = (bins < maxBins) ? bins : maxBins;
-		boolean isSingleton = (lines.size() / bins) == 1;
-
+		binLength = (bins == maxBins) ? (long)Math.ceil(requestLength/binLength) : binLength;
 		response.setContentType(GetEntries.JSONMimeType);
 
-		Entry e = (isSingleton) ? new Entry(1, 1, lines.get(0))
-				: new Entry(1, null);
+		Entry e = new Entry(1, null);
 		e.setStart(new Timestamp(startTime));
 		e.setEnd(new Timestamp(startTime + binLength));
+		entries.add(e);
 
 		int count = 1;
 		for (Line l : lines) {
-			if (l.getTime().getTime() < e.getEnd().getTime()) {
+			if (l.getTime().getTime() < e.getEnd().getTime()) { //this element is inside the current bin
 				setFlags(l, e);
-			} else if (l.getTime().getTime() == e.getEnd().getTime()) {
+			} else if (l.getTime().getTime() == e.getEnd().getTime()) { //we're right on the edge of a bin
 				setFlags(l, e);
-				// TODO handle where there's multiple rows with the same time,
-				// only want to create a new entry when the *next* row is after
-				// current time.
-				if (lines.size() > count //if lines.size == count, this is the last iteration anyway.
-						&& lines.get(count).getTime().after(l.getTime())) {
-					e.setEnd(l.getTime());
+				if (lines.size() > count //if lines.size == count, this is the last iteration anyway, so don't bother setting up a new element.
+						&& lines.get(count).getTime().after(l.getTime())) { //lookahead, if the next elem is a new bin, create the new bin.
+					if (e.getSubElemCount() == 1){
+						e.setElem(l);
+					}
+					e = new Entry(count, null);
 					entries.add(e);
-					e = (isSingleton) ? new Entry(count, 1, l) : new Entry(
-							count, null);
 					e.setStart(l.getTime());
 					e.setEnd(new Timestamp(startTime + binLength));
 				}
-			} else { // l occurs after endTime of current Entry.
-				while (l.getTime().getTime() > startTime + binLength) {
-					startTime += binLength;
+			} else { //this element is past the end of the current bin
+				while (l.getTime().getTime() > startTime + binLength) { //it may be more than one binLength past
+					startTime += binLength;//increment startTime in binLength increments, skipping N bins.
 				}
+				if (e.getSubElemCount() == 1){
+					e.setElem(l);
+				}
+				e = new Entry(count, null);
 				entries.add(e);
-				e = (isSingleton) ? new Entry(count, 1, l) : new Entry(
-						count, null);
 				e.setStart(new Timestamp(startTime));
 				setFlags(l, e);
 				e.setEnd(new Timestamp(startTime + binLength));
 			}
 			count++;
 		}
-
-		/*
-		 * Line l; for (int i =0; i< lines.size(); i++){ l = lines.get(i);
-		 * setFlags(l, e); if (i%elemPerBin == 0 && i != 0){
-		 * e.setEnd(l.getTime()); entries.add(e); e = (elemPerBin == 1) ? new
-		 * Entry(1, elemPerBin, l) : new Entry(i, elemPerBin, null);
-		 * e.setStart(l.getTime()); } }
-		 */
 
 		StringBuilder json = new StringBuilder("[");
 		for (Entry es : entries) {
@@ -180,6 +177,8 @@ public class GetEntries extends HttpServlet {
 												// trailing ,
 		json.append("]");
 		w.print(json.toString());
+		w.flush();
+		response.flushBuffer();
 	}
 
 	private void setFlags(Line l, Entry e) {

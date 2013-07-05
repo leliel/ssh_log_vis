@@ -8,24 +8,36 @@ var timelinePlacements;
 window.onload = setupOnLoad;
 
 function setupOnLoad(){
-	
+
 	timelinePlacements = {
 			minBinWidth : 30,
 			maxBins : undefined,
 			binHeight : 40,
 			numOnLine : 3,
 			rowsx : 10,
-			rowHeight : 60
+			rowHeight : 60,
+			rowY : 0,
 	};
-	
-	timelinePlacements.maxBins = getPropertyNumberFromCSS(document.getElementById("time"), "width")/timelinePlacements.minBinWidth;
-	
-	locality = {
-			startTime : new Date(2013, 02, 16, 08, 26, 06),
-			endTime : new Date(2013, 02, 24, 12, 00, 00)
+
+	timelinePlacements.maxBins = Math.floor((getPropertyNumberFromCSS(document.getElementById("time"), "width")-20)/timelinePlacements.minBinWidth);
+
+	locality = [{
+				startTime : new Date(2013, 02, 15, 00, 00, 00),
+				endTime : new Date(2013, 02, 22, 00, 00, 00)
+			},
+			{
+				startTime : new Date(2013, 02, 22, 00, 00, 00),
+				endTime : new Date (2013, 02, 29, 00, 00, 00)
+			},
+			{
+				startTime : new Date(2013, 02, 29, 00, 00, 00),
+				endTime : new Date(2013, 03, 05, 00, 00, 00)
+			}
+	];
+
+	for (var place in locality){
+		requestTimelineEvents(locality[place].startTime, locality[place].endTime, timelinePlacements.maxBins, day);
 	};
-		
-	requestTimelineEvents(locality.startTime, locality.endTime, timelinePlacements.maxBins, day);
 }
 
 
@@ -64,17 +76,17 @@ function datify(key, value){
 }
 
 function renderBins(element) {
+
+	//TODO fix scaling.. use one request and chunk into rows?.
+	//probably better, but will require co-ordinate rewriting based on rows.
 	var range = [10, getPropertyNumberFromCSS(document.getElementById("time"), "width")-10];
 	timeScale = d3.time.scale()
 		.domain([locality.startTime, locality.endTime])
 		.range(range);
 
-	var timeLineContainer = d3.select(".timeline"); // get the timeline, to nest
-	// everything under
-	var vis = timeLineContainer.selectAll(".bin"); // get all the bins, we'll
-	// reuse this selection
-	// several times.
-	vis.data(element)
+	var timeLineContainer = d3.select(".timeline"); // get the timeline, to nest everything under
+	timeLineContainer.selectAll(".bin")
+		.data(element)
 		.enter()
 		.append("g")
 		.attr("class", "bin")
@@ -84,8 +96,9 @@ function renderBins(element) {
 		})
 		.on("mouseover", showToolTip)
 		.on("mouseout", hideToolTip)
+		.on("dblclick", zoomElem)
 		.attr("transform", getEventCoords);
-	
+
 	timeLineContainer.selectAll(".bin")
 		.append("rect")
 		.attr("class", "binFailed")
@@ -95,42 +108,66 @@ function renderBins(element) {
 	timeLineContainer.selectAll(".bin")
 		.append("rect")
 		.attr("class", "binAccepted")
-		.attr("width", timelinePlacements.binWidth)
+		.attr("width", getEventWidth)
 		.attr("height",	getAcceptedPropAsHeight);
 
 	timeLineContainer.selectAll(".bin")
 		.append("line")
-		.attr("class", ".binDivider")
-		.attr("y1", getAcceptedPropAsHeight)
+		.attr("class", "binDivider")
+		.style("stroke-width", getNonConnectProp)
+		.attr("x1", 0)
+		.attr("y1", getDividerY)
 		.attr("x2", getEventWidth)
-		.attr("y2", getAcceptedPropAsHeight);
+		.attr("y2", getDividerY);
+
+}
+
+function zoomElem(d, i){
+	//TODO implement zooming functions.
+	alert("zooming to be implemented");
+}
+
+function getDividerY(d, i){
+	var temp = getAcceptedPropAsHeight(d, i) + 0.5*getNonConnectProp(d, i);
+	return temp;
+}
+
+function getNonConnectProp(d, i){
+	if (d.subElemCount != d.acceptedConn && d.subElemCount != d.failedConn && d.subElemCount != d.invalidAttempts) {
+		var prop = (d.subElemCount - d.acceptedConn - d.failedConn - d.invalidAttempts)/d.subElemCount * timelinePlacements.binHeight;
+		return prop > 2 ? prop : 2;
+	} else {
+		return 0;
+	}
 }
 
 function getEventCoords(d, i){
-	var x = timeScale(getXforEvent(d, i));
-	var y = getYforEvent(d, i);
-	return "translate(" + x + "," + y + ")";
+	var rowY = undefined;
+	for (var i =0; i < locality.length; i++){
+		if (locality[i].startTime <= d.startTime && locality[i].endTime <= d.endTime){
+			rowY = timelinePlacements.rowHeight * i;
+			break;
+		}
+	}
+	if (rowY != undefined) {
+		return "translate(" + timeScale(getXforEvent(d, i)) + "," + rowY + ")";
+	} else {
+		//TODO how do we handle being given a date not within the bounds of the timeline?
+	}
 }
 
 function getEventWidth(d, i){
 	if (d.endTime === d.startTime){
 		return timelinePlacements.minBinWidth;
 	} else {
-		var scaleStart = timeScale(d.startTime);
-		var scaleEnd = timeScale(d.endTime);
-		return scaleEnd - scaleStart;
+		var temp1 = timeScale(d.endTime);
+		var temp2 = timeScale(d.startTime);
+		return temp1 - temp2;
 	}
 }
 
 function getAcceptedPropAsHeight(d, i) {
-	var temp = timelinePlacements.binHeight
-			* (d.acceptedConn / (d.acceptedConn + d.failedConn + d.invalidAttempts));
-	return temp;
-}
-
-function getYforEvent(d, i) {
-	var temp = Math.ceil(i * 1.0 / timelinePlacements.numOnLine);
-	return timelinePlacements.rowHeight*temp;
+	return timelinePlacements.binHeight * (d.acceptedConn / d.subElemCount);
 }
 
 function getXforEvent(d, i) {
@@ -151,7 +188,8 @@ function showToolTip(d) {
 			"End Time: " + d.endTime.toLocaleString() + "<br>" +
 			"Accepted Connections: " + d.acceptedConn + "<br>" +
 			"Failed Connections: " + d.failedConn + "<br>" +
-			"Invalid Usernames: " + d.invalidAttempts + "<br>"
+			"Invalid Usernames: " + d.invalidAttempts + "<br>" +
+			"Total events: " + d.subElemCount + "<br>"
 			//TODO how do we print flags?
 			;
 	} else {

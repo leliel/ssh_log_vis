@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 public class Request_utils {
 
 	public static boolean isGzipSupported(HttpServletRequest request){
-		String header = request.getHeader("Accepted-Encoding");
+		String header = request.getHeader("Accept-Encoding");
 		return (header != null) && (header.contains("gzip"));
 	}
 

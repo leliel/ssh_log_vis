@@ -34,7 +34,8 @@ import enums.AuthType;
 import enums.Status;
 import enums.SubSystem;
 
-//TODO - get algorithm from ian for IP anonymizing.
+//TODO - implement Ip anonymizer as standalone. c++?
+//TODO refactor to split into 3 layers - file reader/parser, analyser, datastore.
 public class Parser {
 
 	private final static String url = Messages.getString("Parser.dbLoc"); //$NON-NLS-1$

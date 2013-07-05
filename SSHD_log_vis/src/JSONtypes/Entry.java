@@ -12,39 +12,11 @@ public class Entry {
 	private int acceptedConn;
 	private int failedConn;
 	private int invalidAttempts;
-	private final Line elem;
-
-	public Entry(int id, Timestamp start, Timestamp end, String flags,
-			long subElemCount, int acceptedConn, int failedConn, int invalidAttempts, Line elem) {
-		super();
-		if (subElemCount != 1 && elem != null){
-			throw new IllegalArgumentException("elem only exists for singleton Entries");
-		}
-		this.id = id;
-		this.start = start;
-		this.end = end;
-		this.flags = flags;
-		this.subElemCount = subElemCount;
-		this.acceptedConn = acceptedConn;
-		this.failedConn = failedConn;
-		this.invalidAttempts = invalidAttempts;
-		this.elem = elem;
-	}
+	private Line elem;
 
 	public Entry(int id, Line elem) {
 		super();
 		this.id = id;
-		this.elem = elem;
-		this.subElemCount = 0;
-		this.acceptedConn = 0;
-		this.failedConn = 0;
-		this.invalidAttempts = 0;
-	}
-
-	public Entry(int id, long elemCount, Line elem){
-		super();
-		this.id = id;
-		this.subElemCount = elemCount;
 		this.elem = elem;
 		this.subElemCount = 0;
 		this.acceptedConn = 0;
@@ -143,5 +115,9 @@ public class Entry {
 		}
 		json.append("}");
 		return json.toString();
+	}
+
+	public void setElem(Line l) {
+		this.elem = l;
 	}
 }
