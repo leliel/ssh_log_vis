@@ -122,8 +122,8 @@ public class Disconnect implements JSONtypes.Line {
 		StringBuilder jsonString = new StringBuilder("{");
 		jsonString.append("\"id\":"); jsonString.append(this.id);
 		jsonString.append(",\"time\":"); jsonString.append(time.getTime());
-		if (this.server == null){
-		jsonString.append(",\"server\":"); jsonString.append("\"" + server.getName() + "\"");
+		if (this.server != null){
+		jsonString.append(",\"server\":"); jsonString.append(this.server.toJsonString());
 		} else {
 			jsonString.append(",\"server\":"); jsonString.append("null");
 		}

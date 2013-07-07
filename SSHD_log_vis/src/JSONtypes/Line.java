@@ -9,5 +9,5 @@ public interface Line {
 	public Timestamp getTime();
 	public Server getServer();
 	public int getConnectID();
-
+	public int getId();
 }

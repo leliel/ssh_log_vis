@@ -3,18 +3,14 @@ package request_handlers;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import request_utils.Request_utils;
 import JSONtypes.Connect;
 import JSONtypes.Disconnect;
 import JSONtypes.Entry;
@@ -29,10 +25,11 @@ import enums.Status;
 
 /**
  * Servlet implementation class GetEntries Implements fetching of timebinned log
- * entries for sshd_log_vis tool. Requests must provide startTime, endTime, maxBins
- * and binLength. maxBins indicates the maximum number of timebins the server should
- * produce. where the natural number of bins ((endTime-startTime)/binLength) would exceed
- * maxBins, it is clamped to maxBins for displayability reasons.
+ * entries for sshd_log_vis tool. Requests must provide startTime, endTime,
+ * maxBins and binLength. maxBins indicates the maximum number of timebins the
+ * server should produce. where the natural number of bins
+ * ((endTime-startTime)/binLength) would exceed maxBins, it is clamped to
+ * maxBins for displayability reasons.
  */
 public class GetEntries extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -89,13 +86,15 @@ public class GetEntries extends HttpServlet {
 		}
 
 		PrintWriter w;
-		/*if (Request_utils.isGzipSupported(request)
-				&& !Request_utils.isGzipDisabled(request)) {
-			w = Request_utils.getGzipWriter(response);
-			response.setHeader("Content-Encoding", "gzip");
-		} else {*/
-			w = response.getWriter();
-		//}
+		// TODO fix the damned gzip support.
+		/*
+		 * if (Request_utils.isGzipSupported(request) &&
+		 * !Request_utils.isGzipDisabled(request)) { w =
+		 * Request_utils.getGzipWriter(response);
+		 * response.setHeader("Content-Encoding", "gzip"); } else {
+		 */
+		w = response.getWriter();
+		// }
 
 		long binLength;
 		long requestLength;
@@ -121,52 +120,74 @@ public class GetEntries extends HttpServlet {
 		}
 
 		/**
-		 * compute bin widths and maximum possible bin count.
-		 * if number of bins based on request length and bin length exceeds max Bins
-		 * set number of bins to max bins, and recompute bin length based on the length
-		 * of request and maxbins
+		 * compute bin widths and maximum possible bin count. if number of bins
+		 * based on request length and bin length exceeds max Bins set number of
+		 * bins to max bins, and recompute bin length based on the length of
+		 * request and maxbins
 		 */
 		bins = (int) (Math.ceil(requestLength / (double) binLength));
 		bins = (bins < maxBins) ? bins : maxBins;
-		binLength = (bins == maxBins) ? (long)Math.ceil(requestLength/binLength) : binLength;
+		binLength = (bins == maxBins) ? (long) Math.ceil(requestLength
+				/ binLength) : binLength;
 		response.setContentType(GetEntries.JSONMimeType);
 
-		Entry e = new Entry(1, null);
+		//TODO refactor this, it's too hard to understand and maintain.
+		Entry e = new Entry(lines.get(0).getId(), null);
 		e.setStart(new Timestamp(startTime));
 		e.setEnd(new Timestamp(startTime + binLength));
-		entries.add(e);
+		while (e.getEnd().getTime() < lines.get(0).getTime().getTime()){
+			e.setStart(e.getEnd());
+			e.setEnd(new Timestamp(e.getEnd().getTime() + binLength));
+		}
+		if (e.getStart().getTime() <= lines.get(0).getTime().getTime()
+				&& lines.get(0).getTime().getTime() <= e.getEnd().getTime()) {
+			entries.add(e);
+		}
+		
+		if (lines.size() == 1){
+			e.setElem(lines.get(0));
+		}
 
-		int count = 1;
-		for (Line l : lines) {
-			if (l.getTime().getTime() < e.getEnd().getTime()) { //this element is inside the current bin
+		
+		Line l;
+		for (int i = 0; i < lines.size(); i++) {
+			l = lines.get(i);
+			// this element is inside the current bin
+			if (l.getTime().getTime() < e.getEnd().getTime()) { 
 				setFlags(l, e);
-			} else if (l.getTime().getTime() == e.getEnd().getTime()) { //we're right on the edge of a bin
+				// we're right on the edge of a bin 
+			} else if (l.getTime().getTime() == e.getEnd().getTime()) {
 				setFlags(l, e);
-				if (lines.size() > count //if lines.size == count, this is the last iteration anyway, so don't bother setting up a new element.
-						&& lines.get(count).getTime().after(l.getTime())) { //lookahead, if the next elem is a new bin, create the new bin.
-					if (e.getSubElemCount() == 1){
+				// if lines.size == count, this is the last iteration anyway, so don't bother setting up a new element.
+				if (lines.size() > (i + 1) 
+						// lookahead, if the next elem exist and is in a new bin, make it.
+						&& lines.get(i + 1).getTime().after(l.getTime())) { 
+					if (e.getSubElemCount() == 1) {
 						e.setElem(l);
 					}
-					e = new Entry(count, null);
+					e = new Entry(l.getId(), null);
 					entries.add(e);
 					e.setStart(l.getTime());
 					e.setEnd(new Timestamp(startTime + binLength));
 				}
-			} else { //this element is past the end of the current bin
-				while (l.getTime().getTime() > startTime + binLength) { //it may be more than one binLength past
-					startTime += binLength;//increment startTime in binLength increments, skipping N bins.
+			} else { // this element is past the end of the current bin
+				// it may be more than one binLength past 
+				while (l.getTime().getTime() > startTime + binLength) { 
+					startTime += binLength;// increment startTime in binLength increments, skipping N bins.
 				}
-				if (e.getSubElemCount() == 1){
+				if (e.getSubElemCount() == 1) {
 					e.setElem(l);
 				}
-				e = new Entry(count, null);
-				entries.add(e);
-				e.setStart(new Timestamp(startTime));
-				setFlags(l, e);
-				e.setEnd(new Timestamp(startTime + binLength));
+				if (lines.size() > i + 1) {
+					e = new Entry(l.getId(), null);
+					entries.add(e);
+					e.setStart(new Timestamp(startTime));
+					setFlags(l, e);
+					e.setEnd(new Timestamp(startTime + binLength));
+				}
 			}
-			count++;
 		}
+		//END REFACTOR BLOCK
 
 		StringBuilder json = new StringBuilder("[");
 		for (Entry es : entries) {

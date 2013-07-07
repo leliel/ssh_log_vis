@@ -77,8 +77,8 @@ public class Server {
 		return true;
 	}
 
-	public StringBuilder toJsonString(StringBuilder json){
-		json.append("{");
+	public String toJsonString(){
+		StringBuilder json = new StringBuilder("{");
 		json.append("\"name\":\""); json.append(this.name);
 		json.append("\",\"block\":");
 		if (this.block != null && !this.block.equalsIgnoreCase("")){
@@ -87,7 +87,7 @@ public class Server {
 			json.append("null");
 		}
 		json.append("}");
-		return json;
+		return json.toString();
 	}
 
 }

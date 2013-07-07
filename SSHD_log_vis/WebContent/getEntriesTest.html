@@ -2,15 +2,33 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" type="text/css" href="/SSHD_log_vis/css/timeline.css">
+<link rel="stylesheet" type="text/css"
+	href="/SSHD_log_vis/css/timeline.css">
 <script type="text/javascript" src="/SSHD_log_vis/scripts/d3.v3.js"></script>
 <script type="text/javascript" src="/SSHD_log_vis/scripts/utils.js"></script>
 <script type="text/javascript" src="/SSHD_log_vis/scripts/timeline.js"></script>
 <title>Testing d3 json requests</title>
 </head>
 <body>
-<div class="tooltip"></div>
-<svg id="time" class="timeline"></svg>
-also testing jsp getEntries servlet.
+	<div class="tooltip"></div>
+	<div id="overlay">
+		<div>
+		<form action="">
+			<p id='message'></p>
+			<input type='number' name='timeBlock' id='timeBlock' />
+			<input type='number' name='chunk' id='chunk'/>
+			<select name='units' id='units'>
+				<option value='null' selected>Please choose</option>
+				<option value='week'>Weeks</option>
+				<option value='day'>Days</option>
+				<option value='hour'>Hours</option>
+				<option value='minute'>Minutes</option>
+				<option value='second'>Seconds</option>  
+			</select> 
+			<input type='button' /> <input type='button' />
+		</form>
+		</div>
+	</div>
+	<svg id="time" class="timeline"></svg>
 </body>
 </html>
