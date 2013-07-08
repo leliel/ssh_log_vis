@@ -3,14 +3,15 @@ var timelineGlobals;
 window.onload = setupOnLoad;
 
 function setupOnLoad(){
-	
+
 	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
-	
+
 	requestAllTimelines(timelineGlobals.day);
 }
 
 function TimeUnits() {
-		this.minute = 60000; // milliseconds in a minute.
+		this.second = 1000;
+		this.minute = 60 * this.second; // milliseconds in a minute.
 		this.hour = 60 * this.minute; // milliseconds in an hour.
 		this.day = 24 * this.hour; // milliseconds in a day.
 		this.week = 7 * this.day; // milliseconds in a week.
@@ -19,7 +20,7 @@ function TimeUnits() {
 
 function Globals(width, height){
 	this.timeUnits = new TimeUnits();
-	
+
 	this.minBinWidth = 30;
 	this.maxBins = Math.floor((width-40)/this.minBinWidth);
 	this.binHeight = 40;
@@ -28,7 +29,7 @@ function Globals(width, height){
 	this.rowHeight = height/this.numLines;
 
 	this.range = [20, width-20];
-	this.times = [{ 
+	this.times = [{
 		startTime : new Date(2013, 02, 15, 00, 00, 00),
 		endTime : new Date(2013, 02, 22, 00, 00, 00)
 	},
@@ -44,7 +45,7 @@ function Globals(width, height){
 		startTime : new Date(2013, 03, 05, 00, 00, 00),
 		endTime : new Date(2013, 03, 12, 00, 00 ,00)
 	}];
-	
+
 	//used in tracking which timeline we're building now.
 	this.rowY = undefined;
 	this.rowId = undefined;
@@ -102,16 +103,16 @@ function renderBins(element, idx) {
 	var timeLineContainer = d3.select("#time");
 	if (timeLineContainer.select("#timeline"+idx).empty()){
 		timeLineContainer.append("svg:g")
-		.attr("id", "timeline" + timelineGlobals.rowId); 
+		.attr("id", "timeline" + timelineGlobals.rowId);
 	};
-	
+
 	var timeline = timeLineContainer.select("#timeline" + idx);
 	var thisLine = timeline.selectAll(".bin")
 		.data(element);
 	thisLine.enter()
 		.append("g")
 		.attr("class", "bin");
-	 
+
 	thisLine.attr("id",
 			function(d) {
 				return d.id;
@@ -122,7 +123,7 @@ function renderBins(element, idx) {
 		.attr("transform", getEventCoords);
 
 	thisLine.selectAll(".binFailed")
-		.data(function(d){ 
+		.data(function(d){
 			return [d];
 		})
 		.enter()
@@ -131,7 +132,7 @@ function renderBins(element, idx) {
 	thisLine.selectAll(".binFailed")
 		.attr("width", getEventWidth)
 		.attr("height", timelineGlobals.binHeight);
-	
+
 	thisLine.selectAll(".binAccepted")
 		.data(function(d){return[d];})
 		.enter()
@@ -153,14 +154,14 @@ function renderBins(element, idx) {
 		.attr("y1", getDividerY)
 		.attr("x2", getEventWidth)
 		.attr("y2", getDividerY);
-	
+
 	 thisLine.exit().remove();
-	
+
 	 var axis = d3.svg.axis()
     	.scale(timelineGlobals.scaler)
     	.orient("bottom");
 	 if (timeline.select(".axis").empty()){
-		 timeline.append("g")	
+		 timeline.append("g")
 		 .attr("class", "axis");
 	 };
 	 timeline.select(".axis")
@@ -212,20 +213,20 @@ function zoomElem(d, i){
 	if (d.elem != null) {
 		alert("Can't zoom in on a single event");
 		return;
-	} 
+	}
 	splitTimeBlock(d, timelineGlobals.binLength);
 }
 
-function performZoom(d, binLength){
+function performZoom(startTime, endTime, binLength){
 	timelineGlobals.binLength = binLength;
-	var chunk = (d.endTime.getTime() - d.startTime.getTime())/timelineGlobals.numLines;
-	var currentTime = d.startTime;
+	var chunk = (endTime - startTime)/timelineGlobals.numLines;
+	var currentTime = new Date(startTime);
 	for (var i = 0; i < timelineGlobals.numLines; i++){
 		timelineGlobals.times[i].startTime = currentTime;
 		currentTime = new Date(chunk + currentTime.getTime());
 		timelineGlobals.times[i].endTime = currentTime;
 	};
-	
+
 	requestAllTimelines();
 }
 

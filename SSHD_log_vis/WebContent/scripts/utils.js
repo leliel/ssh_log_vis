@@ -5,10 +5,7 @@ function getPropertyNumberFromCSS(element, propertyName){
 }
 
 function splitTimeBlock(d, block){
-	var temp = makeUserRequest("How would you like to divide up: ", toPrettyTimeString(block));
-	if (temp != null){
-		performZoom(d, temp);
-	} else if (block === timelineGlobals.month){
+	if (block === timelineGlobals.month){
 		performZoom(d, timelineGlobals.week);
 	} else if (block === timelineGlobals.week){
 		performZoom(d, timelineGlobals.day);
@@ -20,59 +17,92 @@ function splitTimeBlock(d, block){
 		performZoom(d, timelineGlobals.minute);
 	} else if (block === timelineGlobals.minute){
 		performZoom(d, timelineGlobals.second*30);
+	} else {
+		makeUserRequest(d, "How would you like to divide up: ", block);
 	}
 }
 
-function makeUserRequest(message, time, callback) {
-	//TODO prompt user for customised time breakdown, return -1 for letting machine chose.
-	d3.select("#message")
+function checkExists(input, name){
+	if (input.val() == undefined || input.val() == null){
+		input.addClass("ui-state-error");
+		return false;
+	}
+	return true;
+}
+
+function checkChosen(input, name){
+	if (input.val() === "Please Select"){
+		input.addClass("ui-state-error");
+		return false;
+	}
+	return true;
+}
+
+function makeUserRequest(d, message, time) {
+
+	//TODO lookup open event in jquery to set message.
+	var startTime = $("#startTime"),
+		endTime = $("#endTime"),
+		chunk = $("#chunk"),
+		units = $("#units"),
+		allFields = $([]).add(startTime).add(endTime).add(chunk).add(units);
+	$("zoom_dialog").dialog({
+		autoOpen: false,
+		height: 300,
+		width: 250,
+		modal: true,
+		buttons:{
+			"Ok" : function() {
+				var valid = true;
+
+				valid = valid && checkExists(chunk, "Number of units");
+				valid = valid && checkChosen(units, "Unit");
+				if (valid){
+					var binSize = Number(chunk.val()) * timelineGlobals.timeUnits[units.val()];
+					performZoom(Number(startTime.val()), Number(endTime.val()), binSize);
+				};
+			},
+			Cancel : function(){
+				$(this).dialog("close");
+			},
+			Close : function(){
+				allFields.val("").removeClass("ui-state-error");
+			}
+		}
+	});
+
+	/*d3.select("#message")
 		.html(message + "<br>" + toPrettyTimeString(time));
-	d3.select("#popupForm").selectAll("input")
-		.on("click", callback);
-	d3.select("#timeBlock")
-		.attr("value", time);
-	showPopup();
+	var temp = d3.select("#popupForm");
+	document.getElementById("ok").onclick = function() {parseTimeUnits(1);};
+	document.getElementById("cancel").onclick = function() {parseTimeUnits(0);};
+	temp.select("#startTime")
+		.attr("value", d.startTime.getTime());
+	temp.select("#endTime")
+	.attr("value", d.endTime.getTime());
+	showPopup(); */
 }
 
-function parseTimeUnits(form){
-	var many = form.chunk.value;
-	if (many == null || many == undefined){
-		var html = d3.select("#message")
-			.html();
-		d3.select("#message")
-			.html(html + "<br> a number of units must be provided");
-		d3.select("#chunk")
-			.style("color", "#ff0000");
-		return;
-	}
-	var unit = form.units.value;
-	if (unit == "Please choose"){
-		var html = d3.select("#message")
-			.html();
-		d3.select("#message")
-			.html(html + "<br> a unit must be chosen");
-		d3.select("#units")
-			.style("color", "#ff0000");
-	return;
-	}
-	showPopup();
-	return form.timeBlock/timelineGlobals.timeUnits[unit];
+function parseTimeUnits(ok){
+	if (Number(ok)){
+
+
+	};
 }
 
-function showPopup(){
+/*function showPopup(){
 	var popup = document.getElementById("overlay");
 	popup.style.visibility = (popup.style.visibility == "visible") ? "hidden" : "visible";
-}
+}*/
 
 function toPrettyTimeString(time){
 	//TODO implement long->pretty string conversion
 	var result = "";
-	for (var prop in timelineGlobals.timeUnits){
-		if (timelineGlobals.hasOwnProperty(prop)){
-			if (Math.floor(time/timelineGlobals.timeUnits[prop]) > 0){
-				result += prop + ": " + Math.floor(time/timelineGlobals.timeUnits[prop]) + "<br>";
-			}
-		};
+	var temp = Object.getOwnPropertyNames(timelineGlobals.timeUnits);
+	for (var i = temp.length; i >= 0; i--){
+		if (Math.floor(time/timelineGlobals.timeUnits[temp[i]]) > 0){
+			result += temp[i] + ": " + Math.floor(time/timelineGlobals.timeUnits[temp[i]]) + "<br>";
+		}
 	};
 	return result;
 }
