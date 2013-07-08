@@ -1,14 +1,5 @@
 var timelineGlobals;
 
-window.onload = setupOnLoad;
-
-function setupOnLoad(){
-
-	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
-
-	requestAllTimelines(timelineGlobals.day);
-}
-
 function TimeUnits() {
 		this.second = 1000;
 		this.minute = 60 * this.second; // milliseconds in a minute.
@@ -20,54 +11,32 @@ function TimeUnits() {
 
 function Globals(width, height){
 	this.timeUnits = new TimeUnits();
-
-	this.minBinWidth = 30;
-	this.maxBins = Math.floor((width-40)/this.minBinWidth);
-	this.binHeight = 40;
 	this.binLength = this.timeUnits.day;
+	this.minBinWidth = 30;
+	this.padding = 20;
+	this.maxBins = Math.floor((width-this.padding*2)/this.minBinWidth);
 	this.numLines = 4;
 	this.rowHeight = height/this.numLines;
-
-	this.range = [20, width-20];
-	this.times = [{
-		startTime : new Date(2013, 02, 15, 00, 00, 00),
-		endTime : new Date(2013, 02, 22, 00, 00, 00)
-	},
-	{
-		startTime : new Date(2013, 02, 22, 00, 00, 00),
-		endTime : new Date (2013, 02, 29, 00, 00, 00)
-	},
-	{
-		startTime : new Date(2013, 02, 29, 00, 00, 00),
-		endTime : new Date(2013, 03, 05, 00, 00, 00)
-	},
-	{
-		startTime : new Date(2013, 03, 05, 00, 00, 00),
-		endTime : new Date(2013, 03, 12, 00, 00 ,00)
-	}];
-
-	//used in tracking which timeline we're building now.
-	this.rowY = undefined;
-	this.rowId = undefined;
-	this.scaler = undefined;
+	this.binHeight = this.rowHeight - 10;
+	
+	this.timelines = [new timeline(0, [this.padding, width-this.padding], [new Date(2013, 02, 15, 00, 00, 00), new Date(2013, 02, 22, 00, 00, 00)], this.binHeight),
+	                  new timeline(1, [this.padding, width-this.padding], [new Date(2013, 02, 22, 00, 00, 00), new Date (2013, 02, 29, 00, 00, 00)], this.binHeight),
+	                  new timeline(2, [this.padding, width-this.padding], [new Date(2013, 02, 29, 00, 00, 00), new Date(2013, 03, 05, 00, 00, 00)], this.binHeight),
+	                  new timeline(3, [this.padding, width-this.padding], [new Date(2013, 03, 05, 00, 00, 00), new Date(2013, 03, 12, 00, 00 ,00)], this.binHeight)];
 }
 
 function requestAllTimelines(){
-	for (var idx in timelineGlobals.times){
-		if (timelineGlobals.times[idx] == null || timelineGlobals.times[idx].timeScale == undefined){
-			timelineGlobals.times[idx].timeScale = d3.time.scale()
-			.range(timelineGlobals.range);
-		}
-		timelineGlobals.times[idx].timeScale.domain([timelineGlobals.times[idx].startTime, timelineGlobals.times[idx].endTime]);
-		requestTimelineEvents(timelineGlobals.times[idx].startTime, timelineGlobals.times[idx].endTime, timelineGlobals.maxBins, timelineGlobals.binLength, idx);
+	for (var i = 0; i < timelineGlobals.timelines.length; i++){
+		requestTimelineEvents(timelineGlobals.timelines[i].getStart(),
+				timelineGlobals.timelines[i].getEnd(), timelineGlobals.maxBins, timelineGlobals.timelines[i]);
 	};
 }
 
 
-function requestTimelineEvents(startTime, endTime, maxBins, binLength, idx) {
-	var data = "startTime=" + startTime.getTime() + "&endTime=" + endTime.getTime() + "&maxBins="
-			+ maxBins + "&binLength=" + binLength;
-
+function requestTimelineEvents(startTime, endTime, maxBins, timeline) {
+	var data = "startTime=" + startTime + "&endTime=" + endTime + "&maxBins="
+			+ maxBins + "&binLength=" + timelineGlobals.binLength;
+	timeline.updateTimeline(startTime, endTime);
 	d3.xhr("getEntries").mimeType("application/json")
 		.header("Content-type",	"application/x-www-form-urlencoded")
 		.post(encodeURI(data),
@@ -78,9 +47,9 @@ function requestTimelineEvents(startTime, endTime, maxBins, binLength, idx) {
 					if (response.status == 200) {
 						var text = response.responseText;
 						text = JSON.parse(text, datify);
-						renderBins(text, idx);
+						timeline.renderBins(text);
 					} else if (response.status = 204) {
-						renderBins([], idx);
+						timeline.renderBins([]);
 					};
 				};
 			});
@@ -93,119 +62,142 @@ function datify(key, value){
 	return value;
 }
 
-function renderBins(element, idx) {
-
-	//pick the right scaler and rowNumber
-	timelineGlobals.scaler = timelineGlobals.times[idx].timeScale;
-	timelineGlobals.rowY = timelineGlobals.rowHeight * idx;
-	timelineGlobals.rowId = idx;
-
-	var timeLineContainer = d3.select("#time");
-	if (timeLineContainer.select("#timeline"+idx).empty()){
-		timeLineContainer.append("svg:g")
-		.attr("id", "timeline" + timelineGlobals.rowId);
+function timeline(idx, range, domain, height){
+	var rowY = height * idx;
+	var xScaler = d3.time.scale().domain(domain).range(range);
+	var yScaler = d3.time.scale().range([height-10, 0]);
+	var binHeight = height-10;
+	var selection = d3.select("#time")
+		.append("svg:g")
+		.attr("id", "timeline" + idx); 
+	
+	this.updateTimeline = function(startTime, endTime){
+		xScaler.domain([new Date(startTime), new Date(endTime)]);
 	};
+	
+	this.updateHeight = function(height){
+		yScaler.range([height-10, 0]);
+	};
+	
+	this.updateWidth = function(width, padding){
+		xScaler.range([padding, width-padding]);
+	};
+	
+	this.getStart = function(){
+		return xScaler.domain()[0].getTime();
+	};
+	
+	this.getEnd = function(){
+		return xScaler.domain()[1].getTime();
+	};
+	
+	this.renderBins = function(element) {
 
-	var timeline = timeLineContainer.select("#timeline" + idx);
-	var thisLine = timeline.selectAll(".bin")
-		.data(element);
-	thisLine.enter()
-		.append("g")
-		.attr("class", "bin");
+		//update yScale domain;
+		yScaler.domain(d3.extent(element, function(d){ return d.subElemCount;}));
+		
+		var thisLine = selection.selectAll(".bin")
+			.data(element);
+		thisLine.enter()
+			.append("g")
+			.attr("class", "bin");
 
-	thisLine.attr("id",
+		thisLine.attr("id",
 			function(d) {
 				return d.id;
 			})
-		.on("mouseover", showToolTip)
-		.on("mouseout", hideToolTip)
-		.on("dblclick", zoomElem)
-		.attr("transform", getEventCoords);
+			.on("mouseover", showToolTip)
+			.on("mouseout", hideToolTip)
+			.on("dblclick", zoomElem)
+			.attr("transform", getEventCoords);
 
-	thisLine.selectAll(".binFailed")
-		.data(function(d){
-			return [d];
-		})
-		.enter()
-		.append("svg:rect")
-		.attr("class", "binFailed");
-	thisLine.selectAll(".binFailed")
-		.attr("width", getEventWidth)
-		.attr("height", timelineGlobals.binHeight);
+		thisLine.selectAll(".binFailed")
+			.data(function(d){
+				return [d];
+			})
+			.enter()
+			.append("svg:rect")
+			.attr("class", "binFailed");
+		thisLine.selectAll(".binFailed")
+			.attr("width", getEventWidth)
+			.attr("height", function(d, i){ return yScaler(d.subElemCount);})
+			.attr("y", function(d, i){
+				return binHeight - yScaler(d.subElemCount);});
 
-	thisLine.selectAll(".binAccepted")
-		.data(function(d){return[d];})
-		.enter()
-		.append("svg:rect")
-		.attr("class", "binAccepted");
-	thisLine.selectAll(".binAccepted")
-		.attr("width", getEventWidth)
-		.attr("height",	getAcceptedPropAsHeight);
+		thisLine.selectAll(".binAccepted")
+			.data(function(d){return[d];})
+			.enter()
+			.append("svg:rect")
+			.attr("class", "binAccepted");
+		thisLine.selectAll(".binAccepted")
+			.attr("width", getEventWidth)
+			.attr("height", function(d){ return binHeight;})
+			.attr("y",	function(d){
+				return binHeight - getAcceptedPropAsY(d);});
 
 
-	thisLine.selectAll(".binDivider")
-		.data(function(d){return [d];})
-		.enter()
-		.append("svg:line")
-		.attr("class", "binDivider");
-	thisLine.selectAll(".binDivider")
-		.style("stroke-width", getNonConnectProp)
-		.attr("x1", 0)
-		.attr("y1", getDividerY)
-		.attr("x2", getEventWidth)
-		.attr("y2", getDividerY);
+		thisLine.selectAll(".binDivider")
+			.data(function(d){return [d];})
+			.enter()
+			.append("svg:line")
+			.attr("class", "binDivider");
+		thisLine.selectAll(".binDivider")
+			.style("stroke-width", getNonConnectProp)
+			.attr("x1", 0)
+			.attr("y1", getDividerY)
+			.attr("x2", getEventWidth)
+			.attr("y2", getDividerY);
+		
+		thisLine.exit().remove();
 
-	 thisLine.exit().remove();
-
-	 var axis = d3.svg.axis()
-    	.scale(timelineGlobals.scaler)
-    	.orient("bottom");
-	 if (timeline.select(".axis").empty()){
-		 timeline.append("g")
-		 .attr("class", "axis");
-	 };
-	 timeline.select(".axis")
-	 	.attr("transform", "translate(0, " + (timelineGlobals.rowY + timelineGlobals.binHeight) + ")")
-		.call(axis);
-}
-
-function getDividerY(d, i){
-	var temp = getAcceptedPropAsHeight(d, i) + 0.5*getNonConnectProp(d, i);
-	return temp;
-}
-
-function getNonConnectProp(d, i){
-	if (d.subElemCount != d.acceptedConn && d.subElemCount != d.failedConn && d.subElemCount != d.invalidAttempts) {
-		var prop = (d.subElemCount - d.acceptedConn - d.failedConn - d.invalidAttempts)/d.subElemCount * timelineGlobals.binHeight;
-		return prop > 2 ? prop : 2;
-	} else {
-		return 0;
+		var axis = d3.svg.axis()
+    		.scale(xScaler)
+    		.orient("bottom");
+		if (selection.select(".axis").empty()){
+			selection.append("g")
+			.attr("class", "axis");
+		};
+		selection.select(".axis")
+	 		.attr("transform", "translate(0, " + (rowY + binHeight) + ")")
+	 		.call(axis);
 	};
-}
 
-function getEventCoords(d, i){
-	return "translate(" + timelineGlobals.scaler(getXforEvent(d, i)) + "," + timelineGlobals.rowY + ")";
-}
-
-function getEventWidth(d, i){
-	if (d.endTime === d.startTime){
-		return timelineGlobals.minBinWidth;
-	} else {
-		var temp1 = timelineGlobals.scaler(d.endTime);
-		var temp2 = timelineGlobals.scaler(d.startTime);
-		return temp1 - temp2;
+	function getDividerY(d, i){
+		var temp = getAcceptedPropAsY(d, i);
+		var temp2 =  0.5*getNonConnectProp(d, i);
+		return temp + temp2;
 	}
-}
 
-function getAcceptedPropAsHeight(d, i) {
-	return timelineGlobals.binHeight * (d.acceptedConn / d.subElemCount);
-}
+	function getNonConnectProp(d, i){
+		if (d.subElemCount != d.acceptedConn && d.subElemCount != d.failedConn && d.subElemCount != d.invalidAttempts) {
+			var prop = (d.subElemCount - d.acceptedConn - d.failedConn - d.invalidAttempts)/d.subElemCount * binHeight;
+			return prop > 2 ? prop : 2;
+		} else {
+			return 0;
+		};
+	}
 
-function getXforEvent(d, i) {
-	if (d.hasOwnProperty("startTime")){
-		return d.startTime;
-	} else {
-		return d.time;
+	function getEventCoords(d, i){
+		return "translate(" + xScaler(getXforEvent(d, i)) + "," + rowY + ")";
+	}
+	
+	function getXforEvent(d, i) {
+		if (d.hasOwnProperty("startTime")){
+			return d.startTime;
+		} else {
+			return d.time;
+		}
+	}
+
+	function getEventWidth(d, i){
+		if (d.endTime === d.startTime){
+			return timelineGlobals.minBinWidth;
+		} else {
+			return xScaler(d.endTime) - xScaler(d.startTime);
+		}
+	}
+
+	function getAcceptedPropAsY(d, i) {
 	}
 }
 
@@ -220,11 +212,13 @@ function zoomElem(d, i){
 function performZoom(startTime, endTime, binLength){
 	timelineGlobals.binLength = binLength;
 	var chunk = (endTime - startTime)/timelineGlobals.numLines;
-	var currentTime = new Date(startTime);
+	var currentTime = startTime;
+	var starts , ends;
 	for (var i = 0; i < timelineGlobals.numLines; i++){
-		timelineGlobals.times[i].startTime = currentTime;
-		currentTime = new Date(chunk + currentTime.getTime());
-		timelineGlobals.times[i].endTime = currentTime;
+		starts = currentTime;
+		currentTime += chunk;
+		ends = currentTime;
+		timelineGlobals.timelines[i].updateTimeLine(starts, ends);
 	};
 
 	requestAllTimelines();
@@ -264,7 +258,6 @@ function tooltipText(elem){
 	};
 	return text;
 }
-
 function hideToolTip(d) {
 	d3.select(".tooltip").transition().duration(200).style("opacity", 0);
 }
