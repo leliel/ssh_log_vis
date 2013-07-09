@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.5.32, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 5.1.67, for unknown-linux-gnu (x86_64)
 --
--- Host: localhost    Database: leliel_engr489_2013
+-- Host: depot    Database: leliel_engr489_2013
 -- ------------------------------------------------------
--- Server version	5.5.32
+-- Server version	5.1.67
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -54,7 +54,7 @@ CREATE TABLE `entry` (
   CONSTRAINT `entry_ibfk_2` FOREIGN KEY (`user`) REFERENCES `user` (`id`),
   CONSTRAINT `entry_ibfk_3` FOREIGN KEY (`isfreqloc`) REFERENCES `freq_loc` (`id`),
   CONSTRAINT `entry_ibfk_4` FOREIGN KEY (`isfreqtime`) REFERENCES `freq_time` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=37000 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -68,12 +68,29 @@ CREATE TABLE `freq_loc` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user` int(10) unsigned NOT NULL,
   `locId` int(11) DEFAULT NULL,
-  `count` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   KEY `freq_loc_user` (`user`),
   KEY `freq_loc_locId` (`locId`),
   CONSTRAINT `freq_loc_ibfk_1` FOREIGN KEY (`user`) REFERENCES `user` (`id`),
   CONSTRAINT `freq_loc_ibfk_2` FOREIGN KEY (`locId`) REFERENCES `geo` (`locId`)
+) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `freq_loc_links`
+--
+
+DROP TABLE IF EXISTS `freq_loc_links`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `freq_loc_links` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `freq_loc_id` int(11) NOT NULL,
+  `creation` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `timetolive` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `freq_loc_link_loc` (`freq_loc_id`),
+  CONSTRAINT `freq_loc_links_ibfk_2` FOREIGN KEY (`freq_loc_id`) REFERENCES `freq_loc` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -86,13 +103,30 @@ DROP TABLE IF EXISTS `freq_time`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `freq_time` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `user` int(10) unsigned DEFAULT NULL,
+  `user` int(10) unsigned NOT NULL,
   `start` time NOT NULL,
   `end` time NOT NULL,
-  `count` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   KEY `user_time_ind` (`user`),
   CONSTRAINT `freq_time_ibfk_1` FOREIGN KEY (`user`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `freq_time_links`
+--
+
+DROP TABLE IF EXISTS `freq_time_links`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `freq_time_links` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `freq_time_id` int(10) unsigned NOT NULL,
+  `creation` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `timetolive` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_freq_time_id` (`freq_time_id`),
+  CONSTRAINT `freq_time_links_ibfk_1` FOREIGN KEY (`freq_time_id`) REFERENCES `freq_time` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -167,7 +201,7 @@ CREATE TABLE `server` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `name_2` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -184,7 +218,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `name_2` (`name`),
   KEY `users` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=21127 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -194,26 +228,115 @@ CREATE TABLE `user` (
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8 */ ;
-/*!50003 SET character_set_results = utf8 */ ;
-/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET character_set_client  = latin1 */ ;
+/*!50003 SET character_set_results = latin1 */ ;
+/*!50003 SET collation_connection  = latin1_swedish_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_loc_add`(in name int, in loc int, out num int, out ids int)
-begin 
-declare temp int default null; 
-select freq_loc.id into temp from freq_loc where freq_loc.user=name and freq_loc.locId=loc;  
-if temp is null then 
-insert into freq_loc value(default, name, loc, default); 
-set num = 1; 
-set ids = last_insert_id(); 
-else 
-update freq_loc set freq_loc.count=freq_loc.count+1 where freq_loc.id=temp;
-select freq_loc.count into num from freq_loc where freq_loc.id=temp; 
-set ids = temp; 
-end if; 
-end ;;
+CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_loc_add`(in name int, in loc int, in ttl int, out num int, out ids int)
+begin
+declare temp int default null;
+select freq_loc.id into temp from freq_loc where freq_loc.user=name and freq_loc.locId=loc;
+if temp is null then
+insert into freq_loc value(default, name, loc);
+set ids = last_insert_id();
+insert into freq_loc_links value(default, ids, default, ttl);
+set num = 1;
+else
+delete from freq_loc_links where freq_loc_id=temp and timestampadd(second, freq_loc_links.ttl, freq_loc_links.creation) <= now();
+insert into freq_loc_links value(default, temp, default, ttl);
+select count(freq_loc_links.id) into num from freq_loc_links left join freq_loc on freq_loc_links.freq_loc_id=freq_loc.id where freq_loc.id=temp group by freq_loc_id;
+set ids = temp;
+end if;
+end;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `freq_loc_check` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = latin1 */ ;
+/*!50003 SET character_set_results = latin1 */ ;
+/*!50003 SET collation_connection  = latin1_swedish_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+CREATE DEFINER=`leliel`@`%`PROCEDURE `freq_loc_check`(in name int, in loc int, out num int, out ids int)
+begin
+declare temp int default null;
+select freq_loc.id into temp from freq_loc where freq_loc.user=name and freq_loc.locId=loc;
+if temp is null then
+set ids = -1;
+set num = -1;
+else
+delete from freq_loc_links where freq_loc_id=temp and timestampadd(second, freq_loc_links.ttl, freq_loc_links.creation) <= now();
+select count(freq_loc_links.id) into num from freq_loc_links left join freq_loc on freq_loc_links.freq_loc_id=freq_loc.id where freq_loc.id=temp group by freq_loc_id;
+set ids = temp;
+end if;
+end;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `freq_time_add` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = latin1 */ ;
+/*!50003 SET character_set_results = latin1 */ ;
+/*!50003 SET collation_connection  = latin1_swedish_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_time_add`(in name int, in timeHappened datetime, in allowance time, in ttl int, out num int, out ids int)
+begin
+declare temp int default null;
+select freq_time.id into temp from freq_time where freq_time.user=name and timeHappened between freq_time.start and freq_time.end;
+if temp is null then
+insert into freq_time value(default, name, subtime(timeHappened, allowance), addtime(timeHappened, allowance));
+set ids = last_insert_id();
+insert into freq_time_links value(default, ids, default, ttl);
+set num = 1;
+else
+delete from freq_time_links where freq_time_id=temp and timestampadd(second, freq_time_links.ttl, freq_time_links.creation) <= now();
+insert into freq_time_links value(default, temp, default, ttl);
+select count(freq_time_links.id) into num from freq_time_links left join freq_time on freq_time_links.freq_time_id=freq_time.id where freq_time.id=temp group by freq_time_id;
+set ids = temp;
+end if;
+end;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `freq_time_check` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = latin1 */ ;
+/*!50003 SET character_set_results = latin1 */ ;
+/*!50003 SET collation_connection  = latin1_swedish_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_time_check`(in name int, in loc time, in ttl int, out num int, out ids int)
+begin
+declare temp int default null;
+select freq_time.id into temp from freq_time where freq_time.user=name and loc between freq_time.start and freq_time.end;
+if temp is null then
+set ids = -1;
+set num = -1;
+else
+delete from freq_time_links where freq_time_id=temp and timestampadd(second, ttl, freq_time_links.creation) <= now();
+select count(freq_time_links.id) into num from freq_time_links left join freq_time on freq_time_links.freq_time_id=freq_time.id where freq_time.id=temp group by freq_time_id;
+set ids = temp;
+end if;
+end;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -230,7 +353,7 @@ DELIMITER ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
 CREATE DEFINER=`leliel`@`%` PROCEDURE `insert_server`(IN n CHAR(50), OUT id INT UNSIGNED)
-BEGIN INSERT INTO server VALUES(DEFAULT, n, NULL); SET id = LAST_INSERT_ID(); END ;;
+BEGIN INSERT INTO server VALUES(DEFAULT, n, NULL); SET id = LAST_INSERT_ID(); END;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -250,21 +373,8 @@ CREATE DEFINER=`leliel`@`%` PROCEDURE `insert_user`(IN name CHAR(50), OUT id INT
 BEGIN
 INSERT INTO user VALUES(DEFAULT, name);
 SET id = LAST_INSERT_ID();
-END ;;
+END;;
 DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 DROP PROCEDURE IF EXISTS `make_polys` */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8 */ ;
-/*!50003 SET character_set_results = utf8 */ ;
-/*!50003 SET collation_connection  = utf8_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = '' */ ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
@@ -279,4 +389,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2013-07-02  0:22:24
+-- Dump completed on 2013-07-09 13:28:45

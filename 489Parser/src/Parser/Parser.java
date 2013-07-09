@@ -363,14 +363,17 @@ public class Parser {
 			PreparedStatement geoIp = conn.prepareStatement("SELECT geo.locId FROM geo LEFT JOIN " +
 					"ip ON geo.locId=ip.locId WHERE MBRCONTAINS(ip.ip_poly, POINTFROMWKB(POINT(INET_ATON(?), 0)))"); //where are we?
 
-			//find out how many times we've logged in from this location before
-			PreparedStatement freq_loc_query = conn.prepareStatement("SELECT id, count FROM freq_loc WHERE freq_loc.user=? AND freq_loc.locId=?");
-
+			//TODO replace with stored proc calls.
+			PreparedStatement freq_loc_query = conn.prepareStatement("SELECT id, count(freq_loc_links.id) FROM freq_loc LEFT JOIN freq_loc_links ON freq_loc.id=freq_loc_links.freq_loc_id WHERE freq_loc.user=? AND freq_loc.locId=?");
+			PreparedStatement freq_time_query = conn.prepareStatement("SELECT id, count(freq_time_links.id) FROM freq_time LEFT JOIN freq_time_links ON freq_time.id=freq_time_links.freq_time_id WHERE freq_time.user=? AND ? BETWEEN freq_time.start AND freq_time.end");;
 			//updates freq_loc entries, incrementing count if exists, or creating new entry.
-			CallableStatement freq_loc_add = conn.prepareCall("{call freq_loc_add(?, ?, ?, ?)}"); //update freq_loc entry, increments if there's a matching one.
+			CallableStatement freq_loc_add = conn.prepareCall("{call freq_loc_add(?, ?, ?, ?, ?)}"); //update freq_loc entry, increments if there's a matching one.
+
+			CallableStatement freq_time_add = conn.prepareCall("{call freq_time_add(?, ?, ?, ?, ?, ?)}");
 			for (int i = 0; i < lines.size(); i++) {
 				//writing location/time also tests if entry prompting write counts as frequent.
 				lines.get(i).writeLoc(freq_loc_add, geoIp, freq_loc_query); //must be written before entries are written to db.
+				lines.get(i).writeTime(freq_time_add, freq_time_query);
 				// lines.get(i).writeTime(conn);
 				lines.get(i).writeToDB(insertLine);
 				if ((i % 1000) == 0) { // write it out every thousand lines,

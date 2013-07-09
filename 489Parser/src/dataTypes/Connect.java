@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 
@@ -13,9 +14,11 @@ import Parser.GeoLocator;
 import enums.AuthType;
 import enums.Status;
 
+//TODO freq time and loc checks must use stored procs.
 public class Connect implements dataTypes.Line {
-	private static final int frequency = 5; // how often do we have to login
-											// somewhere before it's frequent?
+	private static final int frequency = 5; // how often do we have to login somewhere before it's frequent?
+	private static final int ttl = 60*60*24*7; //1 week in seconds
+	private static final Time timeAllowance = new Time(1000*60*10); //construct from milliseconds, set to 10 minutes
 
 	private final Timestamp time;
 	private final Server server;
@@ -117,12 +120,13 @@ public class Connect implements dataTypes.Line {
 													// failed logins
 				freq_loc_add.setInt(1, this.user.getId());
 				freq_loc_add.setInt(2, loc);
-				freq_loc_add.registerOutParameter(3, Types.INTEGER);
+				freq_loc_add.setInt(3, Connect.ttl);
 				freq_loc_add.registerOutParameter(4, Types.INTEGER);
+				freq_loc_add.registerOutParameter(5, Types.INTEGER);
 				freq_loc_add.execute();
-				int count = freq_loc_add.getInt(3);
+				int count = freq_loc_add.getInt(4);
 				if (count >= Connect.frequency) {
-					this.isFreqLoc = freq_loc_add.getInt(4);
+					this.isFreqLoc = freq_loc_add.getInt(5);
 				} else {
 					this.isFreqLoc = -1;
 				}
@@ -154,8 +158,25 @@ public class Connect implements dataTypes.Line {
 	}
 
 	@Override
-	public void writeTime(Connection conn) throws SQLException {
+	public void writeTime(CallableStatement freq_time_add,
+			PreparedStatement lookup) throws SQLException {
 		// TODO Auto-generated method stub
+		if (this.status == Status.ACCEPTED){
+			freq_time_add.setInt(1, this.user.getId());
+			freq_time_add.setTimestamp(2, new Timestamp(this.time.getTime()));
+			freq_time_add.setTime(3, Connect.timeAllowance);
+			freq_time_add.setInt(4, Connect.ttl);
+			freq_time_add.registerOutParameter(5, Types.INTEGER);
+			freq_time_add.registerOutParameter(6, Types.INTEGER);
+			freq_time_add.execute();
+			if (freq_time_add.getInt(5) >= Connect.frequency){
+				this.isFreqTime = freq_time_add.getLong(6);
+			} else {
+				this.isFreqTime = -1;
+			}
+		} else {// failed login attempt, don't increment, just lookup
+
+		}
 
 	}
 
@@ -236,5 +257,4 @@ public class Connect implements dataTypes.Line {
 		}
 		return true;
 	}
-
 }

@@ -144,8 +144,9 @@ public class Invalid implements dataTypes.Line {
 	}
 
 	@Override
-	public void writeTime(Connection conn) throws SQLException {
-		return; // nothing to do
+	public void writeTime(CallableStatement freq_time_add,
+			PreparedStatement lookup) throws SQLException {
+		return; //nothing to do.
 	}
 
 }
