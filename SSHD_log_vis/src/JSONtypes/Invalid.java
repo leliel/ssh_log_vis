@@ -1,18 +1,17 @@
 package JSONtypes;
 
 
-import java.sql.Timestamp;
 
 public class Invalid implements JSONtypes.Line {
 	private final int id;
-	private final Timestamp time;
+	private final long time;
 	private final Server server;
 	private final int connectID;
 	private final String user;
 	private final String source;
 	private final String rawLine;
 
-	public Invalid(int i, Timestamp time, Server server, int connectID,
+	public Invalid(int i, long time, Server server, int connectID,
 			String user, String addr, String rawLine) {
 		super();
 		this.id = i;
@@ -28,7 +27,7 @@ public class Invalid implements JSONtypes.Line {
 		return id;
 	}
 
-	public Timestamp getTime() {
+	public long getTime() {
 		return time;
 	}
 
@@ -52,6 +51,7 @@ public class Invalid implements JSONtypes.Line {
 		return rawLine;
 	}
 
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -61,7 +61,7 @@ public class Invalid implements JSONtypes.Line {
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
-		result = prime * result + ((time == null) ? 0 : time.hashCode());
+		result = prime * result + (int) (time ^ (time >>> 32));
 		result = prime * result + ((user == null) ? 0 : user.hashCode());
 		return result;
 	}
@@ -105,11 +105,7 @@ public class Invalid implements JSONtypes.Line {
 		} else if (!source.equals(other.source)) {
 			return false;
 		}
-		if (time == null) {
-			if (other.time != null) {
-				return false;
-			}
-		} else if (!time.equals(other.time)) {
+		if (time != other.time) {
 			return false;
 		}
 		if (user == null) {
@@ -126,7 +122,7 @@ public class Invalid implements JSONtypes.Line {
 	public String toJSONString() {
 		StringBuilder jsonString = new StringBuilder("{");
 		jsonString.append("\"id\":"); jsonString.append(this.id);
-		jsonString.append(",\"time\":"); jsonString.append(time.getTime());
+		jsonString.append(",\"time\":"); jsonString.append(time);
 		if (this.server != null){
 		jsonString.append(",\"server\":"); jsonString.append(this.server.toJsonString());
 		} else {

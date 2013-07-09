@@ -1,12 +1,11 @@
 package JSONtypes;
 
-import java.sql.Timestamp;
 
 
 public interface Line {
 
 	public String toJSONString();
-	public Timestamp getTime();
+	public long getTime();
 	public Server getServer();
 	public int getConnectID();
 	public int getId();

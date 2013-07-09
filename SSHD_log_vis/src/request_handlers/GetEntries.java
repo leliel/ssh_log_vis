@@ -2,7 +2,6 @@ package request_handlers;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -133,14 +132,14 @@ public class GetEntries extends HttpServlet {
 
 		//TODO refactor this, it's too hard to understand and maintain.
 		Entry e = new Entry(lines.get(0).getId(), null);
-		e.setStart(new Timestamp(startTime));
-		e.setEnd(new Timestamp(startTime + binLength));
-		while (e.getEnd().getTime() < lines.get(0).getTime().getTime()){
+		e.setStart(startTime);
+		e.setEnd(startTime + binLength);
+		while (e.getEnd() < lines.get(0).getTime()){
 			e.setStart(e.getEnd());
-			e.setEnd(new Timestamp(e.getEnd().getTime() + binLength));
+			e.setEnd(e.getEnd() + binLength);
 		}
-		if (e.getStart().getTime() <= lines.get(0).getTime().getTime()
-				&& lines.get(0).getTime().getTime() <= e.getEnd().getTime()) {
+		if (e.getStart() <= lines.get(0).getTime()
+				&& lines.get(0).getTime() <= e.getEnd()) {
 			entries.add(e);
 		}
 		
@@ -153,26 +152,26 @@ public class GetEntries extends HttpServlet {
 		for (int i = 0; i < lines.size(); i++) {
 			l = lines.get(i);
 			// this element is inside the current bin
-			if (l.getTime().getTime() < e.getEnd().getTime()) { 
+			if (l.getTime() < e.getEnd()) { 
 				setFlags(l, e);
 				// we're right on the edge of a bin 
-			} else if (l.getTime().getTime() == e.getEnd().getTime()) {
+			} else if (l.getTime() == e.getEnd()) {
 				setFlags(l, e);
 				// if lines.size == count, this is the last iteration anyway, so don't bother setting up a new element.
 				if (lines.size() > (i + 1) 
 						// lookahead, if the next elem exist and is in a new bin, make it.
-						&& lines.get(i + 1).getTime().after(l.getTime())) { 
+						&& lines.get(i + 1).getTime() > (l.getTime())) { 
 					if (e.getSubElemCount() == 1) {
 						e.setElem(l);
 					}
 					e = new Entry(l.getId(), null);
 					entries.add(e);
 					e.setStart(l.getTime());
-					e.setEnd(new Timestamp(startTime + binLength));
+					e.setEnd(startTime + binLength);
 				}
 			} else { // this element is past the end of the current bin
 				// it may be more than one binLength past 
-				while (l.getTime().getTime() > startTime + binLength) { 
+				while (l.getTime() > startTime + binLength) { 
 					startTime += binLength;// increment startTime in binLength increments, skipping N bins.
 				}
 				if (e.getSubElemCount() == 1) {
@@ -181,9 +180,9 @@ public class GetEntries extends HttpServlet {
 				if (lines.size() > i + 1) {
 					e = new Entry(l.getId(), null);
 					entries.add(e);
-					e.setStart(new Timestamp(startTime));
+					e.setStart(startTime);
 					setFlags(l, e);
-					e.setEnd(new Timestamp(startTime + binLength));
+					e.setEnd(startTime + binLength);
 				}
 			}
 		}

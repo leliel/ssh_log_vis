@@ -1,18 +1,16 @@
 package JSONtypes;
 
-import java.sql.Timestamp;
-
 import enums.SubSystem;
 
 public class SubSystemReq implements JSONtypes.Line {
 	private final int id;
-	private final Timestamp time;
+	private final long time;
 	private final Server server;
 	private final int connectID;
 	private final SubSystem system;
 	private final String rawLine;
 
-	public SubSystemReq(int id, Timestamp time, Server server, int connectID,
+	public SubSystemReq(int id, long time, Server server, int connectID,
 			SubSystem system, String rawLine) {
 		super();
 		this.id = id;
@@ -27,7 +25,7 @@ public class SubSystemReq implements JSONtypes.Line {
 		return id;
 	}
 
-	public Timestamp getTime() {
+	public long getTime() {
 		return time;
 	}
 
@@ -57,7 +55,7 @@ public class SubSystemReq implements JSONtypes.Line {
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
 		result = prime * result + ((system == null) ? 0 : system.hashCode());
-		result = prime * result + ((time == null) ? 0 : time.hashCode());
+		result = prime * result + (int) (time ^ (time >>> 32));
 		return result;
 	}
 
@@ -96,11 +94,7 @@ public class SubSystemReq implements JSONtypes.Line {
 		if (system != other.system) {
 			return false;
 		}
-		if (time == null) {
-			if (other.time != null) {
-				return false;
-			}
-		} else if (!time.equals(other.time)) {
+		if (time != other.time) {
 			return false;
 		}
 		return true;
@@ -110,7 +104,7 @@ public class SubSystemReq implements JSONtypes.Line {
 	public String toJSONString() {
 		StringBuilder jsonString = new StringBuilder("{");
 		jsonString.append("\"id\":"); jsonString.append(this.id);
-		jsonString.append(",\"time\":"); jsonString.append(time.getTime());
+		jsonString.append(",\"time\":"); jsonString.append(time);
 		if (this.server != null){
 		jsonString.append(",\"server\":"); jsonString.append(this.server.toJsonString());
 		} else {

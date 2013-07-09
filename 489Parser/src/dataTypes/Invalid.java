@@ -2,23 +2,21 @@ package dataTypes;
 
 import java.net.InetAddress;
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.sql.Types;
 
 
 
 public class Invalid implements dataTypes.Line {
-	private final Timestamp time;
+	private final long time;
 	private final Server server;
 	private final int connectID;
 	private final User user;
 	private final InetAddress source;
 	private final String rawLine;
 
-	public Invalid(Timestamp time, Server server, int connectID,
+	public Invalid(long time, Server server, int connectID,
 			User user, InetAddress addr, String rawLine) {
 		super();
 		this.time = time;
@@ -29,7 +27,7 @@ public class Invalid implements dataTypes.Line {
 		this.rawLine = rawLine;
 	}
 
-	public Timestamp getTime() {
+	public long getTime() {
 		return time;
 	}
 
@@ -55,7 +53,7 @@ public class Invalid implements dataTypes.Line {
 
 	@Override
 	public void writeToDB(PreparedStatement insert) throws SQLException {
-		insert.setTimestamp(1, this.time);
+		insert.setLong(1, this.time);
 		insert.setInt(2, this.server.getId());
 		insert.setInt(3, this.connectID);
 		insert.setString(4, "invalid");
@@ -80,7 +78,7 @@ public class Invalid implements dataTypes.Line {
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
-		result = prime * result + ((time == null) ? 0 : time.hashCode());
+		result = prime * result + (int) (time ^ (time >>> 32));
 		result = prime * result + ((user == null) ? 0 : user.hashCode());
 		return result;
 	}
@@ -121,11 +119,7 @@ public class Invalid implements dataTypes.Line {
 		} else if (!source.equals(other.source)) {
 			return false;
 		}
-		if (time == null) {
-			if (other.time != null) {
-				return false;
-			}
-		} else if (!time.equals(other.time)) {
+		if (time != other.time) {
 			return false;
 		}
 		if (user == null) {
@@ -139,14 +133,13 @@ public class Invalid implements dataTypes.Line {
 	}
 
 	@Override
-	public void writeLoc(CallableStatement freq_loc_add, PreparedStatement geoIP, PreparedStatement lookup) throws SQLException {
-		return; // nothing to do
+	public void writeLoc(CallableStatement freq_loc_add, PreparedStatement geoIP, CallableStatement lookup) throws SQLException {
+		return; //do nothing, nothing to do
 	}
 
 	@Override
 	public void writeTime(CallableStatement freq_time_add,
-			PreparedStatement lookup) throws SQLException {
+			CallableStatement lookup) throws SQLException {
 		return; //nothing to do.
 	}
-
 }

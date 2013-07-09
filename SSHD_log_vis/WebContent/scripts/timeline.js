@@ -131,9 +131,9 @@ function timeline(idx, range, domain, height){
 			.attr("class", "binAccepted");
 		thisLine.selectAll(".binAccepted")
 			.attr("width", getEventWidth)
-			.attr("height", function(d){ return binHeight;})
+			.attr("height", function(d){ return yScaler(d.acceptedConn);})
 			.attr("y",	function(d){
-				return binHeight - getAcceptedPropAsY(d);});
+				return binHeight - yScaler(d.acceptedConn);});
 
 
 		thisLine.selectAll(".binDivider")
@@ -142,11 +142,11 @@ function timeline(idx, range, domain, height){
 			.append("svg:line")
 			.attr("class", "binDivider");
 		thisLine.selectAll(".binDivider")
-			.style("stroke-width", getNonConnectProp)
+			.style("stroke-width", function(d){return yScaler(d.subElemCount - d.acceptedConn - d.failedConn - d.invalidAttempts);})//getNonConnectProp)
 			.attr("x1", 0)
-			.attr("y1", getDividerY)
+			.attr("y1", function(d){ return yScaler(d.acceptedConn);})
 			.attr("x2", getEventWidth)
-			.attr("y2", getDividerY);
+			.attr("y2", function(d){ return yScaler(d.acceptedConn);});
 		
 		thisLine.exit().remove();
 

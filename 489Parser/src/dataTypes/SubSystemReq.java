@@ -1,22 +1,20 @@
 package dataTypes;
 
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.sql.Types;
 
 import enums.SubSystem;
 
 public class SubSystemReq implements dataTypes.Line {
-	private final Timestamp time;
+	private final long time;
 	private final Server server;
 	private final int connectID;
 	private final SubSystem system;
 	private final String rawLine;
 
-	public SubSystemReq(Timestamp time, Server server, int connectID,
+	public SubSystemReq(long time, Server server, int connectID,
 			SubSystem system, String rawLine) {
 		super();
 		this.time = time;
@@ -26,7 +24,7 @@ public class SubSystemReq implements dataTypes.Line {
 		this.rawLine = rawLine;
 	}
 
-	public Timestamp getTime() {
+	public long getTime() {
 		return time;
 	}
 
@@ -48,7 +46,7 @@ public class SubSystemReq implements dataTypes.Line {
 
 	@Override
 	public void writeToDB(PreparedStatement insert) throws SQLException {
-		insert.setTimestamp(1, this.time);
+		insert.setLong(1, this.time);
 		insert.setInt(2, this.server.getId());
 		insert.setInt(3, this.connectID);
 		insert.setString(4, "subsystem");
@@ -73,7 +71,7 @@ public class SubSystemReq implements dataTypes.Line {
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
 		result = prime * result + ((system == null) ? 0 : system.hashCode());
-		result = prime * result + ((time == null) ? 0 : time.hashCode());
+		result = prime * result + (int) (time ^ (time >>> 32));
 		return result;
 	}
 
@@ -109,25 +107,20 @@ public class SubSystemReq implements dataTypes.Line {
 		if (system != other.system) {
 			return false;
 		}
-		if (time == null) {
-			if (other.time != null) {
-				return false;
-			}
-		} else if (!time.equals(other.time)) {
+		if (time != other.time) {
 			return false;
 		}
 		return true;
 	}
 
 	@Override
-	public void writeLoc(CallableStatement freq_loc_add, PreparedStatement geoIP, PreparedStatement lookup) throws SQLException {
-		return; //nothing to do
+	public void writeLoc(CallableStatement freq_loc_add, PreparedStatement geoIP, CallableStatement lookup) throws SQLException {
+		return; //do nothing, nothing to do
 	}
 
 	@Override
 	public void writeTime(CallableStatement freq_time_add,
-			PreparedStatement lookup) throws SQLException {
+			CallableStatement lookup) throws SQLException {
 		return; //nothing to do.
 	}
-
 }

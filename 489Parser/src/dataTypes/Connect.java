@@ -2,25 +2,27 @@ package dataTypes;
 
 import java.net.InetAddress;
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.concurrent.TimeUnit;
 
 import Parser.GeoLocator;
 import enums.AuthType;
 import enums.Status;
 
-//TODO freq time and loc checks must use stored procs.
 public class Connect implements dataTypes.Line {
-	private static final int frequency = 5; // how often do we have to login somewhere before it's frequent?
-	private static final int ttl = 60*60*24*7; //1 week in seconds
-	private static final Time timeAllowance = new Time(1000*60*10); //construct from milliseconds, set to 10 minutes
+	private static final int frequency = 5; // how often do we have to login
+											// somewhere before it's frequent?
+	private static final long ttl = 1000 * 60 * 60 * 24 * 7; // 1 week in seconds
+	private static final long timeAllowance = 1000*60*10;// construct 
+	private static final long day = 0;													// from
+																		// milliseconds,
+																		// set
+																		// to 10
+																		// minutes
 
-	private final Timestamp time;
+	private final long time;
 	private final Server server;
 	private final int connectID;
 	private final Status status;
@@ -30,9 +32,9 @@ public class Connect implements dataTypes.Line {
 	private final int port;
 	private final String rawLine;
 	private int isFreqLoc;
-	private long isFreqTime = -1;//not yet implemented.
+	private long isFreqTime = -1;// not yet implemented.
 
-	public Connect(Timestamp time, Server server, int connectID, Status status,
+	public Connect(long time, Server server, int connectID, Status status,
 			AuthType type, User user, InetAddress address, int port,
 			String rawLine) {
 		super();
@@ -47,7 +49,7 @@ public class Connect implements dataTypes.Line {
 		this.rawLine = rawLine;
 	}
 
-	public Timestamp getTime() {
+	public long getTime() {
 		return time;
 	}
 
@@ -85,7 +87,7 @@ public class Connect implements dataTypes.Line {
 
 	@Override
 	public void writeToDB(PreparedStatement insert) throws SQLException {
-		insert.setTimestamp(1, this.time);
+		insert.setLong(1, this.time);
 		insert.setInt(2, this.server.getId());
 		insert.setInt(3, this.connectID);
 		insert.setString(4, "connect");
@@ -105,14 +107,15 @@ public class Connect implements dataTypes.Line {
 			insert.setNull(13, Types.INTEGER);
 		} else {
 			insert.setInt(13, this.isFreqLoc);
-		};
+		}
+		;
 		insert.setString(14, this.rawLine);
 		insert.addBatch();
 	}
 
 	@Override
 	public void writeLoc(CallableStatement freq_loc_add,
-			PreparedStatement geoIP, PreparedStatement lookup)
+			PreparedStatement geoIP, CallableStatement lookup)
 			throws SQLException {
 		int loc = GeoLocator.getLocFromIp(this.source, geoIP);
 		if (loc != -1) { // do we even have a valid location?
@@ -120,13 +123,14 @@ public class Connect implements dataTypes.Line {
 													// failed logins
 				freq_loc_add.setInt(1, this.user.getId());
 				freq_loc_add.setInt(2, loc);
-				freq_loc_add.setInt(3, Connect.ttl);
-				freq_loc_add.registerOutParameter(4, Types.INTEGER);
+				freq_loc_add.setLong(3, Connect.ttl);
+				freq_loc_add.setLong(4, this.time);
 				freq_loc_add.registerOutParameter(5, Types.INTEGER);
+				freq_loc_add.registerOutParameter(6, Types.INTEGER);
 				freq_loc_add.execute();
-				int count = freq_loc_add.getInt(4);
+				int count = freq_loc_add.getInt(5);
 				if (count >= Connect.frequency) {
-					this.isFreqLoc = freq_loc_add.getInt(5);
+					this.isFreqLoc = freq_loc_add.getInt(6);
 				} else {
 					this.isFreqLoc = -1;
 				}
@@ -134,20 +138,13 @@ public class Connect implements dataTypes.Line {
 			} else { // it's failed, don't record, just lookup
 				lookup.setInt(1, this.user.getId());
 				lookup.setInt(2, loc);
-				ResultSet rs = lookup.executeQuery();
-				if (!rs.first()) {
-					this.isFreqLoc = -1;
-					rs.close();
-					return;
+				lookup.registerOutParameter(3, Types.INTEGER);
+				lookup.registerOutParameter(4, Types.INTEGER);
+				lookup.execute();
+				if (lookup.getInt(3) >= Connect.frequency) {
+					this.isFreqLoc = lookup.getInt(4);
 				} else {
-					int count = rs.getInt("count");
-					if (count >= Connect.frequency) {
-						this.isFreqLoc = rs.getInt("id");
-					} else {
-						this.isFreqLoc = -1;
-					}
-					rs.close();
-					return;
+					this.isFreqLoc = -1;
 				}
 			}
 		} else {
@@ -159,23 +156,32 @@ public class Connect implements dataTypes.Line {
 
 	@Override
 	public void writeTime(CallableStatement freq_time_add,
-			PreparedStatement lookup) throws SQLException {
-		// TODO Auto-generated method stub
-		if (this.status == Status.ACCEPTED){
+			CallableStatement lookup) throws SQLException {
+		if (this.status == Status.ACCEPTED) {
 			freq_time_add.setInt(1, this.user.getId());
-			freq_time_add.setTimestamp(2, new Timestamp(this.time.getTime()));
-			freq_time_add.setTime(3, Connect.timeAllowance);
-			freq_time_add.setInt(4, Connect.ttl);
-			freq_time_add.registerOutParameter(5, Types.INTEGER);
+			freq_time_add.setLong(2, this.time%TimeUnit.MILLISECONDS.convert(1l, TimeUnit.DAYS));
+			freq_time_add.setLong(3, Connect.timeAllowance);
+			freq_time_add.setLong(4, Connect.ttl);
+			freq_time_add.setLong(5, this.time);
 			freq_time_add.registerOutParameter(6, Types.INTEGER);
+			freq_time_add.registerOutParameter(7, Types.INTEGER);
 			freq_time_add.execute();
-			if (freq_time_add.getInt(5) >= Connect.frequency){
-				this.isFreqTime = freq_time_add.getLong(6);
+			if (freq_time_add.getInt(6) >= Connect.frequency) {
+				this.isFreqTime = freq_time_add.getLong(7);
 			} else {
 				this.isFreqTime = -1;
 			}
 		} else {// failed login attempt, don't increment, just lookup
-
+			lookup.setInt(1, this.user.getId());
+			lookup.setLong(2, this.time%TimeUnit.MILLISECONDS.convert(1l, TimeUnit.DAYS));
+			lookup.registerOutParameter(3, Types.INTEGER);
+			lookup.registerOutParameter(4, Types.INTEGER);
+			lookup.execute();
+			if (lookup.getInt(3) >= Connect.frequency){
+				this.isFreqTime = lookup.getLong(4);
+			} else {
+				this.isFreqTime = -1;
+			}
 		}
 
 	}
@@ -185,12 +191,14 @@ public class Connect implements dataTypes.Line {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + connectID;
+		result = prime * result + isFreqLoc;
+		result = prime * result + (int) (isFreqTime ^ (isFreqTime >>> 32));
 		result = prime * result + port;
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + ((status == null) ? 0 : status.hashCode());
-		result = prime * result + ((time == null) ? 0 : time.hashCode());
+		result = prime * result + (int) (time ^ (time >>> 32));
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		result = prime * result + ((user == null) ? 0 : user.hashCode());
 		return result;
@@ -209,6 +217,12 @@ public class Connect implements dataTypes.Line {
 		}
 		Connect other = (Connect) obj;
 		if (connectID != other.connectID) {
+			return false;
+		}
+		if (isFreqLoc != other.isFreqLoc) {
+			return false;
+		}
+		if (isFreqTime != other.isFreqTime) {
 			return false;
 		}
 		if (port != other.port) {
@@ -238,11 +252,7 @@ public class Connect implements dataTypes.Line {
 		if (status != other.status) {
 			return false;
 		}
-		if (time == null) {
-			if (other.time != null) {
-				return false;
-			}
-		} else if (!time.equals(other.time)) {
+		if (time != other.time) {
 			return false;
 		}
 		if (type != other.type) {
@@ -257,4 +267,6 @@ public class Connect implements dataTypes.Line {
 		}
 		return true;
 	}
+
+
 }

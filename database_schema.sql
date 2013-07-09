@@ -30,7 +30,7 @@ DROP TABLE IF EXISTS `entry`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `entry` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `timestamp` datetime NOT NULL,
+  `timestamp` BIGINT UNSIGNED NOT NULL,
   `server` int(10) unsigned DEFAULT NULL,
   `connid` int(10) unsigned NOT NULL,
   `reqtype` enum('connect','disconnect','subsystem','invalid','other') DEFAULT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE `entry` (
   CONSTRAINT `entry_ibfk_2` FOREIGN KEY (`user`) REFERENCES `user` (`id`),
   CONSTRAINT `entry_ibfk_3` FOREIGN KEY (`isfreqloc`) REFERENCES `freq_loc` (`id`),
   CONSTRAINT `entry_ibfk_4` FOREIGN KEY (`isfreqtime`) REFERENCES `freq_time` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=37000 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -73,7 +73,7 @@ CREATE TABLE `freq_loc` (
   KEY `freq_loc_locId` (`locId`),
   CONSTRAINT `freq_loc_ibfk_1` FOREIGN KEY (`user`) REFERENCES `user` (`id`),
   CONSTRAINT `freq_loc_ibfk_2` FOREIGN KEY (`locId`) REFERENCES `geo` (`locId`)
-) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -86,8 +86,8 @@ DROP TABLE IF EXISTS `freq_loc_links`;
 CREATE TABLE `freq_loc_links` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `freq_loc_id` int(11) NOT NULL,
-  `creation` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `timetolive` int(10) unsigned NOT NULL,
+  `creation` bigINT UNSIGNED NOT NULL,
+  `ttl` bigint unsigned NOT NULL,
   PRIMARY KEY (`id`),
   KEY `freq_loc_link_loc` (`freq_loc_id`),
   CONSTRAINT `freq_loc_links_ibfk_2` FOREIGN KEY (`freq_loc_id`) REFERENCES `freq_loc` (`id`)
@@ -104,8 +104,8 @@ DROP TABLE IF EXISTS `freq_time`;
 CREATE TABLE `freq_time` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user` int(10) unsigned NOT NULL,
-  `start` time NOT NULL,
-  `end` time NOT NULL,
+  `start` INT UNSIGNED NOT NULL,
+  `end` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   KEY `user_time_ind` (`user`),
   CONSTRAINT `freq_time_ibfk_1` FOREIGN KEY (`user`) REFERENCES `user` (`id`) ON DELETE CASCADE
@@ -122,8 +122,8 @@ DROP TABLE IF EXISTS `freq_time_links`;
 CREATE TABLE `freq_time_links` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `freq_time_id` int(10) unsigned NOT NULL,
-  `creation` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `timetolive` int(10) unsigned NOT NULL,
+  `creation` BIGINT UNSIGNED NOT NULL,
+  `ttl` bigint unsigned NOT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_freq_time_id` (`freq_time_id`),
   CONSTRAINT `freq_time_links_ibfk_1` FOREIGN KEY (`freq_time_id`) REFERENCES `freq_time` (`id`)
@@ -201,7 +201,7 @@ CREATE TABLE `server` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `name_2` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -218,7 +218,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `name_2` (`name`),
   KEY `users` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=21127 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -234,18 +234,18 @@ CREATE TABLE `user` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_loc_add`(in name int, in loc int, in ttl int, out num int, out ids int)
+CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_loc_add`(in name int, in loc int, in ttl bigint, in timeHappened bigint, out num int, out ids int)
 begin
 declare temp int default null;
 select freq_loc.id into temp from freq_loc where freq_loc.user=name and freq_loc.locId=loc;
 if temp is null then
 insert into freq_loc value(default, name, loc);
 set ids = last_insert_id();
-insert into freq_loc_links value(default, ids, default, ttl);
+insert into freq_loc_links value(default, ids, timeHappened, ttl);
 set num = 1;
 else
-delete from freq_loc_links where freq_loc_id=temp and timestampadd(second, freq_loc_links.ttl, freq_loc_links.creation) <= now();
-insert into freq_loc_links value(default, temp, default, ttl);
+delete from freq_loc_links where freq_loc_id=temp and (freq_loc_links.ttl + freq_loc_links.creation) <= 1000*unix_timestamp(now());
+insert into freq_loc_links value(default, temp, timeHappened, ttl);
 select count(freq_loc_links.id) into num from freq_loc_links left join freq_loc on freq_loc_links.freq_loc_id=freq_loc.id where freq_loc.id=temp group by freq_loc_id;
 set ids = temp;
 end if;
@@ -273,7 +273,7 @@ if temp is null then
 set ids = -1;
 set num = -1;
 else
-delete from freq_loc_links where freq_loc_id=temp and timestampadd(second, freq_loc_links.ttl, freq_loc_links.creation) <= now();
+delete from freq_loc_links where freq_loc_id=temp and (freq_loc_links.ttl + freq_loc_links.creation) <= 1000*unix_timestamp(now());
 select count(freq_loc_links.id) into num from freq_loc_links left join freq_loc on freq_loc_links.freq_loc_id=freq_loc.id where freq_loc.id=temp group by freq_loc_id;
 set ids = temp;
 end if;
@@ -293,18 +293,18 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_time_add`(in name int, in timeHappened datetime, in allowance time, in ttl int, out num int, out ids int)
+CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_time_add`(in name int, in timeHappened bigint, in allowance bigint, in ttl bigint, in datetimeHappened bigint, out num int, out ids int)
 begin
 declare temp int default null;
 select freq_time.id into temp from freq_time where freq_time.user=name and timeHappened between freq_time.start and freq_time.end;
 if temp is null then
-insert into freq_time value(default, name, subtime(timeHappened, allowance), addtime(timeHappened, allowance));
+insert into freq_time value(default, name, timeHappened - allowance, timeHappened + allowance);
 set ids = last_insert_id();
-insert into freq_time_links value(default, ids, default, ttl);
+insert into freq_time_links value(default, ids, datetimeHappened, ttl);
 set num = 1;
 else
-delete from freq_time_links where freq_time_id=temp and timestampadd(second, freq_time_links.ttl, freq_time_links.creation) <= now();
-insert into freq_time_links value(default, temp, default, ttl);
+delete from freq_time_links where freq_time_id=temp and (freq_time_links.ttl + freq_time_links.creation) <= 1000*unix_timestamp(now());
+insert into freq_time_links value(default, temp, datetimeHappened, ttl);
 select count(freq_time_links.id) into num from freq_time_links left join freq_time on freq_time_links.freq_time_id=freq_time.id where freq_time.id=temp group by freq_time_id;
 set ids = temp;
 end if;
@@ -324,7 +324,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_time_check`(in name int, in loc time, in ttl int, out num int, out ids int)
+CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_time_check`(in name int, in loc int, out num int, out ids int)
 begin
 declare temp int default null;
 select freq_time.id into temp from freq_time where freq_time.user=name and loc between freq_time.start and freq_time.end;
@@ -332,7 +332,7 @@ if temp is null then
 set ids = -1;
 set num = -1;
 else
-delete from freq_time_links where freq_time_id=temp and timestampadd(second, ttl, freq_time_links.creation) <= now();
+delete from freq_time_links where freq_time_id=temp and (freq_time_links.ttl + freq_time_links.creation) <= 1000*unix_timestamp(now());
 select count(freq_time_links.id) into num from freq_time_links left join freq_time on freq_time_links.freq_time_id=freq_time.id where freq_time.id=temp group by freq_time_id;
 set ids = temp;
 end if;

@@ -7,12 +7,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import dataTypes.Connect;
 import dataTypes.Disconnect;
@@ -35,9 +28,7 @@ import enums.Status;
 import enums.SubSystem;
 
 //TODO - implement Ip anonymizer as standalone. c++?
-//TODO refactor to split into 3 layers - file reader/parser, analyser, datastore.
 public class Parser {
-
 	private final static String url = Messages.getString("Parser.dbLoc"); //$NON-NLS-1$
 	private final static String dbName = Messages.getString("Parser.dbName"); //$NON-NLS-1$
 	private final static String userName = Messages.getString("Parser.dbUser"); //$NON-NLS-1$
@@ -49,12 +40,15 @@ public class Parser {
 	private List<Line> lines;
 	private final boolean anonymise;
 
+	private Writer write;
+
 	public Parser(boolean anonymise) {
 		users = new HashMap<String, User>();
 		addresses = new HashMap<InetAddress, InetAddress>();
 		servers = new HashMap<String, Server>();
 		lines = new ArrayList<Line>();
 		this.anonymise = anonymise;
+		this.write = new Writer(url, dbName, userName, pass);
 	}
 
 	private void parseLogs(String[] logName) {
@@ -73,6 +67,10 @@ public class Parser {
 				e.printStackTrace();
 			}
 		}
+		write.setLines(lines);
+		write.setUsers(users.values());
+		write.setServers(servers.values());
+		write.writeToDB();
 	}
 
 	private void parseLog(BufferedReader read) throws IOException,
@@ -106,9 +104,11 @@ public class Parser {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
-		Timestamp time = new Timestamp(format.parse(Messages.getString("Parser.Year") +Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				.getTime());
+		SimpleDateFormat format = new SimpleDateFormat(
+				Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
+		long time = format.parse(
+						Messages.getString("Parser.Year") + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						.getTime();
 
 		Server s = getServer(parts[idx++]);
 
@@ -136,9 +136,17 @@ public class Parser {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
-		Timestamp time = new Timestamp(format.parse(Messages.getString("Parser.Year") +Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				.getTime());
+		SimpleDateFormat format = new SimpleDateFormat(
+				Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
+		long time = format.parse(
+				Messages.getString("Parser.Year")
+						+ Messages.getString("Parser.TimestampSeperator")
+						+ parts[idx++]
+						+ Messages.getString("Parser.TimestampSeperator")
+						+ parts[idx++]
+						+ Messages.getString("Parser.TimestampSeperator")
+						+ parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				.getTime();
 
 		Server s = getServer(parts[idx++]);
 
@@ -199,8 +207,8 @@ public class Parser {
 													// java doesn't have
 													// unsigned. why?
 
-		return new Connect(time, s, connectID,
-				status, auth, user, address, port, line);
+		return new Connect(time, s, connectID, status, auth, user, address,
+				port, line);
 	}
 
 	private Line parseInvalid(String line) throws ParseException,
@@ -208,9 +216,11 @@ public class Parser {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
-		Timestamp time = new Timestamp(format.parse(Messages.getString("Parser.Year") +Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				.getTime());
+		SimpleDateFormat format = new SimpleDateFormat(
+				Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
+		long time = format.parse(
+						Messages.getString("Parser.Year") + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						.getTime();
 
 		Server s = getServer(parts[idx++]);
 
@@ -244,9 +254,11 @@ public class Parser {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
-		Timestamp time = new Timestamp(format.parse(Messages.getString("Parser.Year") +Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				.getTime());
+		SimpleDateFormat format = new SimpleDateFormat(
+				Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
+		long time = format.parse(
+						Messages.getString("Parser.Year") + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						.getTime();
 
 		Server s = getServer(parts[idx++]);
 
@@ -280,9 +292,11 @@ public class Parser {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
-		Timestamp time = new Timestamp(format.parse(Messages.getString("Parser.Year") +Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				.getTime());
+		SimpleDateFormat format = new SimpleDateFormat(
+				Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
+		long time = format.parse(
+						Messages.getString("Parser.Year") + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						.getTime();
 
 		Server s = getServer(parts[idx++]);
 
@@ -344,78 +358,14 @@ public class Parser {
 		}
 	}
 
-	private void writeToDB() {
-		try {
-			Connection conn = DriverManager.getConnection(url + dbName,
-					userName, pass);
-			conn.setAutoCommit(false);
-
-			writeUsersToDB(conn); // ensures users updated with ID's
-			conn.commit();
-			writeServersToDB(conn); // ensures users updated with ID's
-			conn.commit();
-			//inserts a line into the database.
-			PreparedStatement insertLine = conn
-					.prepareStatement("INSERT INTO entry VALUES(" //$NON-NLS-1$
-							+ "DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,? ,? ,?, ?)"); //$NON-NLS-1$
-
-			//find a single location record matching the source.
-			PreparedStatement geoIp = conn.prepareStatement("SELECT geo.locId FROM geo LEFT JOIN " +
-					"ip ON geo.locId=ip.locId WHERE MBRCONTAINS(ip.ip_poly, POINTFROMWKB(POINT(INET_ATON(?), 0)))"); //where are we?
-
-			//TODO replace with stored proc calls.
-			PreparedStatement freq_loc_query = conn.prepareStatement("SELECT id, count(freq_loc_links.id) FROM freq_loc LEFT JOIN freq_loc_links ON freq_loc.id=freq_loc_links.freq_loc_id WHERE freq_loc.user=? AND freq_loc.locId=?");
-			PreparedStatement freq_time_query = conn.prepareStatement("SELECT id, count(freq_time_links.id) FROM freq_time LEFT JOIN freq_time_links ON freq_time.id=freq_time_links.freq_time_id WHERE freq_time.user=? AND ? BETWEEN freq_time.start AND freq_time.end");;
-			//updates freq_loc entries, incrementing count if exists, or creating new entry.
-			CallableStatement freq_loc_add = conn.prepareCall("{call freq_loc_add(?, ?, ?, ?, ?)}"); //update freq_loc entry, increments if there's a matching one.
-
-			CallableStatement freq_time_add = conn.prepareCall("{call freq_time_add(?, ?, ?, ?, ?, ?)}");
-			for (int i = 0; i < lines.size(); i++) {
-				//writing location/time also tests if entry prompting write counts as frequent.
-				lines.get(i).writeLoc(freq_loc_add, geoIp, freq_loc_query); //must be written before entries are written to db.
-				lines.get(i).writeTime(freq_time_add, freq_time_query);
-				// lines.get(i).writeTime(conn);
-				lines.get(i).writeToDB(insertLine);
-				if ((i % 1000) == 0) { // write it out every thousand lines,
-										// just to be sure it all writes.
-					insertLine.executeBatch();
-					conn.commit();
-					System.out.printf("inserted %d lines\n", i); //$NON-NLS-1$
-				}
-			}
-			insertLine.executeBatch(); // flush what's left.
-			conn.commit();
-
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void writeUsersToDB(Connection conn) throws SQLException {
-		CallableStatement s = conn.prepareCall("{call insert_user(?, ?)}"); //$NON-NLS-1$
-		for (Entry<String, User> u : this.users.entrySet()) {
-			u.getValue().writeToDB(s);
-		}
-	}
-
-	private void writeServersToDB(Connection conn) throws SQLException {
-		CallableStatement serve = conn
-				.prepareCall("{call insert_server(?, ?)}"); //$NON-NLS-1$
-		for (Server s : this.servers.values()) {
-			s.writeToDB(serve);
-		}
-	}
-
 	public static void main(String[] args) {
 		if (args.length == 0) {
 			System.out.print(Messages.getString("Parser.Usage1")); //$NON-NLS-1$
-			System.out
-					.print(Messages.getString("Parser.Usage2")); //$NON-NLS-1$
+			System.out.print(Messages.getString("Parser.Usage2")); //$NON-NLS-1$
 			System.exit(0);
 		} else {
 			Parser p = new Parser(false);
 			p.parseLogs(args);
-			p.writeToDB();
 		}
 	}
 }

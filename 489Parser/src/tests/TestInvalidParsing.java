@@ -5,7 +5,6 @@ import static org.junit.Assert.fail;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -40,7 +39,7 @@ public class TestInvalidParsing {
 		try {
 			Invalid output =
 					new Invalid(
-							new Timestamp(t.parse("2013 Apr 19 04:36:49").getTime()),
+							t.parse("2013 Apr 19 04:36:49").getTime(),
 							new Server("app-1", ""),
 							6990,
 							new User("user1"),

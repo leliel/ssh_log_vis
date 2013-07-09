@@ -1,12 +1,11 @@
 package JSONtypes;
 
-import java.sql.Timestamp;
 
 
 public class Entry {
 	private final int id;
-	private Timestamp start;
-	private Timestamp end;
+	private long start;
+	private long end;
 	private String flags;
 	private long subElemCount;
 	private int acceptedConn;
@@ -28,19 +27,19 @@ public class Entry {
 		return id;
 	}
 
-	public Timestamp getStart() {
+	public long getStart() {
 		return start;
 	}
 
-	public void setStart(Timestamp t){
-		this.start = t;
+	public void setStart(long l){
+		this.start = l;
 	}
 
-	public Timestamp getEnd() {
+	public long getEnd() {
 		return end;
 	}
 
-	public void setEnd(Timestamp t){
+	public void setEnd(long t){
 		this.end = t;
 	}
 
@@ -97,8 +96,8 @@ public class Entry {
 	public String toJSONString(){
 		StringBuilder json = new StringBuilder("{");
 		json.append("\"id\":"); json.append(this.id);
-		json.append(",\"startTime\":"); json.append(this.start.getTime());
-		json.append(",\"endTime\":"); json.append(this.end.getTime());
+		json.append(",\"startTime\":"); json.append(this.start);
+		json.append(",\"endTime\":"); json.append(this.end);
 		if (this.flags == null || this.flags.equals("")) {
 			json.append(",\"flags\":"); json.append("null");
 		} else {

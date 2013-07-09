@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.net.UnknownHostException;
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -40,13 +39,13 @@ public class TestSubParsing {
 		try {
 			SubSystemReq[] output = {
 					new SubSystemReq(
-							new Timestamp(t.parse("2013 Jan 28 11:43:11").getTime()),
+							t.parse("2013 Jan 28 11:43:11").getTime(),
 							new Server("server", ""),
 							9813,
 							SubSystem.SFTP,
 							"Jan 28 11:43:11 server sshd[9813]: subsystem request for sftp"),
 					new SubSystemReq(
-							new Timestamp(t.parse("2013 Apr 20 12:02:49").getTime()),
+							t.parse("2013 Apr 20 12:02:49").getTime(),
 							new Server("app-1", ""),
 							30800,
 							SubSystem.SCP,

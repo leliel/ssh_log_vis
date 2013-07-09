@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,18 +57,14 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
 			state = connection.prepareStatement(query);
 
-			Timestamp temp;
+
 			if (serverName != null) {
 				state.setString(1, serverName);
-				temp = new Timestamp(Long.parseLong(startTime));
-				state.setTimestamp(2, temp);
-				temp =new Timestamp(Long.parseLong(endTime));
-				state.setTimestamp(3, temp);
+				state.setLong(2, Long.parseLong(startTime));
+				state.setLong(3, Long.parseLong(endTime));
 			} else {
-				temp = new Timestamp(Long.parseLong(startTime));
-				state.setTimestamp(1, temp);
-				temp = new Timestamp(Long.parseLong(endTime));
-				state.setTimestamp(2, temp);
+				state.setLong(1, Long.parseLong(startTime));
+				state.setLong(2, Long.parseLong(endTime));
 			}
 			state.execute();
 			result = state.getResultSet();
@@ -121,7 +116,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 	}
 
 	private Line loadOther(ResultSet result) throws SQLException {
-		Timestamp time = result.getTimestamp("timestamp");
+		long time = result.getLong("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
 			s = new Server(null, null);
@@ -135,7 +130,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 	}
 
 	private Line loadInvalid(ResultSet result) throws SQLException {
-		Timestamp time = result.getTimestamp("timestamp");
+		long time = result.getLong("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
 			s = new Server(null, null);
@@ -148,7 +143,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 	}
 
 	private Line loadSubsystem(ResultSet result) throws SQLException {
-		Timestamp time = result.getTimestamp("timestamp");
+		long time = result.getLong("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
 			s = new Server(null, null);
@@ -166,7 +161,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 	}
 
 	private Line loadDisconnect(ResultSet result) throws SQLException {
-		Timestamp time = result.getTimestamp("timestamp");
+		long time = result.getLong("timestamp");
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
 			s = new Server(null, null);
@@ -179,7 +174,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 	}
 
 	private Line loadConnect(ResultSet result) throws SQLException {
-		Timestamp time = result.getTimestamp("timestamp");
+		long time = result.getLong("timestamp");;
 		Server s;
 		if (result.getMetaData().getColumnCount() == 11) {
 			s = null;

@@ -1,16 +1,15 @@
 package JSONtypes;
 
-import java.sql.Timestamp;
 
 public class Other implements Line {
 	private final int id;
-	private final Timestamp time;
+	private final long time;
 	private final Server server;
 	private final int connectID;
 	private final String message;
 	private final String rawLine;
 
-	public Other(int id, Timestamp time, Server server, int connectID, String message,
+	public Other(int id, long time, Server server, int connectID, String message,
 			String rawLine) {
 		super();
 		this.id = id;
@@ -25,7 +24,7 @@ public class Other implements Line {
 		return id;
 	}
 	
-	public Timestamp getTime() {
+	public long getTime() {
 		return time;
 	}
 	public Server getServer() {
@@ -51,7 +50,7 @@ public class Other implements Line {
 		result = prime * result + ((message == null) ? 0 : message.hashCode());
 		result = prime * result + ((rawLine == null) ? 0 : rawLine.hashCode());
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
-		result = prime * result + ((time == null) ? 0 : time.hashCode());
+		result = prime * result + (int) (time ^ (time >>> 32));
 		return result;
 	}
 
@@ -94,11 +93,7 @@ public class Other implements Line {
 		} else if (!server.equals(other.server)) {
 			return false;
 		}
-		if (time == null) {
-			if (other.time != null) {
-				return false;
-			}
-		} else if (!time.equals(other.time)) {
+		if (time != other.time) {
 			return false;
 		}
 		return true;
@@ -108,7 +103,7 @@ public class Other implements Line {
 	public String toJSONString() {
 		StringBuilder jsonString = new StringBuilder("{");
 		jsonString.append("\"id\":"); jsonString.append(this.id);
-		jsonString.append(",\"time\":"); jsonString.append(time.getTime());
+		jsonString.append(",\"time\":"); jsonString.append(time);
 		if (this.server != null){
 		jsonString.append(",\"server\":"); jsonString.append(this.server.toJsonString());
 		} else {

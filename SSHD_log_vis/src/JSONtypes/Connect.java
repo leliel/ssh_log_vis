@@ -1,7 +1,5 @@
 package JSONtypes;
 
-import java.sql.Timestamp;
-
 import enums.AuthType;
 import enums.Status;
 
@@ -9,7 +7,7 @@ import enums.Status;
 
 public class Connect implements JSONtypes.Line {
 	private final int id;
-	private final Timestamp time;
+	private final long time;
 	private final Server server;
 	private final int connectID;
 	private final Status status;
@@ -21,7 +19,7 @@ public class Connect implements JSONtypes.Line {
 	private final int freqLoc;
 	private final String rawLine;
 
-	public Connect(int id, Timestamp time, Server server, int connectID,
+	public Connect(int id, long time, Server server, int connectID,
 			Status status, AuthType type, String user, String address, int port,
 			long freqTime, int freqLoc, String rawLine) {
 		super();
@@ -42,7 +40,7 @@ public class Connect implements JSONtypes.Line {
 	public int getId(){
 		return id;
 	}
-	public Timestamp getTime() {
+	public long getTime() {
 		return time;
 	}
 
@@ -86,8 +84,6 @@ public class Connect implements JSONtypes.Line {
 		return rawLine;
 	}
 
-
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -101,7 +97,7 @@ public class Connect implements JSONtypes.Line {
 		result = prime * result + ((server == null) ? 0 : server.hashCode());
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + ((status == null) ? 0 : status.hashCode());
-		result = prime * result + ((time == null) ? 0 : time.hashCode());
+		result = prime * result + (int) (time ^ (time >>> 32));
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		result = prime * result + ((user == null) ? 0 : user.hashCode());
 		return result;
@@ -158,11 +154,7 @@ public class Connect implements JSONtypes.Line {
 		if (status != other.status) {
 			return false;
 		}
-		if (time == null) {
-			if (other.time != null) {
-				return false;
-			}
-		} else if (!time.equals(other.time)) {
+		if (time != other.time) {
 			return false;
 		}
 		if (type != other.type) {
@@ -182,7 +174,7 @@ public class Connect implements JSONtypes.Line {
 	public String toJSONString() {
 		StringBuilder jsonString = new StringBuilder("{");
 		jsonString.append("\"id\":"); jsonString.append(this.id);
-		jsonString.append(",\"time\":"); jsonString.append(time.getTime());
+		jsonString.append(",\"time\":"); jsonString.append(time);
 		if (this.server != null){
 		jsonString.append(",\"server\":"); jsonString.append(this.server.toJsonString());
 		} else {

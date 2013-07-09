@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -37,7 +36,7 @@ public class TestDisconParsing {
 		String input = "Nov 23 22:04:58 server sshd[30487]: Received disconnect from 200.54.84.233: 11: Bye Bye ";
 
 		Line output = new Disconnect(
-				new Timestamp(t.parse("2013 Nov 23 22:04:58").getTime()),
+				t.parse("2013 Nov 23 22:04:58").getTime(),
 				new Server("server", ""),
 				30487,
 				11,
