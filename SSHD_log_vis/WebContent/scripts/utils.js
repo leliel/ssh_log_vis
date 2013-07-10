@@ -4,14 +4,88 @@ function setupOnLoad(){
 
 	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
 
-	//TODO insert code to initialise jquery datepickers.
+	$("#undoZoom").click(performUnZoom);
+	
+	var startTime = $("#timelineStart");
+	startTime.datetimepicker({
+		timeFormat : "HH:mm:ss",
+		showSeconds: true,
+		onClose: function(dateText, inst) {
+			if (endTime.val() != '') {
+				var testStartDate = startTime.datetimepicker('getDate');
+				var testEndDate = endTime.datetimepicker('getDate');
+				if (testStartDate > testEndDate)
+					endTime.datetimepicker('setDate', testStartDate);
+			}
+			else {
+				endTime.val(dateText);
+			}
+		},
+		onSelect: function (selectedDateTime){
+			endTime.datetimepicker('option', 'minDateTime', startTime.datetimepicker('getDate'));
+			endTime.datetimepicker('option', 'maxDateTime', new Date());
+			startTime.datetimepicker('option', 'maxDateTime', new Date());
+		}
+	});
+	
+	var endTime = $("#timelineEnd");
+	endTime.datetimepicker({
+		timeFormat : "HH:mm:ss",
+		showSeconds: true,
+		onClose: function(dateText, inst) {
+			if (startTime.val() != '') {
+				var testStartDate = startTime.datetimepicker('getDate');
+				var testEndDate = endTime.datetimepicker('getDate');
+				if (testStartDate > testEndDate)
+					startTime.datetimepicker('setDate', testEndDate);
+			}
+			else {
+				startTime.val(dateText);
+			}
+		},
+		onSelect: function (selectedDateTime){
+			startTime.datetimepicker('option', 'maxDateTime', endTime.datetimepicker('getDate'));
+		}
+	});
+	
+	$("#zoomButton").click(function(){
+		var start = startTime.datetimepicker("getDate").getTime();
+		var end = endTime.datetimepicker('getDate').getTime();
+		var unit = $("#timelineUnits").val();
+		var millis = timelineGlobals.timeUnits[unit];
+		var binLength = $("#binLength");
+		binLength = binLength.val();
+		binLength *= millis;
+		var reqLength = end - start;
+		if (Math.floor(reqLength/binLength) > timelineGlobals.timelines.length){
+			var mod1 = reqLength%binLength;
+			mod1 = mod1 == 0;
+			var mod2 = (reqLength/timelineGlobals.timelines.length)%binLength;
+			mod2 = mod2 == 0;
+			if (mod1 && mod2){
+				//TODO why the fuck doesn't this work? debugger shows it being entered.
+				//somehow the startdate is an hour before midnight. fucking DST. force timezone to UTC for conversions
+				//to deal with people being too damned clever by half.
+				performZoom(start, end, binLength);
+			}
+		} else {
+			$("#timelineUnits").addClass("ui-state-error");
+			$("#binLength").addClass("ui-state-error");
+		} 		
+	});
+	
+	
 	var temp = $("#timelineUnits");
 	$.each(timelineGlobals.timeUnits, function(key, value) {
-		if (value === timelineGlobals.binLength){
+		if (value == timelineGlobals.binLength){
 			temp.append($("<option />").val(key).text(key + "s")).attr({'selected' : 'selected'});
 		} else {
 			temp.append($("<option />").val(key).text(key + "s"));
 		}
+	});
+	
+	$.each(timelineGlobals.timeUnits, function(key, value) {
+		$("#units").append($("<option />").val(key).text(key + "s"));
 	});
 
 	requestAllTimelines();
@@ -23,6 +97,8 @@ function setupOnLoad(){
 			units = $("#units"),
 			hints = $("#hints"),
 			allFields = $([]).add(startTime).add(endTime).add(chunk).add(units).add(hints);
+		
+
 
 		function checkExists(input, name){
 			if (input.val() == undefined || input.val() == null){
@@ -45,13 +121,13 @@ function setupOnLoad(){
 				$.each(inputs, function(idx, val){
 					val.addClass("ui-state-error");
 				});
-				if((times[1] - times[0])%binsize != 0){
+				if((times[1] - times[0])%binSize != 0){
 					$("#hints").text("Number of units must be an integer divisor of timeblock.");
 				} else {
 					$("#hints").text("Number of units must be at most 1/4 timeblock.");
 				}
 				return false;
-			} else if ((times[1] - times[0])%binsize != 0){
+			} else if ((times[1] - times[0])%binSize != 0){
 				$("#hints").text("Number of units must be an integer divisor of timeblock.");
 				return false;
 			}
@@ -86,9 +162,9 @@ function setupOnLoad(){
 				allFields.val("").removeClass("ui-state-error");
 			},
 			open : function(event, ui){
-				$.each(timelineGlobals.timeUnits, function(key, value) {
-					units.append($("<option />").val(key).text(key + "s"));
-				});
+				$("#startTime").val(d.startTime.getTime());
+				$("#endTime").val(d.endTime.getTime());
+				$("#message").html("Choose bin size for " + toPrettyTimeString(block));
 			}
 		});
 	});
@@ -101,36 +177,31 @@ function getPropertyNumberFromCSS(element, propertyName){
 }
 
 function splitTimeBlock(d, block){
-	if (block === timelineGlobals.month){
-		performZoom(d, timelineGlobals.week);
-	} else if (block === timelineGlobals.week){
-		performZoom(d, timelineGlobals.day);
-	} else if (block === timelineGlobals.day){
-		performZoom(d, timelineGlobals.hour);
-	} else if (block === timelineGlobals.hour){
-		performZoom(d, timelineGlobals.minute * 10);
-	} else if (block === timelineGlobals.minute*10){
-		performZoom(d, timelineGlobals.minute);
-	} else if (block === timelineGlobals.minute){
-		performZoom(d, timelineGlobals.second*30);
+	if (block === timelineGlobals.timeUnits.month){
+		performZoom(d.startTime.getTime(), d.endTime.getTime(),  timelineGlobals.timeUnits.week);
+	} else if (block === timelineGlobals.timeUnits.week){
+		performZoom(d.startTime.getTime(), d.endTime.getTime(), timelineGlobals.timeUnits.day);
+	} else if (block === timelineGlobals.timeUnits.day){
+		performZoom(d.startTime.getTime(), d.endTime.getTime(), timelineGlobals.timeUnits.hour);
+	} else if (block === timelineGlobals.timeUnits.hour){
+		performZoom(d.startTime.getTime(), d.endTime.getTime(), timelineGlobals.timeUnits.minute);
+	} else if (block === timelineGlobals.timeUnits.minute){
+		performZoom(d.startTime.getTime(), d.endTime.getTime(), timelineGlobals.timeUnits.second);
 	} else {
-		$("#startTime").val(d.startTime.getTime());
-		$("#endTime").val(d.endTime.getTime());
-		$("#message").html("Choose bin size for: " + toPrettyTimeString(block));
 		$("#zoom_dialog").dialog('open');
 	}
 }
 
 function toPrettyTimeString(time){
-	//TODO implement long->pretty string conversion
 	return recPrettyString(time, "");
 }
 
 function recPrettyString(time, string){
 	if (time === 0) return string;
+	var temp = Object.getOwnPropertyNames(timelineGlobals.timeUnits);
 	for (var i = temp.length; i >= 0; i--){
 		if (Math.floor(time/timelineGlobals.timeUnits[temp[i]]) > 0){
-			string += temp[i] + ": " + Math.floor(time/timelineGlobals.timeUnits[temp[i]]) + "<br>";
+			string += Math.floor(time/timelineGlobals.timeUnits[temp[i]]) + ": " + temp[i] + "<br>";
 			var remainder = time%timelineGlobals.timeUnits[temp[i]];
 			if (remainder != 0){
 				return recPrettyString(remainder, string);

@@ -9,20 +9,32 @@ function TimeUnits() {
 		this.month = 4 * this.week; //milliseconds in a standard month(28 days)
 }
 
+function zoomLevel(start, end, length) {
+	this.startTime = start;
+	this.endTime = end;
+	this.binLength = length;
+}
+
 function Globals(width, height){
 	this.timeUnits = new TimeUnits();
 	this.binLength = this.timeUnits.day;
 	this.minBinWidth = 30;
-	this.padding = 20;
-	this.maxBins = Math.floor((width-this.padding*2)/this.minBinWidth);
-	this.numLines = 4;
-	this.rowHeight = height/this.numLines;
-	this.binHeight = this.rowHeight - 10;
+	var numLines = 4;
+	this.rowHeight = height/numLines;
+	this.padding = {
+			vertical : 20,
+			left : 25,
+			right : 20
+	};
+	this.maxBins = Math.floor((width-this.padding.left - this.padding.right)/this.minBinWidth);
+	this.binHeight = this.rowHeight;
 
-	this.timelines = [new timeline(0, [this.padding, width-this.padding], [new Date(2013, 02, 15, 00, 00, 00), new Date(2013, 02, 22, 00, 00, 00)], this.binHeight, 20),
-	                  new timeline(1, [this.padding, width-this.padding], [new Date(2013, 02, 22, 00, 00, 00), new Date (2013, 02, 29, 00, 00, 00)], this.binHeight, 20),
-	                  new timeline(2, [this.padding, width-this.padding], [new Date(2013, 02, 29, 00, 00, 00), new Date(2013, 03, 05, 00, 00, 00)], this.binHeight, 20),
-	                  new timeline(3, [this.padding, width-this.padding], [new Date(2013, 03, 05, 00, 00, 00), new Date(2013, 03, 12, 00, 00 ,00)], this.binHeight, 20)];
+	this.timelines = [new timeline(0, [this.padding.left, width-this.padding.right], [new Date(2013, 02, 15, 00, 00, 00), new Date(2013, 02, 22, 00, 00, 00)], this.binHeight, this.padding),
+	                  new timeline(1, [this.padding.left, width-this.padding.right], [new Date(2013, 02, 22, 00, 00, 00), new Date (2013, 02, 29, 00, 00, 00)], this.binHeight, this.padding),
+	                  new timeline(2, [this.padding.left, width-this.padding.right], [new Date(2013, 02, 29, 00, 00, 00), new Date(2013, 03, 05, 00, 00, 00)], this.binHeight, this.padding),
+	                  new timeline(3, [this.padding.left, width-this.padding.right], [new Date(2013, 03, 05, 00, 00, 00), new Date(2013, 03, 12, 00, 00 ,00)], this.binHeight, this.padding)];
+	
+	this.history = new Array();
 }
 
 function requestAllTimelines(){
@@ -66,8 +78,8 @@ function timeline(idx, range, domain, height, padding){
 	var pad = padding;
 	var rowY = height * idx;
 	var xScaler = d3.time.scale().domain(domain).range(range);
-	var yScaler = d3.scale.linear().range([height-pad, 0]);
-	var binHeight = height-pad;
+	var yScaler = d3.scale.linear().range([height-pad.vertical, pad.vertical]);
+	var binHeight = height-pad.vertical;
 	var selection = d3.select("#time")
 		.append("svg:g")
 		.attr("id", "timeline" + idx)
@@ -78,12 +90,12 @@ function timeline(idx, range, domain, height, padding){
 	};
 
 	this.updateHeight = function(height){
-		yScaler.range([height-pad, 0]);
+		yScaler.range([height-pad.vertical, pad.vertical]);
 	};
 
 	this.updateWidth = function(width, padding){
 		pad = padding;
-		xScaler.range([pad, width-pad]);
+		xScaler.range([pad.left, width-pad.right]);
 	};
 
 	this.getStart = function(){
@@ -96,8 +108,7 @@ function timeline(idx, range, domain, height, padding){
 
 	this.renderBins = function(element) {
 
-		//TODO pick scale type appropriately.
-		//TODO set sensible tick count.
+		//TODO set sensible tick counts.
 		yScaler.domain([0, d3.max(element, function(d){ return d.subElemCount;})]);
 
 		var thisLine = selection.selectAll(".bin")
@@ -156,7 +167,8 @@ function timeline(idx, range, domain, height, padding){
 
 		var yAxis = d3.svg.axis()
 			.scale(yScaler)
-			.orient("left");
+			.orient("left")
+			.ticks("4");
 
 		if (selection.select("#xAxis").empty()){
 			selection.append("svg:g")
@@ -173,7 +185,7 @@ function timeline(idx, range, domain, height, padding){
 			.attr("id", "yAxis");
 		};
 		selection.select("#yAxis")
-			.attr("transform", "translate(" + pad + ", 0)")
+			.attr("transform", "translate(" + pad.left + ", 0)")
 			.call(yAxis);
 	};
 
@@ -225,15 +237,29 @@ function zoomElem(d, i){
 }
 
 function performZoom(startTime, endTime, binLength){
+	timelineGlobals.history.push(new zoomLevel(timelineGlobals.timelines[0].getStart(), 
+			timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd(), 
+			timelineGlobals.binLength));
+	zoom(startTime, endTime, binLength);
+}
+
+function performUnZoom(){
+	var past = timelineGlobals.history.pop();
+	if (past != null && past != undefined){
+		zoom(past.startTime, past.endTime, past.binLength);
+	};
+}
+
+function zoom(startTime, endTime, binLength){
 	timelineGlobals.binLength = binLength;
-	var chunk = (endTime - startTime)/timelineGlobals.numLines;
+	var chunk = (endTime - startTime)/timelineGlobals.timelines.length;
 	var currentTime = startTime;
 	var starts , ends;
-	for (var i = 0; i < timelineGlobals.numLines; i++){
+	for (var i = 0; i < timelineGlobals.timelines.length; i++){
 		starts = currentTime;
 		currentTime += chunk;
 		ends = currentTime;
-		timelineGlobals.timelines[i].updateTimeLine(starts, ends);
+		timelineGlobals.timelines[i].updateTimeline(starts, ends);
 	};
 
 	requestAllTimelines();
