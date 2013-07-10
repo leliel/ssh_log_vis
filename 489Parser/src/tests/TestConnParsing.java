@@ -30,7 +30,7 @@ public class TestConnParsing {
 
 	@Before
 	public void setUp() {
-		p = new Parser(true);
+		p = new Parser();
 		t = new SimpleDateFormat("YYY MMM dd HH:mm:ss", Locale.ENGLISH);
 	}
 

@@ -6,7 +6,7 @@ public class Entry {
 	private final int id;
 	private long start;
 	private long end;
-	private String flags;
+	private Flags flags;
 	private long subElemCount;
 	private int acceptedConn;
 	private int failedConn;
@@ -21,6 +21,7 @@ public class Entry {
 		this.acceptedConn = 0;
 		this.failedConn = 0;
 		this.invalidAttempts = 0;
+		this.flags = new Flags();
 	}
 
 	public int getId(){
@@ -43,13 +44,13 @@ public class Entry {
 		this.end = t;
 	}
 
-	public String getFlags() {
+	public Flags getFlags() {
 		return flags;
 	}
 
 	public void addFlag(String f){
 		if (f != null && !f.equals("")){
-			this.flags += f;
+			this.flags.addFlag(f);
 		}
 	}
 
@@ -98,10 +99,10 @@ public class Entry {
 		json.append("\"id\":"); json.append(this.id);
 		json.append(",\"startTime\":"); json.append(this.start);
 		json.append(",\"endTime\":"); json.append(this.end);
-		if (this.flags == null || this.flags.equals("")) {
+		if (this.flags == null || this.flags.empty()) {
 			json.append(",\"flags\":"); json.append("null");
 		} else {
-			json.append(",\"flags\":\""); json.append(this.flags + "\"");
+			json.append(",\"flags\":"); json.append(this.flags.toJSONString());
 		}
 		json.append(",\"subElemCount\":"); json.append(this.subElemCount);
 		json.append(",\"acceptedConn\":"); json.append(this.acceptedConn);

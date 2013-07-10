@@ -296,9 +296,13 @@ DELIMITER ;;
 CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_time_add`(in name int, in timeHappened bigint, in allowance bigint, in ttl bigint, in datetimeHappened bigint, out num int, out ids int)
 begin
 declare temp int default null;
-select freq_time.id into temp from freq_time where freq_time.user=name and timeHappened between freq_time.start and freq_time.end;
+declare endTime int default 86400000;
+select freq_time.id into temp from freq_time where freq_time.user=name and timeHappened between freq_time.start and freq_time.end limit 1;
 if temp is null then
-insert into freq_time value(default, name, timeHappened - allowance, timeHappened + allowance);
+if (timeHappened + allowance > 86400000) then
+set endTime = timeHappened + allowance;
+end if;
+insert into freq_time value(default, name, timeHappened - allowance, endTime);
 set ids = last_insert_id();
 insert into freq_time_links value(default, ids, datetimeHappened, ttl);
 set num = 1;
@@ -327,7 +331,7 @@ DELIMITER ;;
 CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_time_check`(in name int, in loc int, out num int, out ids int)
 begin
 declare temp int default null;
-select freq_time.id into temp from freq_time where freq_time.user=name and loc between freq_time.start and freq_time.end;
+select freq_time.id into temp from freq_time where freq_time.user=name and loc between freq_time.start and freq_time.end limit 1;
 if temp is null then
 set ids = -1;
 set num = -1;

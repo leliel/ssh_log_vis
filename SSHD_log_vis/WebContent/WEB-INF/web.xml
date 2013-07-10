@@ -10,11 +10,21 @@
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
   <servlet>
-      <servlet-name>getEntries</servlet-name>
-      <servlet-class>request_handlers.GetEntries</servlet-class>
+    <servlet-name>getEntries</servlet-name>
+    <servlet-class>request_handlers.GetEntries</servlet-class>
   </servlet>
   <servlet-mapping>
-      <servlet-name>getEntries</servlet-name>
-      <url-pattern>/getEntries</url-pattern>
+    <servlet-name>getEntries</servlet-name>
+    <url-pattern>/getEntries</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>GetBeginAndEnd</display-name>
+    <servlet-name>GetBeginAndEnd</servlet-name>
+    <servlet-class>request_handlers.GetBeginAndEnd</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>GetBeginAndEnd</servlet-name>
+    <url-pattern>/GetBeginAndEnd</url-pattern>
   </servlet-mapping>
 </web-app>

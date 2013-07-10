@@ -35,19 +35,15 @@ public class Parser {
 	private final static String pass = Messages.getString("Parser.dbPass"); //$NON-NLS-1$
 
 	private Map<String, User> users;
-	private Map<InetAddress, InetAddress> addresses;
 	private Map<String, Server> servers;
 	private List<Line> lines;
-	private final boolean anonymise;
 
 	private Writer write;
 
-	public Parser(boolean anonymise) {
+	public Parser() {
 		users = new HashMap<String, User>();
-		addresses = new HashMap<InetAddress, InetAddress>();
 		servers = new HashMap<String, Server>();
 		lines = new ArrayList<Line>();
-		this.anonymise = anonymise;
 		this.write = new Writer(url, dbName, userName, pass);
 	}
 
@@ -199,7 +195,7 @@ public class Parser {
 
 		idx++; // constant word from
 
-		InetAddress address = anonymiseIP(InetAddress.getByName(parts[idx++]));
+		InetAddress address = InetAddress.getByName(parts[idx++]);
 
 		idx++; // constant word port;
 
@@ -244,7 +240,7 @@ public class Parser {
 
 		idx++; // constant string, skip past it.
 
-		InetAddress addr = anonymiseIP(InetAddress.getByName(parts[idx]));
+		InetAddress addr = InetAddress.getByName(parts[idx]);
 
 		return new Invalid(time, s, connectID, user, addr, line);
 	}
@@ -273,17 +269,9 @@ public class Parser {
 
 		idx += 3; // constant words "recieved disconnect from", skipping
 
-		InetAddress addr = anonymiseIP(InetAddress.getByName((parts[idx++]
-				.replace(":", "")))); // strip //$NON-NLS-1$ //$NON-NLS-2$
-		// trailing
-		// colon
-		// before
-		// parsing
-		int code = Integer.parseInt(parts[idx].replace(":", "")); // strip //$NON-NLS-1$ //$NON-NLS-2$
-																	// trailing
-																	// colon
-																	// before
-																	// parsing
+		InetAddress addr = InetAddress.getByName((parts[idx++].replace(":", "")));//$NON-NLS-1$ //$NON-NLS-2$
+
+		int code = Integer.parseInt(parts[idx].replace(":", "")); //$NON-NLS-1$ //$NON-NLS-2$
 
 		return new Disconnect(time, s, connectID, code, addr, line);
 	}
@@ -344,27 +332,13 @@ public class Parser {
 		}
 	}
 
-	private InetAddress anonymiseIP(InetAddress ip) {
-		if (addresses.containsKey(ip)) {
-			return addresses.get(ip);
-		} else if (this.anonymise) {
-			InetAddress temp = ip;
-			addresses.put(ip, temp);
-			// TODO implement IP anonymisation.
-			return temp;
-		} else {
-			addresses.put(ip, ip);
-			return ip;
-		}
-	}
-
 	public static void main(String[] args) {
 		if (args.length == 0) {
 			System.out.print(Messages.getString("Parser.Usage1")); //$NON-NLS-1$
 			System.out.print(Messages.getString("Parser.Usage2")); //$NON-NLS-1$
 			System.exit(0);
 		} else {
-			Parser p = new Parser(false);
+			Parser p = new Parser();
 			p.parseLogs(args);
 		}
 	}

@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -207,6 +208,57 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 				result.getString("user"), result.getString("source"),
 				result.getInt("port"), result.getLong("isfreqtime"),
 				result.getInt("isfreqloc"), result.getString("rawline"));
+	}
+
+	@Override
+	public long[] getStartAndEndOfUniverse() throws DataSourceException {
+		String query = "SELECT MIN(timestamp) as start, MAX(timestamp) as end FROM entry;";
+		long[] res = new long[2];
+
+		Context context = null;
+		Connection connection = null;
+		Statement state = null;
+		ResultSet result = null;
+		try {
+			context = new InitialContext();
+
+			connection = ((DataSource) context
+					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
+			state = connection.createStatement();
+			result = state.executeQuery(query);
+			if (result.first()){
+				result.next();
+				res[0] = result.getLong("start");
+				result.next();
+				res[1] = result.getLong("end");
+			}
+		} catch (SQLException e) {
+			throw new DataSourceException(e);
+		} catch (NumberFormatException e) {
+			throw new DataSourceException(e);
+		} catch (NamingException e) {
+			throw new DataSourceException(e);
+		} finally {
+			try {
+				if (result != null) {
+					result.close();
+				}
+				if (state != null) {
+					state.close();
+				}
+				if (connection != null) {
+					connection.close();
+				}
+				if (context != null) {
+					context.close();
+				}
+			} catch (SQLException e) {
+				throw new DataSourceException(e);
+			} catch (NamingException e) {
+				throw new DataSourceException(e);
+			}
+		}
+		return res;
 	}
 
 }

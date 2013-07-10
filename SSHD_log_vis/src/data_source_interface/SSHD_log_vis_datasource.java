@@ -21,4 +21,5 @@ public interface SSHD_log_vis_datasource {
 	 */
 	public List<Line> getEntriesFromDataSource(String serverName, String startTime, String endTime) throws DataSourceException;
 
+	public long[] getStartAndEndOfUniverse() throws DataSourceException;
 }

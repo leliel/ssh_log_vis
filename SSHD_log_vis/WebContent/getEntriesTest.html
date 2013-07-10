@@ -14,8 +14,12 @@
 <body>
 	<div class="tooltip"></div>
 	<div id='controls' class="controls">
-		Number of timelines to display: <input type="number" id="numTimelines" value=4>
-		
+		Start Date/time: <input type="text" id="timelineStart"><br>
+		End Date/time: <input type="text" id="timelineEnd" ><br>
+		Number of timelines to display: <input type="number" id="numTimelines" value=4><br>
+		Bin length: <input type="number" id='binlength' value='1'>
+		<select name="units" id="timelineUnits" class="select ui-widget-content ui-corner-all"><br>
+		</select>
 	</div>
 	<div id="zoom_dialog" title="Choose timebin size">
 		<p id='message'></p>

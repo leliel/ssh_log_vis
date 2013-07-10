@@ -18,11 +18,11 @@ function Globals(width, height){
 	this.numLines = 4;
 	this.rowHeight = height/this.numLines;
 	this.binHeight = this.rowHeight - 10;
-	
-	this.timelines = [new timeline(0, [this.padding, width-this.padding], [new Date(2013, 02, 15, 00, 00, 00), new Date(2013, 02, 22, 00, 00, 00)], this.binHeight),
-	                  new timeline(1, [this.padding, width-this.padding], [new Date(2013, 02, 22, 00, 00, 00), new Date (2013, 02, 29, 00, 00, 00)], this.binHeight),
-	                  new timeline(2, [this.padding, width-this.padding], [new Date(2013, 02, 29, 00, 00, 00), new Date(2013, 03, 05, 00, 00, 00)], this.binHeight),
-	                  new timeline(3, [this.padding, width-this.padding], [new Date(2013, 03, 05, 00, 00, 00), new Date(2013, 03, 12, 00, 00 ,00)], this.binHeight)];
+
+	this.timelines = [new timeline(0, [this.padding, width-this.padding], [new Date(2013, 02, 15, 00, 00, 00), new Date(2013, 02, 22, 00, 00, 00)], this.binHeight, 20),
+	                  new timeline(1, [this.padding, width-this.padding], [new Date(2013, 02, 22, 00, 00, 00), new Date (2013, 02, 29, 00, 00, 00)], this.binHeight, 20),
+	                  new timeline(2, [this.padding, width-this.padding], [new Date(2013, 02, 29, 00, 00, 00), new Date(2013, 03, 05, 00, 00, 00)], this.binHeight, 20),
+	                  new timeline(3, [this.padding, width-this.padding], [new Date(2013, 03, 05, 00, 00, 00), new Date(2013, 03, 12, 00, 00 ,00)], this.binHeight, 20)];
 }
 
 function requestAllTimelines(){
@@ -62,40 +62,44 @@ function datify(key, value){
 	return value;
 }
 
-function timeline(idx, range, domain, height){
+function timeline(idx, range, domain, height, padding){
+	var pad = padding;
 	var rowY = height * idx;
 	var xScaler = d3.time.scale().domain(domain).range(range);
-	var yScaler = d3.time.scale().range([height-10, 0]);
-	var binHeight = height-10;
+	var yScaler = d3.scale.linear().range([height-pad, 0]);
+	var binHeight = height-pad;
 	var selection = d3.select("#time")
 		.append("svg:g")
-		.attr("id", "timeline" + idx); 
-	
+		.attr("id", "timeline" + idx)
+		.attr("transform", "translate(0, " + rowY + ")");
+
 	this.updateTimeline = function(startTime, endTime){
 		xScaler.domain([new Date(startTime), new Date(endTime)]);
 	};
-	
+
 	this.updateHeight = function(height){
-		yScaler.range([height-10, 0]);
+		yScaler.range([height-pad, 0]);
 	};
-	
+
 	this.updateWidth = function(width, padding){
-		xScaler.range([padding, width-padding]);
+		pad = padding;
+		xScaler.range([pad, width-pad]);
 	};
-	
+
 	this.getStart = function(){
 		return xScaler.domain()[0].getTime();
 	};
-	
+
 	this.getEnd = function(){
 		return xScaler.domain()[1].getTime();
 	};
-	
+
 	this.renderBins = function(element) {
 
-		//update yScale domain;
-		yScaler.domain(d3.extent(element, function(d){ return d.subElemCount;}));
-		
+		//TODO pick scale type appropriately.
+		//TODO set sensible tick count.
+		yScaler.domain([0, d3.max(element, function(d){ return d.subElemCount;})]);
+
 		var thisLine = selection.selectAll(".bin")
 			.data(element);
 		thisLine.enter()
@@ -120,9 +124,8 @@ function timeline(idx, range, domain, height){
 			.attr("class", "binFailed");
 		thisLine.selectAll(".binFailed")
 			.attr("width", getEventWidth)
-			.attr("height", function(d, i){ return yScaler(d.subElemCount);})
-			.attr("y", function(d, i){
-				return binHeight - yScaler(d.subElemCount);});
+			.attr("height", function(d, i){ return binHeight - yScaler(d.failedConn + d.invalidAttempts);})
+			.attr("y", function(d, i){return yScaler(d.failedConn + d.invalidAttempts);});
 
 		thisLine.selectAll(".binAccepted")
 			.data(function(d){return[d];})
@@ -131,35 +134,47 @@ function timeline(idx, range, domain, height){
 			.attr("class", "binAccepted");
 		thisLine.selectAll(".binAccepted")
 			.attr("width", getEventWidth)
-			.attr("height", function(d){ return yScaler(d.acceptedConn);})
-			.attr("y",	function(d){
-				return binHeight - yScaler(d.acceptedConn);});
+			.attr("height", function(d){return binHeight - yScaler(d.acceptedConn);})
+			.attr("y",	function(d){return yScaler(d.subElemCount);});
 
 
 		thisLine.selectAll(".binDivider")
 			.data(function(d){return [d];})
 			.enter()
-			.append("svg:line")
+			.append("svg:rect")
 			.attr("class", "binDivider");
 		thisLine.selectAll(".binDivider")
-			.style("stroke-width", function(d){return yScaler(d.subElemCount - d.acceptedConn - d.failedConn - d.invalidAttempts);})//getNonConnectProp)
-			.attr("x1", 0)
-			.attr("y1", function(d){ return yScaler(d.acceptedConn);})
-			.attr("x2", getEventWidth)
-			.attr("y2", function(d){ return yScaler(d.acceptedConn);});
-		
+			.attr("width", getEventWidth)
+			.attr("height", function(d){return binHeight - yScaler(d.subElemCount - d.acceptedConn - d.failedConn - d.invalidAttempts);})
+			.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
+
 		thisLine.exit().remove();
 
-		var axis = d3.svg.axis()
+		var xAxis = d3.svg.axis()
     		.scale(xScaler)
     		.orient("bottom");
-		if (selection.select(".axis").empty()){
-			selection.append("g")
-			.attr("class", "axis");
+
+		var yAxis = d3.svg.axis()
+			.scale(yScaler)
+			.orient("left");
+
+		if (selection.select("#xAxis").empty()){
+			selection.append("svg:g")
+			.attr("class", "axis")
+			.attr("id", "xAxis");
 		};
-		selection.select(".axis")
-	 		.attr("transform", "translate(0, " + (rowY + binHeight) + ")")
-	 		.call(axis);
+		selection.select("#xAxis")
+	 		.attr("transform", "translate(0, " + binHeight + ")")
+	 		.call(xAxis);
+
+		if (selection.select("#yAxis").empty()){
+			selection.append("svg:g")
+			.attr("class", "axis")
+			.attr("id", "yAxis");
+		};
+		selection.select("#yAxis")
+			.attr("transform", "translate(" + pad + ", 0)")
+			.call(yAxis);
 	};
 
 	function getDividerY(d, i){
@@ -178,9 +193,9 @@ function timeline(idx, range, domain, height){
 	}
 
 	function getEventCoords(d, i){
-		return "translate(" + xScaler(getXforEvent(d, i)) + "," + rowY + ")";
+		return "translate(" + xScaler(getXforEvent(d, i)) + ", 0)";
 	}
-	
+
 	function getXforEvent(d, i) {
 		if (d.hasOwnProperty("startTime")){
 			return d.startTime;

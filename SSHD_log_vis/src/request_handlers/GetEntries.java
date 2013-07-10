@@ -11,12 +11,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import JSONtypes.Connect;
-import JSONtypes.Disconnect;
 import JSONtypes.Entry;
 import JSONtypes.Invalid;
 import JSONtypes.Line;
 import JSONtypes.Other;
-import JSONtypes.SubSystemReq;
 import data_source_interface.DataSourceException;
 import data_source_interface.Mysql_Datasource;
 import data_source_interface.SSHD_log_vis_datasource;
@@ -33,12 +31,14 @@ import enums.Status;
 public class GetEntries extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final String JSONMimeType = "application/json";
+	private SSHD_log_vis_datasource datasource;
 
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
 	public GetEntries() {
 		super();
+		this.datasource = new Mysql_Datasource();
 	}
 
 	/**
@@ -59,7 +59,7 @@ public class GetEntries extends HttpServlet {
 		List<Line> lines = new ArrayList<Line>();
 		List<Entry> entries = new ArrayList<Entry>();
 
-		SSHD_log_vis_datasource datasource = new Mysql_Datasource();
+
 		if (request.getParameter("startTime") == null
 				|| request.getParameter("endTime") == null
 				|| request.getParameter("maxBins") == null
@@ -69,7 +69,7 @@ public class GetEntries extends HttpServlet {
 		}
 
 		try {
-			lines = datasource.getEntriesFromDataSource(
+			lines = this.datasource.getEntriesFromDataSource(
 					request.getParameter("serverName"),
 					request.getParameter("startTime"),
 					request.getParameter("endTime"));
@@ -142,25 +142,25 @@ public class GetEntries extends HttpServlet {
 				&& lines.get(0).getTime() <= e.getEnd()) {
 			entries.add(e);
 		}
-		
+
 		if (lines.size() == 1){
 			e.setElem(lines.get(0));
 		}
 
-		
+
 		Line l;
 		for (int i = 0; i < lines.size(); i++) {
 			l = lines.get(i);
 			// this element is inside the current bin
-			if (l.getTime() < e.getEnd()) { 
+			if (l.getTime() < e.getEnd()) {
 				setFlags(l, e);
-				// we're right on the edge of a bin 
+				// we're right on the edge of a bin
 			} else if (l.getTime() == e.getEnd()) {
 				setFlags(l, e);
 				// if lines.size == count, this is the last iteration anyway, so don't bother setting up a new element.
-				if (lines.size() > (i + 1) 
+				if (lines.size() > (i + 1)
 						// lookahead, if the next elem exist and is in a new bin, make it.
-						&& lines.get(i + 1).getTime() > (l.getTime())) { 
+						&& lines.get(i + 1).getTime() > (l.getTime())) {
 					if (e.getSubElemCount() == 1) {
 						e.setElem(l);
 					}
@@ -170,8 +170,8 @@ public class GetEntries extends HttpServlet {
 					e.setEnd(startTime + binLength);
 				}
 			} else { // this element is past the end of the current bin
-				// it may be more than one binLength past 
-				while (l.getTime() > startTime + binLength) { 
+				// it may be more than one binLength past
+				while (l.getTime() > startTime + binLength) {
 					startTime += binLength;// increment startTime in binLength increments, skipping N bins.
 				}
 				if (e.getSubElemCount() == 1) {
@@ -193,8 +193,7 @@ public class GetEntries extends HttpServlet {
 			json.append(es.toJSONString());
 			json.append(",");
 		}
-		json.deleteCharAt(json.length() - 1); // clunky, but should strip out
-												// trailing ,
+		json.deleteCharAt(json.length() - 1); // clunky, but should strip out trailing ,
 		json.append("]");
 		w.print(json.toString());
 		w.flush();
@@ -203,9 +202,6 @@ public class GetEntries extends HttpServlet {
 
 	private void setFlags(Line l, Entry e) {
 		Connect con;
-		Disconnect discon;
-		Invalid inv;
-		SubSystemReq subs;
 		Other other;
 		e.incSubElemCount();
 		if (l.getClass().equals(Connect.class)) {
@@ -215,31 +211,22 @@ public class GetEntries extends HttpServlet {
 			} else {
 				e.incFailedConn();
 				if (con.getUser().equals("root")) {
-					e.addFlag("");
+					e.addFlag("R");
 				}
 			}
 			if (con.getFreqLoc() == 0) { // jdbc turns nulls to 0's
-				e.addFlag(""); // TODO define flags for entry.
+				e.addFlag("L");
 			}
 			if (con.getFreqTime() == 0) { // jdbc turns nulls to 0's
-				e.addFlag("");
+				e.addFlag("T");
 			}
-		} else if (l.getClass().equals(Disconnect.class)) {
-			discon = (Disconnect) l;
-			// do we need to do anything here or are these mostly pointless at
-			// this level?
 		} else if (l.getClass().equals(Invalid.class)) {
-			inv = (Invalid) l;
-			e.addFlag("");
 			e.incInvalid();
 		} else if (l.getClass().equals(Other.class)) {
 			other = (Other) l;
 			if (other.getMessage().toLowerCase().startsWith("error")) {
-				e.addFlag("");
+				e.addFlag("E");
 			}
-		} else {
-			subs = (SubSystemReq) l;
-			// do we actually need to do anything with this?
 		}
 	}
 

@@ -4,8 +4,18 @@ function setupOnLoad(){
 
 	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
 
+	//TODO insert code to initialise jquery datepickers.
+	var temp = $("#timelineUnits");
+	$.each(timelineGlobals.timeUnits, function(key, value) {
+		if (value === timelineGlobals.binLength){
+			temp.append($("<option />").val(key).text(key + "s")).attr({'selected' : 'selected'});
+		} else {
+			temp.append($("<option />").val(key).text(key + "s"));
+		}
+	});
+
 	requestAllTimelines();
-	
+
 	$(function(){
 		var startTime = $("#startTime"),
 			endTime = $("#endTime"),
@@ -13,7 +23,7 @@ function setupOnLoad(){
 			units = $("#units"),
 			hints = $("#hints"),
 			allFields = $([]).add(startTime).add(endTime).add(chunk).add(units).add(hints);
-		
+
 		function checkExists(input, name){
 			if (input.val() == undefined || input.val() == null){
 				input.addClass("ui-state-error");
@@ -29,18 +39,25 @@ function setupOnLoad(){
 			}
 			return true;
 		}
-		
+
 		function checkBinSize(inputs, binSize, times){
 			if ((times[1] - times[0])/binSize < 4){
 				$.each(inputs, function(idx, val){
 					val.addClass("ui-state-error");
 				});
-				$("#hints").text("Number of units must be at most 1/4 timeblock");
+				if((times[1] - times[0])%binsize != 0){
+					$("#hints").text("Number of units must be an integer divisor of timeblock.");
+				} else {
+					$("#hints").text("Number of units must be at most 1/4 timeblock.");
+				}
+				return false;
+			} else if ((times[1] - times[0])%binsize != 0){
+				$("#hints").text("Number of units must be an integer divisor of timeblock.");
 				return false;
 			}
 			return true;
 		}
-		
+
 		$("#zoom_dialog").dialog({
 			autoOpen: false,
 			height: 300,
@@ -49,13 +66,13 @@ function setupOnLoad(){
 			buttons:{
 				"Ok" : function() {
 					var valid = true;
-					
+
 					valid = valid && checkExists(chunk, "Number of units");
 					valid = valid && checkChosen(units, "Unit");
-					
+
 					var binSize = Number(chunk.val()) * timelineGlobals.timeUnits[units.val()];
-					
-					valid = valid && checkBinSize([chunk, units], binSize, [Number(startTime.val()), Number(endTime.val())]); 
+
+					valid = valid && checkBinSize([chunk, units], binSize, [Number(startTime.val()), Number(endTime.val())]);
 					if (valid){
 						performZoom(Number(startTime.val()), Number(endTime.val()), binSize);
 						$(this).dialog("close");
@@ -106,12 +123,21 @@ function splitTimeBlock(d, block){
 
 function toPrettyTimeString(time){
 	//TODO implement long->pretty string conversion
-	var result = "";
-	var temp = Object.getOwnPropertyNames(timelineGlobals.timeUnits);
+	return recPrettyString(time, "");
+}
+
+function recPrettyString(time, string){
+	if (time === 0) return string;
 	for (var i = temp.length; i >= 0; i--){
 		if (Math.floor(time/timelineGlobals.timeUnits[temp[i]]) > 0){
-			result += temp[i] + ": " + Math.floor(time/timelineGlobals.timeUnits[temp[i]]) + "<br>";
+			string += temp[i] + ": " + Math.floor(time/timelineGlobals.timeUnits[temp[i]]) + "<br>";
+			var remainder = time%timelineGlobals.timeUnits[temp[i]];
+			if (remainder != 0){
+				return recPrettyString(remainder, string);
+			} else {
+				return string;
+			}
 		}
 	};
-	return result;
+	return string; //should never happen, but just in case, JS is weird like that
 }

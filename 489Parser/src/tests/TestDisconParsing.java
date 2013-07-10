@@ -27,7 +27,7 @@ public class TestDisconParsing {
 
 	@Before
 	public void setUp() {
-		p = new Parser(true);
+		p = new Parser();
 		t = new SimpleDateFormat("YYYY MMM dd HH:mm:ss", Locale.ENGLISH);
 	}
 
