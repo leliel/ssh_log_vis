@@ -60,9 +60,6 @@ function requestTimelineEvents(startTime, endTime, maxBins, timeline) {
 						var text = response.responseText;
 						text = JSON.parse(text, datify);
 						if (timelineGlobals.binLength != text[0].endTime.getTime() - text[0].startTime.getTime()){
-							var temp = timelineGlobals.history.pop();
-							temp.binLength = text[0].endTime.getTime() - text[0].startTime.getTime();
-							timelineGlobals.history.push(temp);
 							timelineGlobals.binLength = text[0].endTime.getTime() - text[0].startTime.getTime();
 						}
 						timeline.renderBins(text);
