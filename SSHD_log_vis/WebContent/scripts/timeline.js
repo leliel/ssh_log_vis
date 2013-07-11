@@ -23,17 +23,17 @@ function Globals(width, height){
 	this.rowHeight = height/numLines;
 	this.padding = {
 			vertical : 20,
-			left : 25,
+			left : 50,
 			right : 20
 	};
 	this.maxBins = Math.floor((width-this.padding.left - this.padding.right)/this.minBinWidth);
 	this.binHeight = this.rowHeight;
 
-	this.timelines = [new timeline(0, [this.padding.left, width-this.padding.right], [new Date(2013, 02, 15, 00, 00, 00), new Date(2013, 02, 22, 00, 00, 00)], this.binHeight, this.padding),
-	                  new timeline(1, [this.padding.left, width-this.padding.right], [new Date(2013, 02, 22, 00, 00, 00), new Date (2013, 02, 29, 00, 00, 00)], this.binHeight, this.padding),
-	                  new timeline(2, [this.padding.left, width-this.padding.right], [new Date(2013, 02, 29, 00, 00, 00), new Date(2013, 03, 05, 00, 00, 00)], this.binHeight, this.padding),
-	                  new timeline(3, [this.padding.left, width-this.padding.right], [new Date(2013, 03, 05, 00, 00, 00), new Date(2013, 03, 12, 00, 00 ,00)], this.binHeight, this.padding)];
-	
+	this.timelines = [new timeline(0, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 15, 00, 00, 00)), new Date(Date.UTC(2013, 02, 22, 00, 00, 00))], this.binHeight, this.padding),
+	                  new timeline(1, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 22, 00, 00, 00)), new Date(Date.UTC(2013, 02, 29, 00, 00, 00))], this.binHeight, this.padding),
+	                  new timeline(2, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 29, 00, 00, 00)), new Date(Date.UTC(2013, 03, 05, 00, 00, 00))], this.binHeight, this.padding),
+	                  new timeline(3, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 03, 05, 00, 00, 00)), new Date(Date.UTC(2013, 03, 12, 00, 00 ,00))], this.binHeight, this.padding)];
+
 	this.history = new Array();
 }
 
@@ -54,7 +54,7 @@ function requestTimelineEvents(startTime, endTime, maxBins, timeline) {
 		.post(encodeURI(data),
 			function(error, response) {
 				if (error) {
-					// TODO handle error codes nicely.
+					alert(error.message);
 				} else {
 					if (response.status == 200) {
 						var text = response.responseText;
@@ -77,7 +77,7 @@ function datify(key, value){
 function timeline(idx, range, domain, height, padding){
 	var pad = padding;
 	var rowY = height * idx;
-	var xScaler = d3.time.scale().domain(domain).range(range);
+	var xScaler = d3.time.scale.utc().domain(domain).range(range);
 	var yScaler = d3.scale.linear().range([height-pad.vertical, pad.vertical]);
 	var binHeight = height-pad.vertical;
 	var selection = d3.select("#time")
@@ -135,8 +135,8 @@ function timeline(idx, range, domain, height, padding){
 			.attr("class", "binFailed");
 		thisLine.selectAll(".binFailed")
 			.attr("width", getEventWidth)
-			.attr("height", function(d, i){ return binHeight - yScaler(d.failedConn + d.invalidAttempts);})
-			.attr("y", function(d, i){return yScaler(d.failedConn + d.invalidAttempts);});
+			.attr("height", function(d, i){ return binHeight - yScaler(d.failedConn);})
+			.attr("y", function(d, i){return yScaler(d.failedConn);});
 
 		thisLine.selectAll(".binAccepted")
 			.data(function(d){return[d];})
@@ -156,7 +156,7 @@ function timeline(idx, range, domain, height, padding){
 			.attr("class", "binDivider");
 		thisLine.selectAll(".binDivider")
 			.attr("width", getEventWidth)
-			.attr("height", function(d){return binHeight - yScaler(d.subElemCount - d.acceptedConn - d.failedConn - d.invalidAttempts);})
+			.attr("height", function(d){return binHeight - yScaler(d.subElemCount - d.acceptedConn - d.failedConn);})
 			.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
 
 		thisLine.exit().remove();
@@ -168,7 +168,8 @@ function timeline(idx, range, domain, height, padding){
 		var yAxis = d3.svg.axis()
 			.scale(yScaler)
 			.orient("left")
-			.ticks("4");
+			.ticks(4)
+			.tickFormat(yScaler.tickFormat(4, ".1s"));
 
 		if (selection.select("#xAxis").empty()){
 			selection.append("svg:g")
@@ -188,21 +189,6 @@ function timeline(idx, range, domain, height, padding){
 			.attr("transform", "translate(" + pad.left + ", 0)")
 			.call(yAxis);
 	};
-
-	function getDividerY(d, i){
-		var temp = getAcceptedPropAsY(d, i);
-		var temp2 =  0.5*getNonConnectProp(d, i);
-		return temp + temp2;
-	}
-
-	function getNonConnectProp(d, i){
-		if (d.subElemCount != d.acceptedConn && d.subElemCount != d.failedConn && d.subElemCount != d.invalidAttempts) {
-			var prop = (d.subElemCount - d.acceptedConn - d.failedConn - d.invalidAttempts)/d.subElemCount * binHeight;
-			return prop > 2 ? prop : 2;
-		} else {
-			return 0;
-		};
-	}
 
 	function getEventCoords(d, i){
 		return "translate(" + xScaler(getXforEvent(d, i)) + ", 0)";
@@ -224,8 +210,6 @@ function timeline(idx, range, domain, height, padding){
 		}
 	}
 
-	function getAcceptedPropAsY(d, i) {
-	}
 }
 
 function zoomElem(d, i){
@@ -237,8 +221,8 @@ function zoomElem(d, i){
 }
 
 function performZoom(startTime, endTime, binLength){
-	timelineGlobals.history.push(new zoomLevel(timelineGlobals.timelines[0].getStart(), 
-			timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd(), 
+	timelineGlobals.history.push(new zoomLevel(timelineGlobals.timelines[0].getStart(),
+			timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd(),
 			timelineGlobals.binLength));
 	zoom(startTime, endTime, binLength);
 }
@@ -271,8 +255,8 @@ function showToolTip(d) {
 	selection = selection.style("top", d3.event.pageY + "px");
 	var html;
 	if (d.elem == null){
-		html = "Start Time: " + d.startTime.toLocaleString() + "<br>" +
-			"End Time: " + d.endTime.toLocaleString() + "<br>" +
+		html = "Start Time: " + d.startTime.toUTCString() + "<br>" +
+			"End Time: " + d.endTime.toUTCString() + "<br>" +
 			"Accepted Connections: " + d.acceptedConn + "<br>" +
 			"Failed Connections: " + d.failedConn + "<br>" +
 			"Invalid Usernames: " + d.invalidAttempts + "<br>" +
@@ -292,7 +276,9 @@ function tooltipText(elem){
 		if (elem.hasOwnProperty(prop) && prop != "rawLine"){
 			if (prop == "server"){
 				text += prop + ": " + elem[prop].name + "<br>";
-			} else {
+			} else if (prop == "time") {
+				text += prop + ": " + elem[prop].toUTCString() + "<br>";
+			}else {
 				text += prop + ": " + elem[prop] + "<br>";
 			};
 		};

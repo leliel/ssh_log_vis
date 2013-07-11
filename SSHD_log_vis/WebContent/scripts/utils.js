@@ -5,10 +5,11 @@ function setupOnLoad(){
 	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
 
 	$("#undoZoom").click(performUnZoom);
-	
+
 	var startTime = $("#timelineStart");
 	startTime.datetimepicker({
 		timeFormat : "HH:mm:ss",
+		timezone : "z",
 		showSeconds: true,
 		onClose: function(dateText, inst) {
 			if (endTime.val() != '') {
@@ -27,10 +28,11 @@ function setupOnLoad(){
 			startTime.datetimepicker('option', 'maxDateTime', new Date());
 		}
 	});
-	
+
 	var endTime = $("#timelineEnd");
 	endTime.datetimepicker({
 		timeFormat : "HH:mm:ss",
+		timezone : "z",
 		showSeconds: true,
 		onClose: function(dateText, inst) {
 			if (startTime.val() != '') {
@@ -47,7 +49,7 @@ function setupOnLoad(){
 			startTime.datetimepicker('option', 'maxDateTime', endTime.datetimepicker('getDate'));
 		}
 	});
-	
+
 	$("#zoomButton").click(function(){
 		var start = startTime.datetimepicker("getDate").getTime();
 		var end = endTime.datetimepicker('getDate').getTime();
@@ -58,23 +60,20 @@ function setupOnLoad(){
 		binLength *= millis;
 		var reqLength = end - start;
 		if (Math.floor(reqLength/binLength) > timelineGlobals.timelines.length){
-			var mod1 = reqLength%binLength;
-			mod1 = mod1 == 0;
-			var mod2 = (reqLength/timelineGlobals.timelines.length)%binLength;
+			/*var mod1 = reqLength%binLength;
+			mod1 = mod1 == 0;*/
+			var mod2 = (reqLength/binLength)%timelineGlobals.timelines.length;
 			mod2 = mod2 == 0;
-			if (mod1 && mod2){
-				//TODO why the fuck doesn't this work? debugger shows it being entered.
-				//somehow the startdate is an hour before midnight. fucking DST. force timezone to UTC for conversions
-				//to deal with people being too damned clever by half.
+			if (mod2){
 				performZoom(start, end, binLength);
 			}
 		} else {
 			$("#timelineUnits").addClass("ui-state-error");
 			$("#binLength").addClass("ui-state-error");
-		} 		
+		}
 	});
-	
-	
+
+
 	var temp = $("#timelineUnits");
 	$.each(timelineGlobals.timeUnits, function(key, value) {
 		if (value == timelineGlobals.binLength){
@@ -83,7 +82,7 @@ function setupOnLoad(){
 			temp.append($("<option />").val(key).text(key + "s"));
 		}
 	});
-	
+
 	$.each(timelineGlobals.timeUnits, function(key, value) {
 		$("#units").append($("<option />").val(key).text(key + "s"));
 	});
@@ -97,7 +96,7 @@ function setupOnLoad(){
 			units = $("#units"),
 			hints = $("#hints"),
 			allFields = $([]).add(startTime).add(endTime).add(chunk).add(units).add(hints);
-		
+
 
 
 		function checkExists(input, name){

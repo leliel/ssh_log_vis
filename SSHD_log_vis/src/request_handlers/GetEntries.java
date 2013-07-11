@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -85,15 +84,8 @@ public class GetEntries extends HttpServlet {
 		}
 
 		PrintWriter w;
-		// TODO fix the damned gzip support.
-		/*
-		 * if (Request_utils.isGzipSupported(request) &&
-		 * !Request_utils.isGzipDisabled(request)) { w =
-		 * Request_utils.getGzipWriter(response);
-		 * response.setHeader("Content-Encoding", "gzip"); } else {
-		 */
 		w = response.getWriter();
-		// }
+
 
 		long binLength;
 		long requestLength;
@@ -195,7 +187,7 @@ public class GetEntries extends HttpServlet {
 		}
 		json.deleteCharAt(json.length() - 1); // clunky, but should strip out trailing ,
 		json.append("]");
-		w.print(json.toString());
+		w.write(json.toString());
 		w.flush();
 		response.flushBuffer();
 	}
@@ -203,8 +195,8 @@ public class GetEntries extends HttpServlet {
 	private void setFlags(Line l, Entry e) {
 		Connect con;
 		Other other;
-		e.incSubElemCount();
 		if (l.getClass().equals(Connect.class)) {
+			e.incSubElemCount();
 			con = (Connect) l;
 			if (con.getStatus() == Status.ACCEPTED) {
 				e.incAcceptedConn();
@@ -221,12 +213,15 @@ public class GetEntries extends HttpServlet {
 				e.addFlag("T");
 			}
 		} else if (l.getClass().equals(Invalid.class)) {
-			e.incInvalid();
+			e.incInvalid(); //invalid attempts don't count as subelements as are always associated with a failed connect.
 		} else if (l.getClass().equals(Other.class)) {
+			e.incSubElemCount();
 			other = (Other) l;
 			if (other.getMessage().toLowerCase().startsWith("error")) {
 				e.addFlag("E");
 			}
+		} else { //it's one of the other types, increment the subelements.
+			e.incSubElemCount();
 		}
 	}
 
