@@ -13,19 +13,26 @@
 <script type="text/javascript" src="/SSHD_log_vis/scripts/timeline.js"></script>
 <title>Testing d3 json requests</title>
 </head>
-<body>	
-	<div id='controls' class="controls ui-widget ui-widget-content ui-corner-all">
-		<fieldset class="ui-corner-all ui-widget-content">
-			Start Date/time: <input type="text" id="timelineStart" class="ui-widget-content ui-corner-all"><br>
-			End Date/time: <input type="text" id="timelineEnd" class="ui-widget-content ui-corner-all"><br>
-			Bin length: <input type="text" id="binLength" class="ui-widget-content ui-corner-all" size="5" value="1">
-			<select name="units" id="timelineUnits" class="ui-widget-content select ui-corner-all"></select><br>
+<body class="ui-widget ui-widget-content">
+	<div id='controls' class="controls ui-widget-content ui-corner-all">
+		<div style="width: 99%" class="ui-widget-content ui-corner-all">
+			Start Date/time: <input type="text" id="timelineStart" class="inputHuge ui-widget-content ui-corner-all"><br>
+			End Date/time: <input type="text" id="timelineEnd" class="inputHuge ui-widget-content ui-corner-all"><br>
+			Bin length: <input type="text" id="binLength" class="inputSmall ui-widget-content ui-corner-all" value="1">
+			<select name="units" id="timelineUnits" class="inputLarge ui-widget-content select ui-corner-all"></select><br>
 			<button type="button" id="zoomButton" class="ui-widget-content ui-corner-all" value="zoomButton">Jump to location</button><br>
 			<button type="button" id="undoZoom" class="ui-widget-content ui-corner-all" value="undoZoom">Undo Zoom</button>
-		</fieldset>
-		Number of timelines to display: <input type="number" id="numTimelines" size="2" class="ui-widget-content ui-corner-all" value=4>
+		</div>
+		Number of timelines to display: <input type="number" id="numTimelines" size="2" class="inputLength ui-widget-content ui-corner-all" value=4>
 	</div>
-	<div id="zoom_dialog" title="Choose timebin size">
+	<svg id="time" class="timeline"></svg>
+	<div id="legend" class="legend ui-widget ui-widget-content ui-corner-all">
+		<div id="successColor" class="legendLabel ui-corner-all binAccepted"></div> Accepted connection
+		<div id="failedColor" class="legendLabel ui-corner-all binFailed"></div> Failed connection
+		<div id="otherColor" class="legendLabel ui-corner-all binDivider"></div> Other log entries
+	</div>
+	<div class="tooltip ui-widget ui-widget-content ui-corner-all"></div>
+		<div id="zoom_dialog" title="Choose timebin size">
 		<p id='message'></p>
 		<p id='hints'></p>
 		<form>
@@ -38,7 +45,5 @@
 		</fieldset>
 		</form>
 	</div>
-	<svg id="time" class="timeline"></svg>
-	<div class="tooltip ui-widget ui-widget-content ui-corner-all"></div>
 </body>
 </html>

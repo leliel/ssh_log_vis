@@ -119,7 +119,7 @@ public class GetEntries extends HttpServlet {
 		bins = (int) (Math.ceil(requestLength / (double) binLength));
 		bins = (bins < maxBins) ? bins : maxBins;
 		binLength = (bins == maxBins) ? (long) Math.ceil(requestLength
-				/ binLength) : binLength;
+				/ bins) : binLength;
 		response.setContentType(GetEntries.JSONMimeType);
 
 		//TODO refactor this, it's too hard to understand and maintain.

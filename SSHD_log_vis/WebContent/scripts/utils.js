@@ -4,6 +4,29 @@ function setupOnLoad(){
 
 	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
 
+	var time = 	$("#time");
+	
+	time.position({
+		my: "left top",
+		at: "right top",
+		of: $("#controls")
+	});
+	
+	$("#legend").position({
+		my: "left top",
+		at: "right top",
+		of: time
+	});
+	
+	/*function(){ //javascript really needs an onresize even for each element.
+		var width = $("#time").width();
+		var height = $("#time").height();
+		for (timeline in timelineGlobals.timelines){
+			timeline.updateHeight(height);
+			timeline.updateWidth(width);
+			timeline.redrawBins();
+		};*/
+	
 	$("#undoZoom").click(performUnZoom);
 
 	var startTime = $("#timelineStart");
@@ -160,11 +183,6 @@ function setupOnLoad(){
 			close : function(event, ui){
 				allFields.val("").removeClass("ui-state-error");
 			},
-			open : function(event, ui){
-				$("#startTime").val(d.startTime.getTime());
-				$("#endTime").val(d.endTime.getTime());
-				$("#message").html("Choose bin size for " + toPrettyTimeString(block));
-			}
 		});
 	});
 }
@@ -187,6 +205,9 @@ function splitTimeBlock(d, block){
 	} else if (block === timelineGlobals.timeUnits.minute){
 		performZoom(d.startTime.getTime(), d.endTime.getTime(), timelineGlobals.timeUnits.second);
 	} else {
+		$("#startTime").val(d.startTime.getTime());
+		$("#endTime").val(d.endTime.getTime());
+		$("#message").html("Choose bin size for " + toPrettyTimeString(block));
 		$("#zoom_dialog").dialog('open');
 	}
 }

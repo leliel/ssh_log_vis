@@ -2,15 +2,41 @@
 
 .controls {
 	position: absolute;
-	width: 300px;
-	height: 500px;
+	width: 24%;
+	height: 75%;
+}
+
+.inputSmall{
+	width: 15%
+}
+
+.inputMedium {
+	width: 25%
+}
+
+.inputLarge{
+	width: 50%
+}
+
+.inputHuge{
+	width: 80%;
 }
 
 .timeline {
-	width: 1200px;
-	height: 700px;
 	position: absolute;
-	left: 320px;
+	width: 60%;
+	height: 75%;
+}
+
+.legend {
+	position: absolute;
+	width: 15%;
+	height : 20%;
+}
+
+.legendLabel{
+	width: 15%;
+	height: 15%;
 }
 
 .bin {
@@ -19,16 +45,19 @@
 
 .binFailed {
 	fill: #ff0000;
+	background-color: #ff0000;
 	stroke: #000000;
 }
 
 .binAccepted {
 	fill: #0000ff;
+	background-color: #0000ff;
 	stroke: #000000;
 }
 
 .binDivider {
 	fill: #000000;
+	background-color: #000000;
 	stroke: #000000;
 }
 

@@ -59,6 +59,12 @@ function requestTimelineEvents(startTime, endTime, maxBins, timeline) {
 					if (response.status == 200) {
 						var text = response.responseText;
 						text = JSON.parse(text, datify);
+						if (timelineGlobals.binLength != text[0].endTime.getTime() - text[0].startTime.getTime()){
+							var temp = timelineGlobals.history.pop();
+							temp.binLength = text[0].endTime.getTime() - text[0].startTime.getTime();
+							timelineGlobals.history.push(temp);
+							timelineGlobals.binLength = text[0].endTime.getTime() - text[0].startTime.getTime();
+						}
 						timeline.renderBins(text);
 					} else if (response.status = 204) {
 						timeline.renderBins([]);
@@ -75,11 +81,10 @@ function datify(key, value){
 }
 
 function timeline(idx, range, domain, height, padding){
-	var pad = padding;
 	var rowY = height * idx;
 	var xScaler = d3.time.scale.utc().domain(domain).range(range);
-	var yScaler = d3.scale.linear().range([height-pad.vertical, pad.vertical]);
-	var binHeight = height-pad.vertical;
+	var yScaler = d3.scale.linear().range([height-padding.vertical, padding.vertical]);
+	var binHeight = height-padding.vertical;
 	var selection = d3.select("#time")
 		.append("svg:g")
 		.attr("id", "timeline" + idx)
@@ -90,12 +95,13 @@ function timeline(idx, range, domain, height, padding){
 	};
 
 	this.updateHeight = function(height){
-		yScaler.range([height-pad.vertical, pad.vertical]);
+		rowY = height * idx;
+		binHeight = height-timelineGlobals.padding.vertical;
+		yScaler.range([height-timelineGlobals.padding.vertical, timelineGlobals.padding.vertical]);
 	};
 
-	this.updateWidth = function(width, padding){
-		pad = padding;
-		xScaler.range([pad.left, width-pad.right]);
+	this.updateWidth = function(width){
+		xScaler.range([timelineGlobals.padding.left, width-timelineGlobals.padding.right]);
 	};
 
 	this.getStart = function(){
@@ -186,8 +192,36 @@ function timeline(idx, range, domain, height, padding){
 			.attr("id", "yAxis");
 		};
 		selection.select("#yAxis")
-			.attr("transform", "translate(" + pad.left + ", 0)")
+			.attr("transform", "translate(" + timelineGlobals.padding.left + ", 0)")
 			.call(yAxis);
+	};
+	
+	this.redrawBins = function(){
+		selection.attr("transform", "translate(0, " + rowY + ")");
+		var thisLine = selection.selectAll(".bin");
+		
+		thisLine.selectAll(".binFailed")
+		.attr("width", getEventWidth)
+		.attr("height", function(d, i){ return binHeight - yScaler(d.failedConn);})
+		.attr("y", function(d, i){return yScaler(d.failedConn);});
+		
+		thisLine.selectAll(".binAccepted")
+		.attr("width", getEventWidth)
+		.attr("height", function(d){return binHeight - yScaler(d.acceptedConn);})
+		.attr("y",	function(d){return yScaler(d.subElemCount);});
+
+		thisLine.selectAll(".binDivider")
+		.attr("width", getEventWidth)
+		.attr("height", function(d){return binHeight - yScaler(d.subElemCount - d.acceptedConn - d.failedConn);})
+		.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
+		
+		selection.select("#xAxis")
+ 		.attr("transform", "translate(0, " + binHeight + ")")
+ 		.call(xAxis);
+		
+		selection.select("#yAxis")
+		.attr("transform", "translate(" + timelineGlobals.padding.left + ", 0)")
+		.call(yAxis);
 	};
 
 	function getEventCoords(d, i){
