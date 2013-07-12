@@ -9,7 +9,8 @@ function TimeUnits() {
 		this.month = 4 * this.week; //milliseconds in a standard month(28 days)
 }
 
-function zoomLevel(start, end, length) {
+function zoomLevel(start, end, length) { //TODO shift to get-request and use browser history
+	//TODO generate bookmark metatdata if possible.
 	this.startTime = start;
 	this.endTime = end;
 	this.binLength = length;
@@ -94,11 +95,11 @@ function timeline(idx, range, domain, height, padding){
 	this.updateHeight = function(height){
 		rowY = height * idx;
 		binHeight = height-timelineGlobals.padding.vertical;
-		yScaler.range([height-timelineGlobals.padding.vertical, timelineGlobals.padding.vertical]);
+		yScaler = yScaler.range([height-timelineGlobals.padding.vertical, timelineGlobals.padding.vertical]);
 	};
 
 	this.updateWidth = function(width){
-		xScaler.range([timelineGlobals.padding.left, width-timelineGlobals.padding.right]);
+		xScaler = xScaler.range([timelineGlobals.padding.left, width-timelineGlobals.padding.right]);
 	};
 
 	this.getStart = function(){
@@ -110,8 +111,8 @@ function timeline(idx, range, domain, height, padding){
 	};
 
 	this.renderBins = function(element) {
-
-		//TODO set sensible tick counts.
+		//TODO create scale indicator as small box to left of timeline.
+		//use log scale as only needs to be indicative of relative weight.
 		yScaler.domain([0, d3.max(element, function(d){ return d.subElemCount;})]);
 
 		var thisLine = selection.selectAll(".bin")
@@ -192,16 +193,28 @@ function timeline(idx, range, domain, height, padding){
 			.attr("transform", "translate(" + timelineGlobals.padding.left + ", 0)")
 			.call(yAxis);
 	};
-	
-	this.redrawBins = function(){
+
+	this.redrawBins = function(width, height){
+		//TODO track down cause of yscaling issues causing components to seperate.
+
+		xScaler = xScaler.range([timelineGlobals.padding.left, width-timelineGlobals.padding.right]);
+		yScaler = yScaler.range([height-timelineGlobals.padding.vertical, timelineGlobals.padding.vertical]);
+
+		var test = xScaler.range();
+		var test2 = yScaler.range();
+
 		selection.attr("transform", "translate(0, " + rowY + ")");
-		var thisLine = selection.selectAll(".bin");
-		
+		var thisLine = selection.selectAll(".bin")
+			.on("mouseover", showToolTip)
+			.on("mouseout", hideToolTip)
+			.on("dblclick", zoomElem)
+			.attr("transform", getEventCoords);
+
 		thisLine.selectAll(".binFailed")
 		.attr("width", getEventWidth)
 		.attr("height", function(d, i){ return binHeight - yScaler(d.failedConn);})
 		.attr("y", function(d, i){return yScaler(d.failedConn);});
-		
+
 		thisLine.selectAll(".binAccepted")
 		.attr("width", getEventWidth)
 		.attr("height", function(d){return binHeight - yScaler(d.acceptedConn);})
@@ -211,11 +224,21 @@ function timeline(idx, range, domain, height, padding){
 		.attr("width", getEventWidth)
 		.attr("height", function(d){return binHeight - yScaler(d.subElemCount - d.acceptedConn - d.failedConn);})
 		.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
-		
+
+		var xAxis = d3.svg.axis()
+		.scale(xScaler)
+		.orient("bottom");
+
+		var yAxis = d3.svg.axis()
+		.scale(yScaler)
+		.orient("left")
+		.ticks(4)
+		.tickFormat(yScaler.tickFormat(4, ".2s"));
+
 		selection.select("#xAxis")
  		.attr("transform", "translate(0, " + binHeight + ")")
  		.call(xAxis);
-		
+
 		selection.select("#yAxis")
 		.attr("transform", "translate(" + timelineGlobals.padding.left + ", 0)")
 		.call(yAxis);

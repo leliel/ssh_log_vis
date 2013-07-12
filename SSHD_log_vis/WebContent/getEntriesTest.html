@@ -23,14 +23,17 @@
 			<button type="button" id="zoomButton" class="ui-widget-content ui-corner-all" value="zoomButton">Jump to location</button><br>
 			<button type="button" id="undoZoom" class="ui-widget-content ui-corner-all" value="undoZoom">Undo Zoom</button>
 		</div>
-		Number of timelines to display: <input type="number" id="numTimelines" size="2" class="inputLength ui-widget-content ui-corner-all" value=4>
+		Number of timelines to display: <input type="number" id="numTimelines" class="inputSmall ui-widget-content ui-corner-all" value=4>
+		<div id="legend" class="legend ui-widget ui-widget-content ui-corner-all">
+		<div class="legendColors">
+			<div id="successColor" class="legendLabel ui-corner-all binAccepted"></div> Accepted connection
+			<div id="failedColor" class="legendLabel ui-corner-all binFailed"></div> Failed connection
+			<div id="otherColor" class="legendLabel ui-corner-all binDivider"></div> Other log entries
+		</div>
+		</div>
 	</div>
 	<svg id="time" class="timeline"></svg>
-	<div id="legend" class="legend ui-widget ui-widget-content ui-corner-all">
-		<div id="successColor" class="legendLabel ui-corner-all binAccepted"></div> Accepted connection
-		<div id="failedColor" class="legendLabel ui-corner-all binFailed"></div> Failed connection
-		<div id="otherColor" class="legendLabel ui-corner-all binDivider"></div> Other log entries
-	</div>
+
 	<div class="tooltip ui-widget ui-widget-content ui-corner-all"></div>
 		<div id="zoom_dialog" title="Choose timebin size">
 		<p id='message'></p>

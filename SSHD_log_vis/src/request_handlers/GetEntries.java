@@ -119,7 +119,7 @@ public class GetEntries extends HttpServlet {
 		bins = (int) (Math.ceil(requestLength / (double) binLength));
 		bins = (bins < maxBins) ? bins : maxBins;
 		binLength = (bins == maxBins) ? (long) Math.ceil(requestLength
-				/ bins) : binLength;
+				/ bins) : binLength; //TODO round to seconds.
 		response.setContentType(GetEntries.JSONMimeType);
 
 		//TODO refactor this, it's too hard to understand and maintain.
@@ -191,7 +191,7 @@ public class GetEntries extends HttpServlet {
 		w.flush();
 		response.flushBuffer();
 	}
-
+	//TODO ensure no failed get marked as accepted.
 	private void setFlags(Line l, Entry e) {
 		Connect con;
 		Other other;

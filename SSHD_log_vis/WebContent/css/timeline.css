@@ -24,14 +24,19 @@
 
 .timeline {
 	position: absolute;
-	width: 60%;
+	width: 75%;
 	height: 75%;
 }
 
 .legend {
 	position: absolute;
-	width: 15%;
+	width: 99%;
 	height : 20%;
+}
+
+.legendColors {
+	width: 50%;
+	height: 99%;
 }
 
 .legendLabel{

@@ -5,28 +5,43 @@ function setupOnLoad(){
 	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
 
 	var time = 	$("#time");
-	
+
 	time.position({
 		my: "left top",
 		at: "right top",
 		of: $("#controls")
 	});
-	
+
 	$("#legend").position({
-		my: "left top",
-		at: "right top",
-		of: time
+		my: "center bottom",
+		at: "center bottom",
+		of: $("#controls"),
+		within: $("#controls")
 	});
-	
-	/*function(){ //javascript really needs an onresize even for each element.
+
+	$(window).resize(function(){ //javascript really needs an onresize even for each element. using window resize event to handle most cases.
+		$("#time").position({ //reposition timelines.
+			my: "left top",
+			at: "right top",
+			of: $("#controls")
+		});
+
+		$("#legend").position({//reposition legends
+			my: "center bottom",
+			at: "center bottom",
+			of: $("#controls"),
+			within: $("#controls")
+		});
+
 		var width = $("#time").width();
-		var height = $("#time").height();
-		for (timeline in timelineGlobals.timelines){
-			timeline.updateHeight(height);
-			timeline.updateWidth(width);
-			timeline.redrawBins();
-		};*/
-	
+		var height = $("#time").height()/timelineGlobals.timelines.length;
+		for (var i in timelineGlobals.timelines){
+			/*timelineGlobals.timelines[i].updateHeight(height);
+			timelineGlobals.timelines[i].updateWidth(width);*/
+			timelineGlobals.timelines[i].redrawBins(width, height);
+		}
+		});
+
 	$("#undoZoom").click(performUnZoom);
 
 	var startTime = $("#timelineStart");
