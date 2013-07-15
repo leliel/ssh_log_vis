@@ -7,6 +7,7 @@ function TimeUnits() {
 		this.day = 24 * this.hour; // milliseconds in a day.
 		this.week = 7 * this.day; // milliseconds in a week.
 		this.month = 4 * this.week; //milliseconds in a standard month(28 days)
+		this.year = 365 * this.day; //milliseconds in a standard year (365 days, ignores leapyears.)
 }
 
 function zoomLevel(start, end, length) { //TODO shift to get-request and use browser history
@@ -46,29 +47,40 @@ function requestAllTimelines(){
 }
 
 
-function requestTimelineEvents(startTime, endTime, maxBins, timeline) {
-	var data = "startTime=" + startTime + "&endTime=" + endTime + "&maxBins="
-			+ maxBins + "&binLength=" + timelineGlobals.binLength;
+function requestTimelineEvents(startTime, endTime, maxBins, timeline, server) {
 	timeline.updateTimeline(startTime, endTime);
-	d3.xhr("getEntries").mimeType("application/json")
-		.header("Content-type",	"application/x-www-form-urlencoded")
-		.post(encodeURI(data),
-			function(error, response) {
-				if (error) {
-					alert(error.message);
-				} else {
-					if (response.status == 200) {
-						var text = response.responseText;
-						text = JSON.parse(text, datify);
-						if (timelineGlobals.binLength != text[0].endTime.getTime() - text[0].startTime.getTime()){
-							timelineGlobals.binLength = text[0].endTime.getTime() - text[0].startTime.getTime();
-						}
-						timeline.renderBins(text);
-					} else if (response.status = 204) {
-						timeline.renderBins([]);
-					};
+	var dat;
+	if (arguments.length == 5) {
+		 dat = {
+					"startTime" : startTime,
+					"endTime" : endTime,
+					"maxBins" : maxBins,
+					"binLength" : timelineGlobals.binLength,
+					"serverName" : server
 				};
-			});
+	} else {
+		 dat = {
+					"startTime" : startTime,
+					"endTime" : endTime,
+					"maxBins" : maxBins,
+					"binLength" : timelineGlobals.binLength
+				};
+	}
+
+	//TODO force json parsing to datify start and end times.
+	//get data as text, then use native JSON to parse with datify function.
+	$.post("getEntries", dat, function(data, textStatus, jqXHR){
+		if (jqXHR.status == 200) {
+			if (timelineGlobals.binLength != data[0].endTime - data[0].startTime){
+				timelineGlobals.binLength = data[0].endTime - data[0].startTime;
+			}
+			timeline.renderBins(text);
+		} else if (jqXHR.status = 204) {
+			timeline.renderBins([]);
+		} else {
+			alert(textStatus);
+		};
+	});
 }
 
 function datify(key, value){
@@ -195,13 +207,10 @@ function timeline(idx, range, domain, height, padding){
 	};
 
 	this.redrawBins = function(width, height){
-		//TODO track down cause of yscaling issues causing components to seperate.
-
+		rowY = height * idx;
+		binHeight = height - padding.vertical;
 		xScaler = xScaler.range([timelineGlobals.padding.left, width-timelineGlobals.padding.right]);
 		yScaler = yScaler.range([height-timelineGlobals.padding.vertical, timelineGlobals.padding.vertical]);
-
-		var test = xScaler.range();
-		var test2 = yScaler.range();
 
 		selection.attr("transform", "translate(0, " + rowY + ")");
 		var thisLine = selection.selectAll(".bin")

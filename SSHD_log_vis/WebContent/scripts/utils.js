@@ -36,8 +36,6 @@ function setupOnLoad(){
 		var width = $("#time").width();
 		var height = $("#time").height()/timelineGlobals.timelines.length;
 		for (var i in timelineGlobals.timelines){
-			/*timelineGlobals.timelines[i].updateHeight(height);
-			timelineGlobals.timelines[i].updateWidth(width);*/
 			timelineGlobals.timelines[i].redrawBins(width, height);
 		}
 		});
@@ -125,7 +123,18 @@ function setupOnLoad(){
 		$("#units").append($("<option />").val(key).text(key + "s"));
 	});
 
-	requestAllTimelines();
+	//TODO process querystring then reload data based on values.
+	if (window.location.search.length > 1) {
+		var data = {};
+		for (var aItKey, nKeyId = 0, aCouples = window.location.search.substr(1).split("&"); nKeyId < aCouples.length; nKeyId++) {
+			aItKey = aCouples[nKeyId].split("=");
+			data[unescape(aItKey[0])] = aItKey.length > 1 ? unescape(aItKey[1]) : "";
+		}
+		var temp = data;
+	} else {
+		requestAllTimelines();
+	}
+
 
 	$(function(){
 		var startTime = $("#startTime"),
