@@ -227,9 +227,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 			state = connection.createStatement();
 			result = state.executeQuery(query);
 			if (result.first()){
-				result.next();
 				res[0] = result.getLong("start");
-				result.next();
 				res[1] = result.getLong("end");
 			}
 		} catch (SQLException e) {

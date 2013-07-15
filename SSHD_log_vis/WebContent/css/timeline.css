@@ -6,26 +6,15 @@
 	height: 75%;
 }
 
-.inputSmall{
-	width: 15%
-}
-
-.inputMedium {
-	width: 25%
-}
-
-.inputLarge{
-	width: 50%
-}
-
-.inputHuge{
-	width: 80%;
-}
-
 .timeline {
 	position: absolute;
 	width: 75%;
 	height: 75%;
+}
+
+.universe{
+	position: absolute;
+	width: 75%;
 }
 
 .legend {
@@ -44,8 +33,23 @@
 	height: 15%;
 }
 
+.inputSmall{
+	width: 15%
+}
+
+.inputMedium {
+	width: 25%
+}
+
+.inputLarge{
+	width: 50%
+}
+
+.inputHuge{
+	width: 80%;
+}
+
 .bin {
-	stroke-width: 2px;
 }
 
 .binFailed {

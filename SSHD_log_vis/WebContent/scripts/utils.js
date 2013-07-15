@@ -1,15 +1,24 @@
 window.onload = setupOnLoad;
 
 function setupOnLoad(){
+	
+	$.post("GetBeginAndEnd", "", function(data, textStatus, jqXHR){
+		var json = JSON.parse(data);
+		initSlider(new Date(parseInt(json.start)), new Date(parseInt(json.end)));
+	}, "text");
 
 	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
 
-	var time = 	$("#time");
-
-	time.position({
+	$("#time").position({
 		my: "left top",
-		at: "right top",
+		at: "right top+14",
 		of: $("#controls")
+	});
+
+	$("#universe").position({
+		my: "center bottom",
+		at: "center top-14",
+		of: $("#time")
 	});
 
 	$("#legend").position({
@@ -18,9 +27,9 @@ function setupOnLoad(){
 		of: $("#controls"),
 		within: $("#controls")
 	});
-
-	$(window).resize(function(){ //javascript really needs an onresize even for each element. using window resize event to handle most cases.
-		$("#time").position({ //reposition timelines.
+	
+	$(window).resize(function(){ 
+		$("#time").position({ 
 			my: "left top",
 			at: "right top",
 			of: $("#controls")
@@ -38,9 +47,9 @@ function setupOnLoad(){
 		for (var i in timelineGlobals.timelines){
 			timelineGlobals.timelines[i].redrawBins(width, height);
 		}
-		});
-
-	$("#undoZoom").click(performUnZoom);
+	});
+	
+	$(window).on('statechange', loadDataFromHistory);
 
 	var startTime = $("#timelineStart");
 	startTime.datetimepicker({
@@ -90,17 +99,10 @@ function setupOnLoad(){
 		var start = startTime.datetimepicker("getDate").getTime();
 		var end = endTime.datetimepicker('getDate').getTime();
 		var unit = $("#timelineUnits").val();
-		var millis = timelineGlobals.timeUnits[unit];
-		var binLength = $("#binLength");
-		binLength = binLength.val();
-		binLength *= millis;
+		var binLength = $("#binLength").val() * timelineGlobals.timeUnits[unit];
 		var reqLength = end - start;
 		if (Math.floor(reqLength/binLength) > timelineGlobals.timelines.length){
-			/*var mod1 = reqLength%binLength;
-			mod1 = mod1 == 0;*/
-			var mod2 = (reqLength/binLength)%timelineGlobals.timelines.length;
-			mod2 = mod2 == 0;
-			if (mod2){
+			if ((reqLength/binLength)%timelineGlobals.timelines.length == 0){
 				performZoom(start, end, binLength);
 			}
 		} else {
@@ -119,18 +121,12 @@ function setupOnLoad(){
 		}
 	});
 
-	$.each(timelineGlobals.timeUnits, function(key, value) {
-		$("#units").append($("<option />").val(key).text(key + "s"));
-	});
-
-	//TODO process querystring then reload data based on values.
 	if (window.location.search.length > 1) {
-		var data = {};
-		for (var aItKey, nKeyId = 0, aCouples = window.location.search.substr(1).split("&"); nKeyId < aCouples.length; nKeyId++) {
-			aItKey = aCouples[nKeyId].split("=");
-			data[unescape(aItKey[0])] = aItKey.length > 1 ? unescape(aItKey[1]) : "";
-		}
-		var temp = data;
+		var data = getObjFromQueryString(window.location.search);
+		var start = parseInt(data.startTime);
+		var end = parseInt(data.endTime);
+		var length = parseInt(data.binLength);
+		zoom(start, end, length, data.server);
 	} else {
 		requestAllTimelines();
 	}
@@ -209,6 +205,34 @@ function setupOnLoad(){
 			},
 		});
 	});
+}
+
+function initSlider(start, end){
+	$("#universe").slider({
+		range : true,
+		min : start,
+		max : end,
+		step : timelineGlobals.timeUnits.month,
+		values : [timelineGlobals.timelines[0].getStart(), 
+		          timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd()], 
+		animate : true,
+		orientation : "horizontal",
+		change : function(f){//TODO implement slider movement function
+			var slider = $("#universe");
+			var start = slider.slider("values", 0);
+			var end = slider.slider("values", 1);
+			var size = slider.slider("option", "step");
+			performZoom(start, end, size);}
+	});
+}
+
+function getObjFromQueryString(string){
+	var data = {};
+	for (var aItKey, nKeyId = 0, aCouples = window.location.search.substr(1).split("&"); nKeyId < aCouples.length; nKeyId++) {
+		aItKey = aCouples[nKeyId].split("=");
+		data[unescape(aItKey[0])] = aItKey.length > 1 ? unescape(aItKey[1]) : "";
+	}
+	return data;
 }
 
 function getPropertyNumberFromCSS(element, propertyName){

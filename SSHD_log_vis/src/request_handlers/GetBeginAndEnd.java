@@ -49,7 +49,7 @@ public class GetBeginAndEnd extends HttpServlet {
 
 		PrintWriter w = response.getWriter();
 		w.print("{\"start\": " + answer[0] +
-				"\"end\":" + answer[1] +
+				", \"end\":" + answer[1] +
 				"}");
 		w.flush();
 		response.flushBuffer();

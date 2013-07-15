@@ -9,6 +9,7 @@
 <script type="text/javascript" src="/SSHD_log_vis/scripts/libs/jquery-1.10.2.js"></script>
 <script type="text/javascript" src="/SSHD_log_vis/scripts/libs/jquery-ui-1.10.3.custom.js"></script>
 <script type="text/javascript" src="/SSHD_log_vis/scripts/libs/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="/SSHD_log_vis/scripts/libs/jquery.history.js"></script>
 <script type="text/javascript" src="/SSHD_log_vis/scripts/utils.js"></script>
 <script type="text/javascript" src="/SSHD_log_vis/scripts/timeline.js"></script>
 <title>Testing d3 json requests</title>
@@ -21,7 +22,6 @@
 			Bin length: <input type="text" id="binLength" class="inputSmall ui-widget-content ui-corner-all" value="1">
 			<select name="units" id="timelineUnits" class="inputLarge ui-widget-content select ui-corner-all"></select><br>
 			<button type="button" id="zoomButton" class="ui-widget-content ui-corner-all" value="zoomButton">Jump to location</button><br>
-			<button type="button" id="undoZoom" class="ui-widget-content ui-corner-all" value="undoZoom">Undo Zoom</button>
 		</div>
 		Number of timelines to display: <input type="number" id="numTimelines" class="inputSmall ui-widget-content ui-corner-all" value=4>
 		<div id="legend" class="legend ui-widget ui-widget-content ui-corner-all">
@@ -32,6 +32,7 @@
 		</div>
 		</div>
 	</div>
+	<div id="universe" class="universe ui-widget-content ui-corner-all"></div>
 	<svg id="time" class="timeline"></svg>
 
 	<div class="tooltip ui-widget ui-widget-content ui-corner-all"></div>

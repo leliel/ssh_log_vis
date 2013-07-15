@@ -10,33 +10,22 @@ function TimeUnits() {
 		this.year = 365 * this.day; //milliseconds in a standard year (365 days, ignores leapyears.)
 }
 
-function zoomLevel(start, end, length) { //TODO shift to get-request and use browser history
-	//TODO generate bookmark metatdata if possible.
-	this.startTime = start;
-	this.endTime = end;
-	this.binLength = length;
-}
-
 function Globals(width, height){
 	this.timeUnits = new TimeUnits();
 	this.binLength = this.timeUnits.day;
+	this.server = null;
 	this.minBinWidth = 30;
-	var numLines = 4;
-	this.rowHeight = height/numLines;
 	this.padding = {
 			vertical : 20,
 			left : 50,
 			right : 20
 	};
 	this.maxBins = Math.floor((width-this.padding.left - this.padding.right)/this.minBinWidth);
-	this.binHeight = this.rowHeight;
 
-	this.timelines = [new timeline(0, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 15, 00, 00, 00)), new Date(Date.UTC(2013, 02, 22, 00, 00, 00))], this.binHeight, this.padding),
-	                  new timeline(1, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 22, 00, 00, 00)), new Date(Date.UTC(2013, 02, 29, 00, 00, 00))], this.binHeight, this.padding),
-	                  new timeline(2, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 29, 00, 00, 00)), new Date(Date.UTC(2013, 03, 05, 00, 00, 00))], this.binHeight, this.padding),
-	                  new timeline(3, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 03, 05, 00, 00, 00)), new Date(Date.UTC(2013, 03, 12, 00, 00 ,00))], this.binHeight, this.padding)];
-
-	this.history = new Array();
+	this.timelines = [new timeline(0, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 15, 00, 00, 00)), new Date(Date.UTC(2013, 02, 22, 00, 00, 00))], height/4, this.padding),
+	                  new timeline(1, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 22, 00, 00, 00)), new Date(Date.UTC(2013, 02, 29, 00, 00, 00))], height/4, this.padding),
+	                  new timeline(2, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 29, 00, 00, 00)), new Date(Date.UTC(2013, 03, 05, 00, 00, 00))], height/4, this.padding),
+	                  new timeline(3, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 03, 05, 00, 00, 00)), new Date(Date.UTC(2013, 03, 12, 00, 00 ,00))], height/4, this.padding)];
 }
 
 function requestAllTimelines(){
@@ -45,7 +34,6 @@ function requestAllTimelines(){
 				timelineGlobals.timelines[i].getEnd(), timelineGlobals.maxBins, timelineGlobals.timelines[i]);
 	};
 }
-
 
 function requestTimelineEvents(startTime, endTime, maxBins, timeline, server) {
 	timeline.updateTimeline(startTime, endTime);
@@ -67,20 +55,19 @@ function requestTimelineEvents(startTime, endTime, maxBins, timeline, server) {
 				};
 	}
 
-	//TODO force json parsing to datify start and end times.
-	//get data as text, then use native JSON to parse with datify function.
 	$.post("getEntries", dat, function(data, textStatus, jqXHR){
 		if (jqXHR.status == 200) {
-			if (timelineGlobals.binLength != data[0].endTime - data[0].startTime){
-				timelineGlobals.binLength = data[0].endTime - data[0].startTime;
+			var json = JSON.parse(data, datify);
+			if (timelineGlobals.binLength != json[0].endTime.getTime() - json[0].startTime.getTime()){
+				timelineGlobals.binLength = json[0].endTime.getTime() - json[0].startTime.getTime();
 			}
-			timeline.renderBins(text);
+			timeline.renderBins(json);
 		} else if (jqXHR.status = 204) {
 			timeline.renderBins([]);
 		} else {
 			alert(textStatus);
 		};
-	});
+	}, "text");
 }
 
 function datify(key, value){
@@ -279,36 +266,63 @@ function zoomElem(d, i){
 	if (d.elem != null) {
 		alert("Can't zoom in on a single event");
 		return;
+	} else if ((d.endTime.getTime() - d.startTime.getTime()) == timelineGlobals.timeUnits.second) {
+		alert("Data limited to 1 second blocks, cannot zoom in further");
+		return;
 	}
 	splitTimeBlock(d, timelineGlobals.binLength);
 }
 
 function performZoom(startTime, endTime, binLength){
-	timelineGlobals.history.push(new zoomLevel(timelineGlobals.timelines[0].getStart(),
-			timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd(),
-			timelineGlobals.binLength));
-	zoom(startTime, endTime, binLength);
+	var url;
+	var location = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
+	location = encodeURIComponent(location);
+	if (timelineGlobals.server != undefined && timelineGlobals.server != null) {
+		url = location + "?startTime=" + encodeURIComponent(startTime) + "&endTime=" + encodeURIComponent(endTime) + "&binLength=" + encodeURIComponent(binLength) + "&serverName=" + encodeURIComponent(timelineGlobals.server);
+	} else {
+		url = location + "?startTime=" + encodeURIComponent(startTime) + "&endTime=" + encodeURIComponent(endTime) + "&binLength=" + encodeURIComponent(binLength);
+	}
+	//TODO generate bookmark metadata if possible.
+	window.History.pushState(null, null, url);
+	zoom(startTime, endTime, binLength, timelineGlobals.server);
 }
 
-function performUnZoom(){
-	var past = timelineGlobals.history.pop();
-	if (past != null && past != undefined){
-		zoom(past.startTime, past.endTime, past.binLength);
+function loadDataFromHistory(){
+	var state = History.getState();
+	var url = state.url.substring(state.url.lastIndexOf("?") + 1);
+	if (url != null && url != undefined && url != state.url){
+		var data = getObjFromQueryString(url);
+		var start = parseInt(data.startTime);
+		var end = parseInt(data.endTime);
+		var length = parseInt(data.binLength);
+		zoom(start, end, length, data.server);
 	};
 }
 
-function zoom(startTime, endTime, binLength){
-	timelineGlobals.binLength = binLength;
-	var chunk = (endTime - startTime)/timelineGlobals.timelines.length;
-	var currentTime = startTime;
-	var starts , ends;
-	for (var i = 0; i < timelineGlobals.timelines.length; i++){
-		starts = currentTime;
-		currentTime += chunk;
-		ends = currentTime;
-		timelineGlobals.timelines[i].updateTimeline(starts, ends);
+function zoom(startTime, endTime, binLength, server){
+	if (startTime == timelineGlobals.timelines[0].getStart() &&
+		endTime == timelineGlobals.timelines[timelineGlobals.timelines.length - 1].getEnd() &&
+		binLength == timelineGlobals.binLength &&
+		server == timelineGlobals.server){
+		return; //we're zooming back to here, prevent an infinite loop.
+	} else {
+		/*these functions really belong elsewhere :/*/
+		//TODO update slider with new step.
+		//TODO update controls values.
+		timelineGlobals.binLength = binLength;
+		if (server != undefined && server != null){
+			timelineGlobals.server = server;
+		}
+		var chunk = (endTime - startTime)/timelineGlobals.timelines.length;
+		var currentTime = startTime;
+		var starts , ends;
+		for (var i = 0; i < timelineGlobals.timelines.length; i++){
+			starts = currentTime;
+			currentTime += chunk;
+			ends = currentTime;
+			timelineGlobals.timelines[i].updateTimeline(starts, ends);
+		};
 	};
-
 	requestAllTimelines();
 }
 
