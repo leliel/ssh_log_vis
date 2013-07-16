@@ -1,31 +1,53 @@
 window.onload = setupOnLoad;
 
 function setupOnLoad(){
+	
+	/*var debounced = jQuery.debounce(50, false, function(f){
+		var slider = $("#universe");
+		var start = slider.slider("values", 0);
+		var temp = new Date(parseInt(start));
+		//TODO replace timepicker with one that works. existing timepicker does not handle DST at all properly.
+		$("#timelineStart").datetimepicker("setDate", temp);
+		var end = slider.slider("values", 1);
+		var temp = new Date(parseInt(end));
+		$("#timelineEnd").datetimepicker("setDate", temp);
+		var size = slider.slider("option", "step");
+		performZoom(start, end, size, timelineGlobals.server);});*/
 
-	$("#universe").slider({
-		range : true,
-		min : 0,
-		max : 0,
-		step : 0,
-		values : [0,0],
-		animate : true,
-		orientation : "horizontal",
-		change : function(f){
-			var slider = $("#universe");
-			var start = slider.slider("values", 0);
-			$("#timelineStart").datetimepicker("setDate", new Date(parseInt(start)));
-			var end = slider.slider("values", 1);
-			$("#timelineEnd").datetimepicker("setDate", new Date(parseInt(end)));
-			var size = slider.slider("option", "step");
-			performZoom(start, end, size, timelineGlobals.server);}
+	$("#universe").dateRangeSlider({
+		arrows: true,
+		bounds: {
+			min : new Date(0), 
+			max : new Date(1000)},
+		step : {seconds: 10},
+		defaultValues : {
+			min : new Date(10),
+			max : new Date(20)}
 	});
-
-	$.post("GetBeginAndEnd", "", function(data, textStatus, jqXHR){
-		var json = JSON.parse(data);
-		initSlider(parseInt(json.start), parseInt(json.end));
-	}, "text");
-
+	
+	$("#universe").on("valuesChanged" , function(f){
+		var times = $("#universe").dateRangeSlider("values");
+		var start = times[0];
+		var end = times[1];
+		//TODO replace timepicker with one that works. existing timepicker does not handle DST at all properly.
+		$("#timelineStart").datetimepicker("setDate", start);
+		$("#timelineEnd").datetimepicker("setDate", end);
+		var size = $("#universe").dateRangeSlider("option", "step");
+		performZoom(start.getTime(), end.getTime(), size, timelineGlobals.server);
+	});
+	
 	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
+
+	$.ajax({
+		 type: "POST",
+		 async: false, //we really can't do anything else until we have the universe :/
+		 url: "GetBeginAndEnd",
+		 data: "",
+		 success: function(data, textStatus, jqXHR){
+				initSlider(parseInt(data.start), parseInt(data.end));
+			},
+		 dataType: "json"
+	});
 
 	$("#time").position({
 		my: "left top",
@@ -74,7 +96,7 @@ function setupOnLoad(){
 		timeFormat : "HH:mm:ss",
 		timezone : "z",
 		showSeconds: true,
-		onClose: function(dateText, inst) {
+		/*onClose: function(dateText, inst) {
 			if (endTime.val() != '') {
 				var testStartDate = startTime.datetimepicker('getDate');
 				var testEndDate = endTime.datetimepicker('getDate');
@@ -84,12 +106,12 @@ function setupOnLoad(){
 			else {
 				endTime.val(dateText);
 			}
-		},
-		onSelect: function (selectedDateTime){
+		},*/
+		/*onSelect: function (selectedDateTime){
 			endTime.datetimepicker('option', 'minDateTime', startTime.datetimepicker('getDate'));
 			endTime.datetimepicker('option', 'maxDateTime', new Date());
 			startTime.datetimepicker('option', 'maxDateTime', new Date());
-		}
+		}*/
 	});
 
 	var endTime = $("#timelineEnd");
@@ -97,7 +119,7 @@ function setupOnLoad(){
 		timeFormat : "HH:mm:ss",
 		timezone : "z",
 		showSeconds: true,
-		onClose: function(dateText, inst) {
+		/*onClose: function(dateText, inst) {
 			if (startTime.val() != '') {
 				var testStartDate = startTime.datetimepicker('getDate');
 				var testEndDate = endTime.datetimepicker('getDate');
@@ -107,10 +129,10 @@ function setupOnLoad(){
 			else {
 				startTime.val(dateText);
 			}
-		},
-		onSelect: function (selectedDateTime){
+		},*/
+		/*onSelect: function (selectedDateTime){
 			startTime.datetimepicker('option', 'maxDateTime', endTime.datetimepicker('getDate'));
-		}
+		}*/
 	});
 
 	$("#zoomButton").click(function(){
@@ -149,10 +171,14 @@ function setupOnLoad(){
 		if (data.server != undefined && data.server != ""){
 			timelineGlobals.server = data.server;
 		}
-		$("#universe").slider("option", "step", length);
-		$("#universe").slider("values", [start, end]);
+		$("#universe").dateTimeSlider("option", "step", createStepFromLong(length));
+		$("#universe").dateTimeSlider("values", [new Date(start), new Date(end)]);
 	} else {
-		requestAllTimelines();
+		var vals = [new Date(timelineGlobals.timelines[0].getStart())
+                    , new Date(timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd())];
+		$("#universe").dateRangeSlider("option", "step", createStepFromLong(timelineGlobals.binLength));
+		$("#universe").dateRangeSlider("values", vals);
+		//requestAllTimelines();
 	}
 
 
@@ -234,16 +260,10 @@ function setupOnLoad(){
 }
 
 function initSlider(start, end){
-	start = roundToUnit(start);
-	end = roundToUnit(end);
-	var spot = [timelineGlobals.timelines[0].getStart(),
-		          timelineGlobals.timelines[0].getEnd()];
-	$("#universe").slider("options", {
-		min : start,
-		max : end,
-		values : spot,
-		step : end-start
-	});
+	 start -= start%timelineGlobals.binLength;
+	 end += timelineGlobals.binLength - end%timelineGlobals.binLength;
+
+	$("#universe").dateRangeSlider("bounds", new Date(start), new Date(end));
 }
 
 function getObjFromQueryString(string){
@@ -273,4 +293,22 @@ function splitTimeBlock(block){
 	} else if (block === timelineGlobals.timeUnits.minute){
 		return timelineGlobals.timeUnits.second;
 	}
+}
+
+function createStepFromLong(time){
+	var res = {};
+	if (time === 0) return res.seconds = 0;
+		var temp = Object.getOwnPropertyNames(timelineGlobals.timeUnits);
+		for (var i = temp.length; i >= 0; i--){
+			if (Math.floor(time/timelineGlobals.timeUnits[temp[i]]) > 0){
+				res[temp[i]] = Math.floor(time/timelineGlobals.timeUnits[temp[i]]); 
+				var remainder = time%timelineGlobals.timeUnits[temp[i]];
+				if (remainder != 0){
+						return recPrettyString(remainder, string);
+				} else {
+					return res;
+				}
+			}
+		};
+	//return string; //should never happen, but just in case, JS is weird like that
 }

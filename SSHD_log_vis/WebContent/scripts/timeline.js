@@ -270,7 +270,9 @@ function zoomElem(d, i){
 		alert("Data limited to 1 second blocks, cannot zoom in further");
 		return;
 	}
-	performZoom(d.startTime.getTime(), d.endTime.getTime(), splitTimeBlock(timelineGlobals.binLength));
+	$("#universe").dateRangeSlider("option", "step", createStepFromLong(splitTimeBlock(timelineGlobals.binLength)));
+	$("#universe").dateRangeSlider("values", [d.startTime, d.endTime]);
+	//performZoom(d.startTime.getTime(), d.endTime.getTime(), splitTimeBlock(timelineGlobals.binLength));
 }
 
 function performZoom(startTime, endTime, binLength, server){
@@ -286,10 +288,10 @@ function performZoom(startTime, endTime, binLength, server){
 		url = location + "?startTime=" + encodeURIComponent(startTime) + "&endTime=" + encodeURIComponent(endTime) + "&binLength=" + encodeURIComponent(binLength);
 	}
 	//TODO generate bookmark metadata if possible.
-	if (url != History.getState().url.substring(History.getState().url.lastIndexOf("/") + 1)){ //not an attempt to zoom back to where we are now.
+	var test = History.getState().url.substring(History.getState().url.lastIndexOf("/") + 1);
+	//TODO fix this, maybe un-needed?
+	if (url != test){ //not an attempt to zoom back to where we are now.
 		window.History.pushState(null, null, url);
-		$("#universe").slider("option", "step", binLength);
-		$("#universe").slider("values", [startTime, endTime]);
 		zoom(startTime, endTime, binLength, timelineGlobals.server);
 	};
 }
@@ -297,12 +299,20 @@ function performZoom(startTime, endTime, binLength, server){
 function loadDataFromHistory(){
 	var state = History.getState();
 	var url = state.url.substring(state.url.lastIndexOf("?") + 1);
-	if (url != null && url != undefined && url != state.url){
+	if (url != state.url){
 		var data = getObjFromQueryString(url);
 		var start = parseInt(data.startTime);
 		var end = parseInt(data.endTime);
 		var length = parseInt(data.binLength);
-		performZoom(start, end, length, data.server);
+		if (data.server != undefined && data.server != null && server != timelineGlobals.server){
+			timelineGlobals.server = server;
+		}
+		$("#universe").dateRangeSlider("option", "step", createStepFromLong(length));
+		$("#universe").dateRangeSlider("values", [new Date(start), new Date(end)]);
+		//performZoom(start, end, length, data.server);
+	} else {
+		var temp = window.location.href;
+		window.location.reload(true);
 	};
 }
 
