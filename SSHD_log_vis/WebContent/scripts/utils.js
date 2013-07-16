@@ -18,11 +18,11 @@ function setupOnLoad(){
 		arrows: true,
 		bounds: {
 			min : new Date(0), 
-			max : new Date(1000)},
+			max : new Date(60000)},
 		step : {seconds: 10},
 		defaultValues : {
-			min : new Date(10),
-			max : new Date(20)}
+			min : new Date(10000),
+			max : new Date(20000)}
 	});
 	
 	$("#universe").on("valuesChanged" , function(f){
