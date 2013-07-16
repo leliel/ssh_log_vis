@@ -1,10 +1,28 @@
 window.onload = setupOnLoad;
 
 function setupOnLoad(){
-	
+
+	$("#universe").slider({
+		range : true,
+		min : 0,
+		max : 0,
+		step : 0,
+		values : [0,0],
+		animate : true,
+		orientation : "horizontal",
+		change : function(f){
+			var slider = $("#universe");
+			var start = slider.slider("values", 0);
+			$("#timelineStart").datetimepicker("setDate", new Date(parseInt(start)));
+			var end = slider.slider("values", 1);
+			$("#timelineEnd").datetimepicker("setDate", new Date(parseInt(end)));
+			var size = slider.slider("option", "step");
+			performZoom(start, end, size, timelineGlobals.server);}
+	});
+
 	$.post("GetBeginAndEnd", "", function(data, textStatus, jqXHR){
 		var json = JSON.parse(data);
-		initSlider(new Date(parseInt(json.start)), new Date(parseInt(json.end)));
+		initSlider(parseInt(json.start), parseInt(json.end));
 	}, "text");
 
 	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
@@ -27,9 +45,9 @@ function setupOnLoad(){
 		of: $("#controls"),
 		within: $("#controls")
 	});
-	
-	$(window).resize(function(){ 
-		$("#time").position({ 
+
+	$(window).resize(function(){
+		$("#time").position({
 			my: "left top",
 			at: "right top",
 			of: $("#controls")
@@ -48,7 +66,7 @@ function setupOnLoad(){
 			timelineGlobals.timelines[i].redrawBins(width, height);
 		}
 	});
-	
+
 	$(window).on('statechange', loadDataFromHistory);
 
 	var startTime = $("#timelineStart");
@@ -103,7 +121,8 @@ function setupOnLoad(){
 		var reqLength = end - start;
 		if (Math.floor(reqLength/binLength) > timelineGlobals.timelines.length){
 			if ((reqLength/binLength)%timelineGlobals.timelines.length == 0){
-				performZoom(start, end, binLength);
+				$("#universe").slider("option", "step", binLength);
+				$("#universe").slider("values", [start, end]);
 			}
 		} else {
 			$("#timelineUnits").addClass("ui-state-error");
@@ -126,13 +145,17 @@ function setupOnLoad(){
 		var start = parseInt(data.startTime);
 		var end = parseInt(data.endTime);
 		var length = parseInt(data.binLength);
-		zoom(start, end, length, data.server);
+		if (data.server != undefined && data.server != ""){
+			timelineGlobals.server = data.server;
+		}
+		$("#universe").slider("option", "step", length);
+		$("#universe").slider("values", [start, end]);
 	} else {
 		requestAllTimelines();
 	}
 
 
-	$(function(){
+	/*$(function(){
 		var startTime = $("#startTime"),
 			endTime = $("#endTime"),
 			chunk = $("#chunk"),
@@ -192,7 +215,9 @@ function setupOnLoad(){
 
 					valid = valid && checkBinSize([chunk, units], binSize, [Number(startTime.val()), Number(endTime.val())]);
 					if (valid){
-						performZoom(Number(startTime.val()), Number(endTime.val()), binSize);
+						$("#universe").slider("option", "step", binSize);
+						$("#universe").slider("values", [parseInt(startTime.val()), parseInt(endTime.val())]);
+						//performZoom(Number(startTime.val()), Number(endTime.val()), binSize);
 						$(this).dialog("close");
 					};
 				},
@@ -204,25 +229,19 @@ function setupOnLoad(){
 				allFields.val("").removeClass("ui-state-error");
 			},
 		});
-	});
+	});*/
 }
 
 function initSlider(start, end){
-	$("#universe").slider({
-		range : true,
+	start = roundToUnit(start);
+	end = roundToUnit(end);
+	var spot = [timelineGlobals.timelines[0].getStart(),
+		          timelineGlobals.timelines[0].getEnd()];
+	$("#universe").slider("options", {
 		min : start,
 		max : end,
-		step : timelineGlobals.timeUnits.month,
-		values : [timelineGlobals.timelines[0].getStart(), 
-		          timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd()], 
-		animate : true,
-		orientation : "horizontal",
-		change : function(f){//TODO implement slider movement function
-			var slider = $("#universe");
-			var start = slider.slider("values", 0);
-			var end = slider.slider("values", 1);
-			var size = slider.slider("option", "step");
-			performZoom(start, end, size);}
+		values : spot,
+		step : end-start
 	});
 }
 
@@ -241,42 +260,16 @@ function getPropertyNumberFromCSS(element, propertyName){
 	return ans;
 }
 
-function splitTimeBlock(d, block){
+function splitTimeBlock(block){
 	if (block === timelineGlobals.timeUnits.month){
-		performZoom(d.startTime.getTime(), d.endTime.getTime(),  timelineGlobals.timeUnits.week);
+		return  timelineGlobals.timeUnits.week;
 	} else if (block === timelineGlobals.timeUnits.week){
-		performZoom(d.startTime.getTime(), d.endTime.getTime(), timelineGlobals.timeUnits.day);
+		return timelineGlobals.timeUnits.day;
 	} else if (block === timelineGlobals.timeUnits.day){
-		performZoom(d.startTime.getTime(), d.endTime.getTime(), timelineGlobals.timeUnits.hour);
+		return timelineGlobals.timeUnits.hour;
 	} else if (block === timelineGlobals.timeUnits.hour){
-		performZoom(d.startTime.getTime(), d.endTime.getTime(), timelineGlobals.timeUnits.minute);
+		return timelineGlobals.timeUnits.minute;
 	} else if (block === timelineGlobals.timeUnits.minute){
-		performZoom(d.startTime.getTime(), d.endTime.getTime(), timelineGlobals.timeUnits.second);
-	} else {
-		$("#startTime").val(d.startTime.getTime());
-		$("#endTime").val(d.endTime.getTime());
-		$("#message").html("Choose bin size for " + toPrettyTimeString(block));
-		$("#zoom_dialog").dialog('open');
+		return timelineGlobals.timeUnits.second;
 	}
-}
-
-function toPrettyTimeString(time){
-	return recPrettyString(time, "");
-}
-
-function recPrettyString(time, string){
-	if (time === 0) return string;
-	var temp = Object.getOwnPropertyNames(timelineGlobals.timeUnits);
-	for (var i = temp.length; i >= 0; i--){
-		if (Math.floor(time/timelineGlobals.timeUnits[temp[i]]) > 0){
-			string += Math.floor(time/timelineGlobals.timeUnits[temp[i]]) + ": " + temp[i] + "<br>";
-			var remainder = time%timelineGlobals.timeUnits[temp[i]];
-			if (remainder != 0){
-				return recPrettyString(remainder, string);
-			} else {
-				return string;
-			}
-		}
-	};
-	return string; //should never happen, but just in case, JS is weird like that
 }
