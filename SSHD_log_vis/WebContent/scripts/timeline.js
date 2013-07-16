@@ -271,8 +271,7 @@ function zoomElem(d, i){
 		return;
 	}
 	$("#universe").dateRangeSlider("option", "step", createStepFromLong(splitTimeBlock(timelineGlobals.binLength)));
-	$("#universe").dateRangeSlider("values", [d.startTime, d.endTime]);
-	//performZoom(d.startTime.getTime(), d.endTime.getTime(), splitTimeBlock(timelineGlobals.binLength));
+	$("#universe").dateRangeSlider("values", d.startTime, d.endTime);
 }
 
 function performZoom(startTime, endTime, binLength, server){
@@ -308,8 +307,7 @@ function loadDataFromHistory(){
 			timelineGlobals.server = server;
 		}
 		$("#universe").dateRangeSlider("option", "step", createStepFromLong(length));
-		$("#universe").dateRangeSlider("values", [new Date(start), new Date(end)]);
-		//performZoom(start, end, length, data.server);
+		$("#universe").dateRangeSlider("values", new Date(start), new Date(end));
 	} else {
 		var temp = window.location.href;
 		window.location.reload(true);
@@ -317,13 +315,6 @@ function loadDataFromHistory(){
 }
 
 function zoom(startTime, endTime, binLength, server){
-	/*if (startTime == timelineGlobals.timelines[0].getStart() &&
-		endTime == timelineGlobals.timelines[timelineGlobals.timelines.length - 1].getEnd() &&
-		binLength == timelineGlobals.binLength &&
-		server == timelineGlobals.server){
-		return; //we're zooming back to here, prevent an infinite loop.
-	} else {
-		/*these functions really belong elsewhere :/*/
 		timelineGlobals.binLength = binLength;
 		if (server != undefined && server != null){
 			timelineGlobals.server = server;
@@ -337,7 +328,6 @@ function zoom(startTime, endTime, binLength, server){
 			ends = currentTime;
 			timelineGlobals.timelines[i].updateTimeline(starts, ends);
 		};
-	//};
 	requestAllTimelines();
 }
 

@@ -2,18 +2,6 @@ window.onload = setupOnLoad;
 
 function setupOnLoad(){
 	
-	/*var debounced = jQuery.debounce(50, false, function(f){
-		var slider = $("#universe");
-		var start = slider.slider("values", 0);
-		var temp = new Date(parseInt(start));
-		//TODO replace timepicker with one that works. existing timepicker does not handle DST at all properly.
-		$("#timelineStart").datetimepicker("setDate", temp);
-		var end = slider.slider("values", 1);
-		var temp = new Date(parseInt(end));
-		$("#timelineEnd").datetimepicker("setDate", temp);
-		var size = slider.slider("option", "step");
-		performZoom(start, end, size, timelineGlobals.server);});*/
-
 	$("#universe").dateRangeSlider({
 		arrows: true,
 		bounds: {
@@ -27,13 +15,13 @@ function setupOnLoad(){
 	
 	$("#universe").on("valuesChanged" , function(f){
 		var times = $("#universe").dateRangeSlider("values");
-		var start = times[0];
-		var end = times[1];
+		var start = times.min;
+		var end = times.max;
 		//TODO replace timepicker with one that works. existing timepicker does not handle DST at all properly.
 		$("#timelineStart").datetimepicker("setDate", start);
 		$("#timelineEnd").datetimepicker("setDate", end);
 		var size = $("#universe").dateRangeSlider("option", "step");
-		performZoom(start.getTime(), end.getTime(), size, timelineGlobals.server);
+		performZoom(start.getTime(), end.getTime(), createLongFromStep(size), timelineGlobals.server);
 	});
 	
 	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
@@ -144,8 +132,8 @@ function setupOnLoad(){
 		//TODO clarify validity function, needs to integer divide one timeline with no remainder.
 		if (Math.floor(reqLength/binLength) > timelineGlobals.timelines.length){
 			if ((reqLength/binLength)%timelineGlobals.timelines.length == 0){
-				$("#universe").slider("option", "step", binLength);
-				$("#universe").slider("values", [start, end]);
+				$("#universe").slider("option", "step", createStepFromLong(binLength));
+				$("#universe").slider("values", new Date(start), new Date(end));
 			}
 		} else {
 			$("#timelineUnits").addClass("ui-state-error");
@@ -172,12 +160,11 @@ function setupOnLoad(){
 			timelineGlobals.server = data.server;
 		}
 		$("#universe").dateTimeSlider("option", "step", createStepFromLong(length));
-		$("#universe").dateTimeSlider("values", [new Date(start), new Date(end)]);
+		$("#universe").dateTimeSlider("values", new Date(start), new Date(end));
 	} else {
-		var vals = [new Date(timelineGlobals.timelines[0].getStart())
-                    , new Date(timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd())];
 		$("#universe").dateRangeSlider("option", "step", createStepFromLong(timelineGlobals.binLength));
-		$("#universe").dateRangeSlider("values", vals);
+		$("#universe").dateRangeSlider("values",new Date(timelineGlobals.timelines[0].getStart()), 
+				new Date(timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd()));
 		//requestAllTimelines();
 	}
 
@@ -311,4 +298,8 @@ function createStepFromLong(time){
 			}
 		};
 	//return string; //should never happen, but just in case, JS is weird like that
+}
+
+function createLongFromStep(step){
+	//TODO complete unpacker.
 }
