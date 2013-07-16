@@ -119,6 +119,7 @@ function setupOnLoad(){
 		var unit = $("#timelineUnits").val();
 		var binLength = $("#binLength").val() * timelineGlobals.timeUnits[unit];
 		var reqLength = end - start;
+		//TODO clarify validity function, needs to integer divide one timeline with no remainder.
 		if (Math.floor(reqLength/binLength) > timelineGlobals.timelines.length){
 			if ((reqLength/binLength)%timelineGlobals.timelines.length == 0){
 				$("#universe").slider("option", "step", binLength);
