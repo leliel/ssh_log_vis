@@ -270,8 +270,8 @@ function zoomElem(d, i){
 		alert("Data limited to 1 second blocks, cannot zoom in further");
 		return;
 	}
-	$("#universe").dateRangeSlider("option", "step", createStepFromLong(splitTimeBlock(timelineGlobals.binLength)));
-	$("#universe").dateRangeSlider("values", d.startTime, d.endTime);
+	$("#universe").draglider("option", "step", d.endTime.getTime() - d.startTime.getTime());
+	$("#universe").dragslider("values", [d.startTime.getTime(), d.endTime.getTime()]);
 }
 
 function performZoom(startTime, endTime, binLength, server){
@@ -306,10 +306,10 @@ function loadDataFromHistory(){
 		if (data.server != undefined && data.server != null && server != timelineGlobals.server){
 			timelineGlobals.server = server;
 		}
-		$("#universe").dateRangeSlider("option", "step", createStepFromLong(length));
-		$("#universe").dateRangeSlider("values", new Date(start), new Date(end));
+		var size = end - start;
+		$("#universe").dragslider("option", "step", size);
+		$("#universe").dragslider("values", [start, end]);
 	} else {
-		var temp = window.location.href;
 		window.location.reload(true);
 	};
 }
