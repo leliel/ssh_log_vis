@@ -2,29 +2,6 @@ window.onload = setupOnLoad;
 
 function setupOnLoad(){
 
-	$("#universe").dateRangeSlider({
-		arrows: true,
-		bounds: {
-			min : new Date(0),
-			max : new Date(60000)},
-		step : {seconds: 10},
-		defaultValues : {
-			min : new Date(10000),
-			max : new Date(20000)}
-	});
-
-	$("#universe").on("valuesChanged" , function(f){
-		var times = $("#universe").dateRangeSlider("values");
-		var start = times.min;
-		var end = times.max;
-		//TODO replace timepicker with one that works. existing timepicker does not handle DST at all properly.
-		$("#timelineStart").datetimepicker("setDate", start);
-		$("#timelineEnd").datetimepicker("setDate", end);
-		var size = $("#universe").dateRangeSlider("option", "step");
-		performZoom(start.getTime(), end.getTime(), createLongFromStep(size), timelineGlobals.server);
-	});
-
-
 	$.ajax({
 		 type: "POST",
 		 async: false, //we really can't do anything else until we have the universe :/
@@ -250,7 +227,27 @@ function initSlider(start, end){
 	start -= start%timelineGlobals.binLength;
 	end += timelineGlobals.binLength - end%timelineGlobals.binLength;
 
-	$("#universe").dateRangeSlider("bounds", new Date(start), new Date(end));
+	$("#universe").dateRangeSlider({
+		arrows: true,
+		bounds: {
+			min : new Date(start),
+			max : new Date(end)},
+		step : {weeks : 1},
+		defaultValues : {
+			min : new Date(start),
+			max : new Date(start + timelineGlobals.timeUnits.weeks)}
+	});
+
+	$("#universe").on("valuesChanged" , function(f){
+		var times = $("#universe").dateRangeSlider("values");
+		var start = times.min;
+		var end = times.max;
+		//TODO replace timepicker with one that works. existing timepicker does not handle DST or timezones at all properly.
+		$("#timelineStart").datetimepicker("setDate", start);
+		$("#timelineEnd").datetimepicker("setDate", end);
+		var size = $("#universe").dateRangeSlider("option", "step");
+		performZoom(start.getTime(), end.getTime(), createLongFromStep(size), timelineGlobals.server);
+	});
 }
 
 function getObjFromQueryString(string){
