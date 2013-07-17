@@ -1,18 +1,18 @@
 window.onload = setupOnLoad;
 
 function setupOnLoad(){
-	
+
 	$("#universe").dateRangeSlider({
 		arrows: true,
 		bounds: {
-			min : new Date(0), 
+			min : new Date(0),
 			max : new Date(60000)},
 		step : {seconds: 10},
 		defaultValues : {
 			min : new Date(10000),
 			max : new Date(20000)}
 	});
-	
+
 	$("#universe").on("valuesChanged" , function(f){
 		var times = $("#universe").dateRangeSlider("values");
 		var start = times.min;
@@ -23,7 +23,7 @@ function setupOnLoad(){
 		var size = $("#universe").dateRangeSlider("option", "step");
 		performZoom(start.getTime(), end.getTime(), createLongFromStep(size), timelineGlobals.server);
 	});
-	
+
 	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
 
 	$.ajax({
@@ -163,7 +163,7 @@ function setupOnLoad(){
 		$("#universe").dateTimeSlider("values", new Date(start), new Date(end));
 	} else {
 		$("#universe").dateRangeSlider("option", "step", createStepFromLong(timelineGlobals.binLength));
-		$("#universe").dateRangeSlider("values",new Date(timelineGlobals.timelines[0].getStart()), 
+		$("#universe").dateRangeSlider("values",new Date(timelineGlobals.timelines[0].getStart()),
 				new Date(timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd()));
 		//requestAllTimelines();
 	}
@@ -288,7 +288,7 @@ function createStepFromLong(time){
 		var temp = Object.getOwnPropertyNames(timelineGlobals.timeUnits);
 		for (var i = temp.length; i >= 0; i--){
 			if (Math.floor(time/timelineGlobals.timeUnits[temp[i]]) > 0){
-				res[temp[i]] = Math.floor(time/timelineGlobals.timeUnits[temp[i]]); 
+				res[temp[i]] = Math.floor(time/timelineGlobals.timeUnits[temp[i]]);
 				var remainder = time%timelineGlobals.timeUnits[temp[i]];
 				if (remainder != 0){
 						return recPrettyString(remainder, string);
@@ -302,4 +302,9 @@ function createStepFromLong(time){
 
 function createLongFromStep(step){
 	//TODO complete unpacker.
+	var res = 0;
+	for (var prop in step){
+		res += step[prop] * timelineGlobals.timeUnits[prop];
+	}
+	return res;
 }
