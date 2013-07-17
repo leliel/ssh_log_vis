@@ -22,4 +22,14 @@
     <servlet-name>GetBeginAndEnd</servlet-name>
     <url-pattern>/GetBeginAndEnd</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>GetRawlines</display-name>
+    <servlet-name>GetRawlines</servlet-name>
+    <servlet-class>request_handlers.GetRawlines</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>GetRawlines</servlet-name>
+    <url-pattern>/GetRawlines</url-pattern>
+  </servlet-mapping>
 </web-app>
