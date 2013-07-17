@@ -1,18 +1,18 @@
 var timelineGlobals;
 
 function TimeUnits() {
-		this.second = 1000;
-		this.minute = 60 * this.second; // milliseconds in a minute.
-		this.hour = 60 * this.minute; // milliseconds in an hour.
-		this.day = 24 * this.hour; // milliseconds in a day.
-		this.week = 7 * this.day; // milliseconds in a week.
-		this.month = 4 * this.week; //milliseconds in a standard month(28 days)
-		this.year = 365 * this.day; //milliseconds in a standard year (365 days, ignores leapyears.)
+		this.seconds = 1000;
+		this.minutes = 60 * this.seconds; // milliseconds in a minute.
+		this.hours = 60 * this.minutes; // milliseconds in an hour.
+		this.days = 24 * this.hours; // milliseconds in a day.
+		this.weeks = 7 * this.days; // milliseconds in a week.
+		this.months = 4 * this.weeks; //milliseconds in a standard month(28 days)
+		this.years = 365 * this.days; //milliseconds in a standard year (365 days, ignores leapyears.)
 }
 
 function Globals(width, height){
 	this.timeUnits = new TimeUnits();
-	this.binLength = this.timeUnits.day;
+	this.binLength = this.timeUnits.days;
 	this.server = null;
 	this.minBinWidth = 30;
 	this.padding = {

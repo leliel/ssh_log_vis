@@ -24,7 +24,6 @@ function setupOnLoad(){
 		performZoom(start.getTime(), end.getTime(), createLongFromStep(size), timelineGlobals.server);
 	});
 
-	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
 
 	$.ajax({
 		 type: "POST",
@@ -247,8 +246,9 @@ function setupOnLoad(){
 }
 
 function initSlider(start, end){
-	 start -= start%timelineGlobals.binLength;
-	 end += timelineGlobals.binLength - end%timelineGlobals.binLength;
+	timelineGlobals = new Globals(getPropertyNumberFromCSS(document.getElementById("time"), "width"), getPropertyNumberFromCSS(document.getElementById("time"), "height"));
+	start -= start%timelineGlobals.binLength;
+	end += timelineGlobals.binLength - end%timelineGlobals.binLength;
 
 	$("#universe").dateRangeSlider("bounds", new Date(start), new Date(end));
 }
@@ -285,23 +285,21 @@ function splitTimeBlock(block){
 function createStepFromLong(time){
 	var res = {};
 	if (time === 0) return res.seconds = 0;
-		var temp = Object.getOwnPropertyNames(timelineGlobals.timeUnits);
-		for (var i = temp.length; i >= 0; i--){
-			if (Math.floor(time/timelineGlobals.timeUnits[temp[i]]) > 0){
-				res[temp[i]] = Math.floor(time/timelineGlobals.timeUnits[temp[i]]);
-				var remainder = time%timelineGlobals.timeUnits[temp[i]];
-				if (remainder != 0){
-						return recPrettyString(remainder, string);
-				} else {
-					return res;
-				}
+	var temp = Object.getOwnPropertyNames(timelineGlobals.timeUnits);
+	for (var i = temp.length; i >= 0; i--){
+		if (Math.floor(time/timelineGlobals.timeUnits[temp[i]]) > 0){
+			res[temp[i]] = Math.floor(time/timelineGlobals.timeUnits[temp[i]]);
+			var remainder = time%timelineGlobals.timeUnits[temp[i]];
+			if (remainder != 0){
+					return recPrettyString(remainder, string);
+			} else {
+				return res;
 			}
-		};
-	//return string; //should never happen, but just in case, JS is weird like that
+		}
+	};
 }
 
 function createLongFromStep(step){
-	//TODO complete unpacker.
 	var res = 0;
 	for (var prop in step){
 		res += step[prop] * timelineGlobals.timeUnits[prop];
