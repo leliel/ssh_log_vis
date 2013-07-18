@@ -5,7 +5,6 @@
 <link rel="stylesheet" type="text/css" href="/SSHD_log_vis/css/timeline.css">
 <link rel="stylesheet" type="text/css" href="/SSHD_log_vis/css/jquery-ui-1.10.3.custom.css">
 <link rel="stylesheet" type="text/css" href="/SSHD_log_vis/css/jquery-ui-timepicker-addon.css">
-<link rel="stylesheet" type="text/css" href="/SSHD_log_vis/css/classic.css">
 <script type="text/javascript" src="/SSHD_log_vis/scripts/libs/d3.v3.js"></script>
 <script type="text/javascript" src="/SSHD_log_vis/scripts/libs/jquery-1.10.2.js"></script>
 <script type="text/javascript" src="/SSHD_log_vis/scripts/libs/jquery-ui-1.10.3.custom.js"></script>
@@ -41,20 +40,7 @@
 	</div>
 	<svg id="time" class="timeline"></svg>
 
-	<div class="tooltip ui-widget ui-widget-content ui-corner-all"></div>
-<!---		<div id="zoom_dialog" title="Choose timebin size">
-		<p id='message'></p>
-		<p id='hints'></p>
-		<form>
-		<fieldset>
-		<input type='hidden' name='startTime' id='startTime' /> <input
-				type='hidden' name='endTime' id='endTime' />
-				<input type='number' name='chunk' id='chunk' class="text ui-widget-content ui-corner-all"/>
-				<select name='units' id='units' class="select ui-widget-content ui-corner-all">
-				</select>
-		</fieldset>
-		</form>
-	</div>
---->
+	<div id="tooltip" class="tooltip ui-widget ui-widget-content ui-corner-all"></div>
+	<div id="rawLines" class="rawLines ui-widget ui-widget-content ui-corner-all"></div>
 </body>
 </html>

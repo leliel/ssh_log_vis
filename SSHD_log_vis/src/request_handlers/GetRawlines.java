@@ -62,10 +62,14 @@ public class GetRawlines extends HttpServlet {
 
 		response.setContentType(GetRawlines.JSONMimeType);
 		PrintWriter resp = response.getWriter();
+		StringBuilder json = new StringBuilder("[");
 		for (Line l : lines){
-			resp.write(l.toJSONString());
+			json.append(l.toJSONString());
+			json.append(",");
 		}
+		json.deleteCharAt(json.length() - 1);
+		json.append("]");
+		resp.write(json.toString());
 		resp.flush();
 	}
-
 }

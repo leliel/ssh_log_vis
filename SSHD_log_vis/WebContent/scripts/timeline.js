@@ -266,7 +266,7 @@ function zoomElem(d, i){
 	if (d.elem != null) {
 		alert("Can't zoom in on a single event");
 		return;
-	} else if ((d.endTime.getTime() - d.startTime.getTime()) == timelineGlobals.timeUnits.second) {
+	} else if ((d.endTime.getTime() - d.startTime.getTime()) == timelineGlobals.timeUnits.seconds) {
 		var dat = {
 				startTime : d.startTime.getTime(),
 				endTime : d.endTime.getTime()
@@ -274,11 +274,12 @@ function zoomElem(d, i){
 		if (timelineGlobals.server != undefined && timelineGlobals.server != null && timelineGlobals.server != ""){
 			dat.serverName = timelineGlobals.server;
 		}
-		$.post("/GetRawlines", dat, showRawlines, "json");
+		$.post("GetRawlines", dat, showRawlines, "json");
 		return;
 	}
-	$("#universe").draglider("option", "step", d.endTime.getTime() - d.startTime.getTime());
+	$("#universe").dragslider("option", "step", d.endTime.getTime() - d.startTime.getTime());
 	$("#universe").dragslider("values", [d.startTime.getTime(), d.endTime.getTime()]);
+	performZoom(d.startTime.getTime(), d.endTime.getTime(), splitTimeBlock(d.endTime.getTime() - d.startTime.getTime()), timelineGlobals.server);
 }
 
 function performZoom(startTime, endTime, binLength, server){
@@ -310,11 +311,12 @@ function loadDataFromHistory(){
 		var end = parseInt(data.endTime);
 		var length = parseInt(data.binLength);
 		if (data.server != undefined && data.server != null && server != timelineGlobals.server){
-			timelineGlobals.server = server;
+			timelineGlobals.server = data.server;
 		}
 		var size = end - start;
 		$("#universe").dragslider("option", "step", size);
 		$("#universe").dragslider("values", [start, end]);
+		performZoom(start, end, length, timelineGlobals.server);
 	} else {
 		window.location.reload(true);
 	};
@@ -341,37 +343,43 @@ function showRawlines(data, textStatus, jqXHR){
 	if (jqXHR.status == 204){
 		alert("No log entries in this time period");
 	} else if (jqXHR.status == 200) {
-		var tooltip = $("#tooltip");
-		tooltip.html("");
+		var tooltip = $("#rawLines");
+		tooltip.empty();
 		tooltip.css("overflow", "scroll");
 		tooltip.append("<button id=\"closeButton\" type=\"button\">close</button>");
 		$("#closeButton").on("click", closeRawlines);
-		$("#closeButton").position({
-			my : "right top",
-			at : "right top",
-			of : tooltip,
-			within : tooltip
-		});
 		for (var e in data){
-			tooltip.append("<span id=line" + e.id + ">" + e.id + "</span>" + e.rawline + "<br>");
-			$("#line"+e.id).on("dblclick", addComment);
+			tooltip.append("<span id=line" + data[e].id + ">" + data[e].id + "</span> : " + data[e].rawLine + "<br>");
+			$("#line"+data[e].id).on("dblclick", addComment);
 		}
 		tooltip.position({
 			my : "left top",
 			at : "left top",
 			of : $("#time")
 		});
+		$("#closeButton").position({
+			my : "right top",
+			at : "right top",
+			of : tooltip,
+			within : tooltip
+		});
+		tooltip.zIndex(1000);
 		tooltip.fadeIn(500);
 	}
 }
 
 function closeRawlines(){
-	$("#tooltip").fadeOut(200);
-	$("#tooltip").html("");
+	$("#rawLines").fadeOut(200);
+	$("#rawLines").empty();
+	$("#rawLines").position({
+		my : "left top",
+		at : "left top",
+		of : $(window)
+	});
 }
 
 function showToolTip(d) {
-	var selection = d3.select(".tooltip");
+	var selection = d3.select("#tooltip");
 	selection = selection.style("left", (d3.event.pageX + 10) + "px");
 	selection = selection.style("top", d3.event.pageY + "px");
 	var html;
@@ -407,5 +415,5 @@ function tooltipText(elem){
 	return text;
 }
 function hideToolTip(d) {
-	d3.select(".tooltip").transition().duration(200).style("opacity", 0);
+	d3.select("#tooltip").transition().duration(200).style("opacity", 0);
 }

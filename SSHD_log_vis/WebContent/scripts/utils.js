@@ -25,18 +25,20 @@ function initPage(start, end) {
 			.getElementById("time"), "width"), getPropertyNumberFromCSS(
 			document.getElementById("time"), "height"));
 
-	var debounce = $.debounce(50, function(f) {
-		 var times = $("#universe").dragslider("values");
+	var debounce = $.debounce(50, function(event) {
+		var times = $("#universe").dragslider("values");
 		var start = times[0];
 		var end = times[1];
 		// TODO replace timepicker with one that works. existing timepicker does
 		// not handle DST or timezones at all properly.
 		$("#timelineStart").datetimepicker("setDate", new Date(start));
 		$("#timelineEnd").datetimepicker("setDate", new Date(end));
-		var size = $("#universe").dragslider("option", "step");
+		//var size = $("#universe").dragslider("option", "step");
 		//TODO sort out bin length issues.
-		performZoom(start, end, splitTimeBlock(size),
-				timelineGlobals.server);
+		if (event.originalEvent != undefined){
+			performZoom(start, end, timelineGlobals.binLength,
+					timelineGlobals.server);
+		}
 	});
 
 	start -= start % timelineGlobals.binLength;
@@ -52,23 +54,6 @@ function initPage(start, end) {
 		values : [ start, start + timelineGlobals.timeUnits.weeks ],
 		change : debounce
 	});
-
-	/*
-	 * $("#universe").dateRangeSlider({ arrows: true, bounds: { min : new
-	 * Date(start), max : new Date(end)}, //step : {weeks : 1}, //defaultValues: {
-	 * //min : new Date(start), //max : new Date(start +
-	 * timelineGlobals.timeUnits.weeks)} });
-	 *
-	 * $("#universe").on("valuesChanged" , function(f){ var times =
-	 * $("#universe").dateRangeSlider("values"); var start = times.min; var end =
-	 * times.max; //TODO replace timepicker with one that works. existing
-	 * timepicker does not handle DST or timezones at all properly.
-	 * $("#timelineStart").datetimepicker("setDate", start);
-	 * $("#timelineEnd").datetimepicker("setDate", end); var size =
-	 * $("#universe").dateRangeSlider("option", "step");
-	 * performZoom(start.getTime(), end.getTime(), createLongFromStep(size),
-	 * timelineGlobals.server); });
-	 */
 
 	$("#time").position({
 		my : "left top",
@@ -116,38 +101,44 @@ function initPage(start, end) {
 	startTime.datetimepicker({
 		timeFormat : "HH:mm:ss",
 		timezone : "z",
-		showSeconds : true,
-	/*
-	 * onClose: function(dateText, inst) { if (endTime.val() != '') { var
-	 * testStartDate = startTime.datetimepicker('getDate'); var testEndDate =
-	 * endTime.datetimepicker('getDate'); if (testStartDate > testEndDate)
-	 * endTime.datetimepicker('setDate', testStartDate); } else {
-	 * endTime.val(dateText); } },
-	 */
-	/*
-	 * onSelect: function (selectedDateTime){ endTime.datetimepicker('option',
-	 * 'minDateTime', startTime.datetimepicker('getDate'));
-	 * endTime.datetimepicker('option', 'maxDateTime', new Date());
-	 * startTime.datetimepicker('option', 'maxDateTime', new Date()); }
-	 */
+		showSeconds : true/*,
+		onClose: function(dateText, inst) { 
+			if (endTime.val() != '') {
+				var testStartDate = startTime.datetimepicker('getDate'); 
+				var testEndDate = endTime.datetimepicker('getDate'); 
+				if (testStartDate > testEndDate){
+					endTime.datetimepicker('setDate', testStartDate); 
+				} else {
+					endTime.val(dateText); 
+				} 
+			}
+		},
+		onSelect: function (selectedDateTime){ 
+			endTime.datetimepicker('option', 'minDateTime', startTime.datetimepicker('getDate'));
+			endTime.datetimepicker('option', 'maxDateTime', new Date());
+			startTime.datetimepicker('option', 'maxDateTime', new Date()); 
+		}*/
 	});
 
 	var endTime = $("#timelineEnd");
 	endTime.datetimepicker({
 		timeFormat : "HH:mm:ss",
 		timezone : "z",
-		showSeconds : true,
-	/*
-	 * onClose: function(dateText, inst) { if (startTime.val() != '') { var
-	 * testStartDate = startTime.datetimepicker('getDate'); var testEndDate =
-	 * endTime.datetimepicker('getDate'); if (testStartDate > testEndDate)
-	 * startTime.datetimepicker('setDate', testEndDate); } else {
-	 * startTime.val(dateText); } },
-	 */
-	/*
-	 * onSelect: function (selectedDateTime){ startTime.datetimepicker('option',
-	 * 'maxDateTime', endTime.datetimepicker('getDate')); }
-	 */
+		showSeconds : true/*,
+		onClose: function(dateText, inst) { 
+			if (startTime.val() != '') { 
+				var	testStartDate = startTime.datetimepicker('getDate'); 
+				var testEndDate = endTime.datetimepicker('getDate'); 
+				if (testStartDate > testEndDate){
+					startTime.datetimepicker('setDate', testEndDate); 
+				} else {
+					startTime.val(dateText); 
+				}; 
+			};
+		},
+		onSelect: function (selectedDateTime){ 
+			startTime.datetimepicker('option','maxDateTime', endTime.datetimepicker('getDate')); 
+		}*/
 	});
 
 	$("#zoomButton")
@@ -160,16 +151,12 @@ function initPage(start, end) {
 						var binLength = $("#binLength").val()
 								* timelineGlobals.timeUnits[unit];
 						var reqLength = end - start;
-						// TODO clarify validity function, needs to integer
-						// divide one timeline with no remainder.
-						if (Math.floor(reqLength / binLength) > timelineGlobals.timelines.length) {
-							if ((reqLength / binLength)
-									% timelineGlobals.timelines.length == 0) {
-								$("#universe").dragslider("option", "step",
-										end - start);
-								$("#universe").dragslider("values", [ start, end ]);
-							}
-						} else {
+						if ((reqLength/4)%binLength == 0) {
+							$("#universe").dragslider("option", "step", end - start);
+							$("#universe").dragslider("values", [ start, end ]);
+							performZoom(start, end, binLength, timelineGlobals.server);
+						}
+						else {
 							$("#timelineUnits").addClass("ui-state-error");
 							$("#binLength").addClass("ui-state-error");
 						}
@@ -196,57 +183,20 @@ function initPage(start, end) {
 		}
 		$("#universe").dragslider("option", "step", end - start);
 		$("#universe").dragslider("values", [ start, end ]);
+		performZoom(start, end, length, data.server);
 	} else {
 		var step = timelineGlobals.timelines[0].getEnd()
-				- timelineGlobals.timelines[0].getStart();
+				- timelineGlobals.timelines[timelineGlobals.timelines.length -1].getStart();
 		$("#universe").dragslider("option", "step", step);
 		$("#universe").dragslider(
 				"values",
 				[ timelineGlobals.timelines[0].getStart(),
-						timelineGlobals.timelines[0].getEnd() ]);
+						timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd() ]);
+		performZoom(timelineGlobals.timelines[0].getStart(), 
+				timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(),
+				timelineGlobals.binLength, 
+				timelineGlobals.server);
 	}
-
-	/*
-	 * $(function(){ var startTime = $("#startTime"), endTime = $("#endTime"),
-	 * chunk = $("#chunk"), units = $("#units"), hints = $("#hints"), allFields =
-	 * $([]).add(startTime).add(endTime).add(chunk).add(units).add(hints);
-	 *
-	 *
-	 *
-	 * function checkExists(input, name){ if (input.val() == undefined ||
-	 * input.val() == null){ input.addClass("ui-state-error"); return false; }
-	 * return true; }
-	 *
-	 * function checkChosen(input, name){ if (input.val() === "Please Select"){
-	 * input.addClass("ui-state-error"); return false; } return true; }
-	 *
-	 * function checkBinSize(inputs, binSize, times){ if ((times[1] -
-	 * times[0])/binSize < 4){ $.each(inputs, function(idx, val){
-	 * val.addClass("ui-state-error"); }); if((times[1] - times[0])%binSize !=
-	 * 0){ $("#hints").text("Number of units must be an integer divisor of
-	 * timeblock."); } else { $("#hints").text("Number of units must be at most
-	 * 1/4 timeblock."); } return false; } else if ((times[1] -
-	 * times[0])%binSize != 0){ $("#hints").text("Number of units must be an
-	 * integer divisor of timeblock."); return false; } return true; }
-	 *
-	 * $("#zoom_dialog").dialog({ autoOpen: false, height: 300, width: 250,
-	 * modal: true, buttons:{ "Ok" : function() { var valid = true;
-	 *
-	 * valid = valid && checkExists(chunk, "Number of units"); valid = valid &&
-	 * checkChosen(units, "Unit");
-	 *
-	 * var binSize = Number(chunk.val()) *
-	 * timelineGlobals.timeUnits[units.val()];
-	 *
-	 * valid = valid && checkBinSize([chunk, units], binSize,
-	 * [Number(startTime.val()), Number(endTime.val())]); if (valid){
-	 * $("#universe").slider("option", "step", binSize);
-	 * $("#universe").slider("values", [parseInt(startTime.val()),
-	 * parseInt(endTime.val())]); //performZoom(Number(startTime.val()),
-	 * Number(endTime.val()), binSize); $(this).dialog("close"); }; }, Cancel:
-	 * function(){ $(this).dialog("close"); } }, close : function(event, ui){
-	 * allFields.val("").removeClass("ui-state-error"); }, }); });
-	 */
 }
 
 function getObjFromQueryString(string) {
