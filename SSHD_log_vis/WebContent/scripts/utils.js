@@ -29,12 +29,9 @@ function initPage(start, end) {
 		var times = $("#universe").dragslider("values");
 		var start = times[0];
 		var end = times[1];
-		// TODO replace timepicker with one that works. existing timepicker does
-		// not handle DST or timezones at all properly.
+		// TODO replace timepicker with one that works. existing timepicker does not handle DST or timezones at all properly.
 		$("#timelineStart").datetimepicker("setDate", new Date(start));
 		$("#timelineEnd").datetimepicker("setDate", new Date(end));
-		//var size = $("#universe").dragslider("option", "step");
-		//TODO sort out bin length issues.
 		if (event.originalEvent != undefined){
 			performZoom(start, end, timelineGlobals.binLength,
 					timelineGlobals.server);

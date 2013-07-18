@@ -110,8 +110,6 @@ function timeline(idx, range, domain, height, padding){
 	};
 
 	this.renderBins = function(element) {
-		//TODO create scale indicator as small box to left of timeline.
-		//use log scale as only needs to be indicative of relative weight.
 		yScaler.domain([0, d3.max(element, function(d){ return d.subElemCount;})]);
 
 		var thisLine = selection.selectAll(".bin")
@@ -294,12 +292,8 @@ function performZoom(startTime, endTime, binLength, server){
 		url += "&serverName=" + encodeURIComponent(timelineGlobals.server);
 	}
 	//TODO generate bookmark metadata if possible.
-	var test = History.getState().url.substring(History.getState().url.lastIndexOf("/") + 1);
-	//TODO fix this, maybe un-needed?
-	if (url != test){ //not an attempt to zoom back to where we are now.
-		window.History.pushState(null, null, url);
-		zoom(startTime, endTime, binLength, timelineGlobals.server);
-	};
+	window.History.pushState(null, null, url);
+	zoom(startTime, endTime, binLength, timelineGlobals.server);
 }
 
 function loadDataFromHistory(){
