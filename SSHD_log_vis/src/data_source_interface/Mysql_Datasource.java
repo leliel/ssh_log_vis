@@ -38,7 +38,7 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 					+ "LEFT JOIN user ON entry.user = user.id "
 					+ "WHERE entry.timestamp BETWEEN ? AND ?;";
 		} else {
-			query = "SELECT entry.id, entry.timestamp, entry.connid, entry.reqtype, "
+			query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
 					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
 					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
 					+ "FROM entry LEFT JOIN server ON entry.server = server.id "
@@ -229,6 +229,54 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 			if (result.first()){
 				res[0] = result.getLong("start");
 				res[1] = result.getLong("end");
+			}
+		} catch (SQLException e) {
+			throw new DataSourceException(e);
+		} catch (NumberFormatException e) {
+			throw new DataSourceException(e);
+		} catch (NamingException e) {
+			throw new DataSourceException(e);
+		} finally {
+			try {
+				if (result != null) {
+					result.close();
+				}
+				if (state != null) {
+					state.close();
+				}
+				if (connection != null) {
+					connection.close();
+				}
+				if (context != null) {
+					context.close();
+				}
+			} catch (SQLException e) {
+				throw new DataSourceException(e);
+			} catch (NamingException e) {
+				throw new DataSourceException(e);
+			}
+		}
+		return res;
+	}
+
+	@Override
+	public List<Server> getAllServers() throws DataSourceException {
+		String query = "SELECT id, name, block FROM server;";
+		List<Server> res = new ArrayList<Server>();
+
+		Context context = null;
+		Connection connection = null;
+		Statement state = null;
+		ResultSet result = null;
+		try {
+			context = new InitialContext();
+
+			connection = ((DataSource) context
+					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
+			state = connection.createStatement();
+			result = state.executeQuery(query);
+			while (result.next()) {
+				res.add(new Server(result.getInt("id"), result.getString("name"), result.getString("block")));
 			}
 		} catch (SQLException e) {
 			throw new DataSourceException(e);

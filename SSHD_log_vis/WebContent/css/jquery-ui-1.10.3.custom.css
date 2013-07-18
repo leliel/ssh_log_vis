@@ -618,7 +618,7 @@ button.ui-button::-moz-focus-inner {
 .ui-slider .ui-slider-handle {
 	position: absolute;
 	z-index: 2;
-	width: 1.2em;
+	width: 0.6em;
 	height: 1.2em;
 	cursor: default;
 }
@@ -642,7 +642,7 @@ button.ui-button::-moz-focus-inner {
 }
 .ui-slider-horizontal .ui-slider-handle {
 	top: -.3em;
-	margin-left: -.6em;
+	margin-left: -.3em;
 }
 .ui-slider-horizontal .ui-slider-range {
 	top: 0;
@@ -1045,7 +1045,7 @@ body .ui-tooltip {
 .ui-icon-tag { background-position: -240px -96px; }
 .ui-icon-home { background-position: 0 -112px; }
 .ui-icon-flag { background-position: -16px -112px; }
-.ui-icon-calendar { background-position: -32px -112px; }
+.ui-icon-calendar { background-position: -32px -112px; 1.2}
 .ui-icon-cart { background-position: -48px -112px; }
 .ui-icon-pencil { background-position: -64px -112px; }
 .ui-icon-clock { background-position: -80px -112px; }

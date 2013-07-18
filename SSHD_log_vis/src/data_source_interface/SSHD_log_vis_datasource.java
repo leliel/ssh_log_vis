@@ -3,6 +3,7 @@ package data_source_interface;
 import java.util.List;
 
 import JSONtypes.Line;
+import JSONtypes.Server;
 
 public interface SSHD_log_vis_datasource {
 
@@ -18,8 +19,23 @@ public interface SSHD_log_vis_datasource {
 	 * @param startTime String representation of the earliest time to fetch
 	 * @param endTime String representation of the latest time to fetch
 	 * @return Empty List if no data found, or a List containing every log entry fetched.
+	 * @throws DataSourceException on any database error
 	 */
 	public List<Line> getEntriesFromDataSource(String serverName, String startTime, String endTime) throws DataSourceException;
 
+	/**
+	 * Fetches earliest and latest entry timestamps in the database
+	 * timestamps are read for all servers.
+	 * 
+	 * @return long[] containing start and end
+	 * @throws DataSourceException on any database error.
+	 */
 	public long[] getStartAndEndOfUniverse() throws DataSourceException;
+
+	/**
+	 * Fetches list of servers from datastore.
+	 * @return List containing all servers known to the database.
+	 * @throws DataSourceException if no data returned(this indicates a *serious* data consistency problem, or on any database error)
+	 */
+	public List<Server> getAllServers() throws DataSourceException;
 }

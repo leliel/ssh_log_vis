@@ -14,6 +14,24 @@ function setupOnLoad() {
 		},
 		dataType : "json"
 	});
+	
+	function setServer(event){
+		if (this.value === ""){
+			timelineGlobals.server = null;
+		} else {
+			timelineGlobals.server = this.value;
+		}
+	}
+	
+	$.post("GetServers", "", function(data, textStatus, jqXHR){
+		if (jqXHR.status == 200){
+			$("#servers").change(setServer);
+			$("#servers").append($("<option />").val("").text("All Servers"));
+			for (var d in data){
+				$("#servers").append($("<option />").val(data[d].name).text(data[d].name));
+			}
+		}
+	}, "json");
 }
 
 function tearDown() {
@@ -54,13 +72,13 @@ function initPage(start, end) {
 
 	$("#time").position({
 		my : "left top",
-		at : "right top+14",
+		at : "right top+15",
 		of : $("#controls")
 	});
 
 	$("#universe").position({
 		my : "center bottom",
-		at : "center top-14",
+		at : "center top",
 		of : $("#time")
 	});
 

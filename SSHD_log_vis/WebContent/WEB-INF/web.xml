@@ -32,4 +32,14 @@
     <servlet-name>GetRawlines</servlet-name>
     <url-pattern>/GetRawlines</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>GetServers</display-name>
+    <servlet-name>GetServers</servlet-name>
+    <servlet-class>request_handlers.GetServers</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>GetServers</servlet-name>
+    <url-pattern>/GetServers</url-pattern>
+  </servlet-mapping>
 </web-app>

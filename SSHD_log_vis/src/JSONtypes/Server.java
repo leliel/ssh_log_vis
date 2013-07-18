@@ -16,6 +16,12 @@ public class Server {
 		this.block = block;
 	}
 
+	public Server(int id, String name, String block) {
+		this.id = id;
+		this.name = name;
+		this.block = block;
+	}
+
 	public int getId() {
 		return id;
 	}
