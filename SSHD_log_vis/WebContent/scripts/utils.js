@@ -58,7 +58,7 @@ function initPage(start, end) {
 	 * Date(start), max : new Date(end)}, //step : {weeks : 1}, //defaultValues: {
 	 * //min : new Date(start), //max : new Date(start +
 	 * timelineGlobals.timeUnits.weeks)} });
-	 * 
+	 *
 	 * $("#universe").on("valuesChanged" , function(f){ var times =
 	 * $("#universe").dateRangeSlider("values"); var start = times.min; var end =
 	 * times.max; //TODO replace timepicker with one that works. existing
@@ -210,16 +210,16 @@ function initPage(start, end) {
 	 * $(function(){ var startTime = $("#startTime"), endTime = $("#endTime"),
 	 * chunk = $("#chunk"), units = $("#units"), hints = $("#hints"), allFields =
 	 * $([]).add(startTime).add(endTime).add(chunk).add(units).add(hints);
-	 * 
-	 * 
-	 * 
+	 *
+	 *
+	 *
 	 * function checkExists(input, name){ if (input.val() == undefined ||
 	 * input.val() == null){ input.addClass("ui-state-error"); return false; }
 	 * return true; }
-	 * 
+	 *
 	 * function checkChosen(input, name){ if (input.val() === "Please Select"){
 	 * input.addClass("ui-state-error"); return false; } return true; }
-	 * 
+	 *
 	 * function checkBinSize(inputs, binSize, times){ if ((times[1] -
 	 * times[0])/binSize < 4){ $.each(inputs, function(idx, val){
 	 * val.addClass("ui-state-error"); }); if((times[1] - times[0])%binSize !=
@@ -228,16 +228,16 @@ function initPage(start, end) {
 	 * 1/4 timeblock."); } return false; } else if ((times[1] -
 	 * times[0])%binSize != 0){ $("#hints").text("Number of units must be an
 	 * integer divisor of timeblock."); return false; } return true; }
-	 * 
+	 *
 	 * $("#zoom_dialog").dialog({ autoOpen: false, height: 300, width: 250,
 	 * modal: true, buttons:{ "Ok" : function() { var valid = true;
-	 * 
+	 *
 	 * valid = valid && checkExists(chunk, "Number of units"); valid = valid &&
 	 * checkChosen(units, "Unit");
-	 * 
+	 *
 	 * var binSize = Number(chunk.val()) *
 	 * timelineGlobals.timeUnits[units.val()];
-	 * 
+	 *
 	 * valid = valid && checkBinSize([chunk, units], binSize,
 	 * [Number(startTime.val()), Number(endTime.val())]); if (valid){
 	 * $("#universe").slider("option", "step", binSize);
@@ -306,4 +306,8 @@ function createLongFromStep(step) {
 		res += step[prop] * timelineGlobals.timeUnits[prop];
 	}
 	return res;
+}
+
+function addComment(){
+	return;
 }

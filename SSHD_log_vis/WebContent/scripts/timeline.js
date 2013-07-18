@@ -267,7 +267,14 @@ function zoomElem(d, i){
 		alert("Can't zoom in on a single event");
 		return;
 	} else if ((d.endTime.getTime() - d.startTime.getTime()) == timelineGlobals.timeUnits.second) {
-		alert("Data limited to 1 second blocks, cannot zoom in further");
+		var dat = {
+				startTime : d.startTime.getTime(),
+				endTime : d.endTime.getTime()
+		};
+		if (timelineGlobals.server != undefined && timelineGlobals.server != null && timelineGlobals.server != ""){
+			dat.serverName = timelineGlobals.server;
+		}
+		$.post("/GetRawlines", dat, showRawlines, "json");
 		return;
 	}
 	$("#universe").draglider("option", "step", d.endTime.getTime() - d.startTime.getTime());
@@ -281,10 +288,9 @@ function performZoom(startTime, endTime, binLength, server){
 	if (server != undefined && server != null && server != ""){
 		timelineGlobals.server = server;
 	}
+	url = location + "?startTime=" + encodeURIComponent(startTime) + "&endTime=" + encodeURIComponent(endTime) + "&binLength=" + encodeURIComponent(binLength);
 	if (timelineGlobals.server != undefined && timelineGlobals.server != null) {
-		url = location + "?startTime=" + encodeURIComponent(startTime) + "&endTime=" + encodeURIComponent(endTime) + "&binLength=" + encodeURIComponent(binLength) + "&serverName=" + encodeURIComponent(timelineGlobals.server);
-	} else {
-		url = location + "?startTime=" + encodeURIComponent(startTime) + "&endTime=" + encodeURIComponent(endTime) + "&binLength=" + encodeURIComponent(binLength);
+		url += "&serverName=" + encodeURIComponent(timelineGlobals.server);
 	}
 	//TODO generate bookmark metadata if possible.
 	var test = History.getState().url.substring(History.getState().url.lastIndexOf("/") + 1);
@@ -329,6 +335,39 @@ function zoom(startTime, endTime, binLength, server){
 			timelineGlobals.timelines[i].updateTimeline(starts, ends);
 		};
 	requestAllTimelines();
+}
+
+function showRawlines(data, textStatus, jqXHR){
+	if (jqXHR.status == 204){
+		alert("No log entries in this time period");
+	} else if (jqXHR.status == 200) {
+		var tooltip = $("#tooltip");
+		tooltip.html("");
+		tooltip.css("overflow", "scroll");
+		tooltip.append("<button id=\"closeButton\" type=\"button\">close</button>");
+		$("#closeButton").on("click", closeRawlines);
+		$("#closeButton").position({
+			my : "right top",
+			at : "right top",
+			of : tooltip,
+			within : tooltip
+		});
+		for (var e in data){
+			tooltip.append("<span id=line" + e.id + ">" + e.id + "</span>" + e.rawline + "<br>");
+			$("#line"+e.id).on("dblclick", addComment);
+		}
+		tooltip.position({
+			my : "left top",
+			at : "left top",
+			of : $("#time")
+		});
+		tooltip.fadeIn(500);
+	}
+}
+
+function closeRawlines(){
+	$("#tooltip").fadeOut(200);
+	$("#tooltip").html("");
 }
 
 function showToolTip(d) {

@@ -55,6 +55,11 @@ public class GetRawlines extends HttpServlet {
 			return;
 		}
 
+		if (lines.size() == 0){
+			response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+			return;
+		}
+
 		response.setContentType(GetRawlines.JSONMimeType);
 		PrintWriter resp = response.getWriter();
 		for (Line l : lines){
