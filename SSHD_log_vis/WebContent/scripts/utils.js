@@ -48,8 +48,8 @@ function initPage(start, end) {
 		var start = times[0];
 		var end = times[1];
 		// TODO replace timepicker with one that works. existing timepicker does not handle DST or timezones at all properly.
-		$("#timelineStart").datetimepicker("setDate", new Date(start));
-		$("#timelineEnd").datetimepicker("setDate", new Date(end));
+		$("#timelineStart").datetimepicker("setDate", (new Date(start)).toUTCString());
+		$("#timelineEnd").datetimepicker("setDate", (new Date(end)).toUTCString());
 		if (event.originalEvent != undefined){
 			performZoom(start, end, timelineGlobals.binLength,
 					timelineGlobals.server);
@@ -114,46 +114,16 @@ function initPage(start, end) {
 
 	var startTime = $("#timelineStart");
 	startTime.datetimepicker({
-		timeFormat : "HH:mm:ss",
-		timezone : "z",
-		showSeconds : true/*,
-		onClose: function(dateText, inst) { 
-			if (endTime.val() != '') {
-				var testStartDate = startTime.datetimepicker('getDate'); 
-				var testEndDate = endTime.datetimepicker('getDate'); 
-				if (testStartDate > testEndDate){
-					endTime.datetimepicker('setDate', testStartDate); 
-				} else {
-					endTime.val(dateText); 
-				} 
-			}
-		},
-		onSelect: function (selectedDateTime){ 
-			endTime.datetimepicker('option', 'minDateTime', startTime.datetimepicker('getDate'));
-			endTime.datetimepicker('option', 'maxDateTime', new Date());
-			startTime.datetimepicker('option', 'maxDateTime', new Date()); 
-		}*/
+		timeFormat : "HH:mm:ss Z",
+        timezone: "z",
+		showSeconds : true
 	});
 
 	var endTime = $("#timelineEnd");
 	endTime.datetimepicker({
-		timeFormat : "HH:mm:ss",
+		timeFormat : "HH:mm:ss Z",
 		timezone : "z",
-		showSeconds : true/*,
-		onClose: function(dateText, inst) { 
-			if (startTime.val() != '') { 
-				var	testStartDate = startTime.datetimepicker('getDate'); 
-				var testEndDate = endTime.datetimepicker('getDate'); 
-				if (testStartDate > testEndDate){
-					startTime.datetimepicker('setDate', testEndDate); 
-				} else {
-					startTime.val(dateText); 
-				}; 
-			};
-		},
-		onSelect: function (selectedDateTime){ 
-			startTime.datetimepicker('option','maxDateTime', endTime.datetimepicker('getDate')); 
-		}*/
+		showSeconds : true
 	});
 
 	$("#zoomButton")
@@ -242,6 +212,9 @@ function splitTimeBlock(block) {
 		return timelineGlobals.timeUnits.minutes;
 	} else if (block === timelineGlobals.timeUnits.minutes) {
 		return timelineGlobals.timeUnits.seconds;
+	} else {
+		return timelineGlobals.timeUnits.seconds; //default, 1 second is always a valid division
+		//allows server to set it's own binSize where client can't guess something sensible.
 	}
 }
 

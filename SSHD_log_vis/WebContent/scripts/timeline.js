@@ -159,7 +159,16 @@ function timeline(idx, range, domain, height, padding){
 			.attr("width", getEventWidth)
 			.attr("height", function(d){return binHeight - yScaler(d.subElemCount - d.acceptedConn - d.failedConn);})
 			.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
-
+		
+		thisLine.selectAll(".flags")
+			.data(function(d){ return [d.flags];})
+			.enter()
+			.append("svg:text")
+			.attr("class", "flags");
+		thisLine.selectAll(".flags")
+			.attr("y", timelineGlobals.padding.vertical)
+			.text(buildText);
+			
 		thisLine.exit().remove();
 
 		var xAxis = d3.svg.axis()
@@ -237,6 +246,14 @@ function timeline(idx, range, domain, height, padding){
 		.attr("transform", "translate(" + timelineGlobals.padding.left + ", 0)")
 		.call(yAxis);
 	};
+	
+	function buildText(d, i){
+		var res = "";
+		for (var t in d){
+			res += t + ": " + d[t] + " ";
+		}
+		return res.trim();
+	}
 
 	function getEventCoords(d, i){
 		return "translate(" + xScaler(getXforEvent(d, i)) + ", 0)";

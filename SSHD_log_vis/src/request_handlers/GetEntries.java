@@ -216,7 +216,7 @@ public class GetEntries extends HttpServlet {
 		} else if (l.getClass().equals(Other.class)) {
 			e.incSubElemCount();
 			other = (Other) l;
-			if (other.getMessage().toLowerCase().startsWith("error")) {
+			if (other.getMessage().toLowerCase().trim().startsWith("error")) {
 				e.addFlag("E");
 			}
 		} else { //it's one of the other types, increment the subelements.
