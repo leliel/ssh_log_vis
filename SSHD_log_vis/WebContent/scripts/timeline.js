@@ -161,12 +161,12 @@ function timeline(idx, range, domain, height, padding){
 			.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
 		
 		thisLine.selectAll(".flags")
-			.data(function(d){ return [d.flags];})
+			.data(function(d){ return [{flags : d.flags, count :  d.subElemCount}];})
 			.enter()
 			.append("svg:text")
 			.attr("class", "flags");
 		thisLine.selectAll(".flags")
-			.attr("y", timelineGlobals.padding.vertical)
+			.attr("y", function(d){return yScaler(d.count)-2;})//-2 offset to float above bin by a small margin
 			.text(buildText);
 			
 		thisLine.exit().remove();
@@ -227,6 +227,9 @@ function timeline(idx, range, domain, height, padding){
 		.attr("width", getEventWidth)
 		.attr("height", function(d){return binHeight - yScaler(d.subElemCount - d.acceptedConn - d.failedConn);})
 		.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
+		
+		thisLine.selectAll(".flags")
+		.attr("y", function(d){return yScaler(d.count)-2;}); //-2 offset to float above bin by a small margin
 
 		var xAxis = d3.svg.axis()
 		.scale(xScaler)
@@ -249,8 +252,8 @@ function timeline(idx, range, domain, height, padding){
 	
 	function buildText(d, i){
 		var res = "";
-		for (var t in d){
-			res += t + ": " + d[t] + " ";
+		for (var t in d.flags){
+			res += t + ": " + d.flags[t] + " ";
 		}
 		return res.trim();
 	}
