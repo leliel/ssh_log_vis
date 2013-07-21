@@ -79,7 +79,7 @@ function datify(key, value){
 
 function timeline(idx, range, domain, height, padding){
 	var rowY = height * idx;
-	var xScaler = d3.time.scale.utc().domain(domain).range(range);
+	var xScaler = d3.time.scale().domain(domain).range(range);
 	var yScaler = d3.scale.linear().range([height-padding.vertical, padding.vertical]);
 	var binHeight = height-padding.vertical;
 	var selection = d3.select("#time")
@@ -179,7 +179,7 @@ function timeline(idx, range, domain, height, padding){
 			.scale(yScaler)
 			.orient("left")
 			.ticks(4)
-			.tickFormat(yScaler.tickFormat(4, ".1s"));
+			.tickFormat(yScaler.tickFormat(4, ",d"));
 
 		if (selection.select("#xAxis").empty()){
 			selection.append("svg:g")
@@ -236,7 +236,7 @@ function timeline(idx, range, domain, height, padding){
 		.scale(yScaler)
 		.orient("left")
 		.ticks(4)
-		.tickFormat(yScaler.tickFormat(4, ".2s"));
+		.tickFormat(yScaler.tickFormat(4, ",d"));
 
 		selection.select("#xAxis")
  		.attr("transform", "translate(0, " + binHeight + ")")
@@ -395,8 +395,8 @@ function showToolTip(d) {
 	selection = selection.style("top", d3.event.pageY + "px");
 	var html;
 	if (d.elem == null){
-		html = "Start Time: " + d.startTime.toUTCString() + "<br>" +
-			"End Time: " + d.endTime.toUTCString() + "<br>" +
+		html = "Start Time: " + d.startTime.toLocaleString() + "<br>" +
+			"End Time: " + d.endTime.toLocaleString() + "<br>" +
 			"Accepted Connections: " + d.acceptedConn + "<br>" +
 			"Failed Connections: " + d.failedConn + "<br>" +
 			"Invalid Usernames: " + d.invalidAttempts + "<br>" +
@@ -417,7 +417,7 @@ function tooltipText(elem){
 			if (prop == "server"){
 				text += prop + ": " + elem[prop].name + "<br>";
 			} else if (prop == "time") {
-				text += prop + ": " + elem[prop].toUTCString() + "<br>";
+				text += prop + ": " + elem[prop].toLocaleString() + "<br>";
 			}else {
 				text += prop + ": " + elem[prop] + "<br>";
 			};

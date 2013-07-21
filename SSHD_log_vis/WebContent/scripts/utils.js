@@ -1,5 +1,4 @@
 window.onload = setupOnLoad;
-window.onunload = tearDown;
 
 function setupOnLoad() {
 
@@ -32,10 +31,6 @@ function setupOnLoad() {
 			}
 		}
 	}, "json");
-}
-
-function tearDown() {
-	$("#universe").dateRangeSlider("destroy");
 }
 
 function initPage(start, end) {
@@ -114,15 +109,13 @@ function initPage(start, end) {
 
 	var startTime = $("#timelineStart");
 	startTime.datetimepicker({
-		timeFormat : "HH:mm:ss Z",
-        timezone: "z",
+		timeFormat : "HH:mm:ss",
 		showSeconds : true
 	});
 
 	var endTime = $("#timelineEnd");
 	endTime.datetimepicker({
-		timeFormat : "HH:mm:ss Z",
-		timezone : "z",
+		timeFormat : "HH:mm:ss",
 		showSeconds : true
 	});
 
@@ -132,20 +125,26 @@ function initPage(start, end) {
 						var start = startTime.datetimepicker("getDate")
 								.getTime();
 						var end = endTime.datetimepicker('getDate').getTime();
-						var unit = $("#timelineUnits").val();
-						var binLength = $("#binLength").val()
-								* timelineGlobals.timeUnits[unit];
 						var reqLength = end - start;
-						if ((reqLength/4)%binLength == 0) {
-							$("#universe").dragslider("option", "step", end - start);
-							$("#universe").dragslider("values", [ start, end ]);
-							performZoom(start, end, binLength, timelineGlobals.server);
-						}
-						else {
-							$("#timelineUnits").addClass("ui-state-error");
-							$("#binLength").addClass("ui-state-error");
-						}
+						$("#universe").dragslider("option", "step", reqLength);
+						$("#universe").dragslider("values", [ start, end ]);
+						performZoom(start, end, timelineGlobals.binLength, timelineGlobals.server);
+						
 					});
+	
+	$("#reBinButton")
+		.click(
+				function(){
+					var unit = $("#timelineUnits").val();
+					var num = parseInt($("#binLength").val());
+					var length = num * timelineGlobals.timeUnits[unit];
+					if ((timelineGlobals.timelines[0].getEnd() - timelineGlobals.timelines[0].getStart())
+							%length === 0){ //is this really the condition we want to ensure it's appropriate?
+						performZoom(timelineGlobals.timelines[0].getStart(), timelineGlobals.timelines[timelineGlobals.timelines.length - 1].getEnd(), length, timelineGlobals.server);
+					} else {
+						alert("an integer number of timebins must fit on each timeline");
+					} 
+				});
 
 	var temp = $("#timelineUnits");
 	$.each(timelineGlobals.timeUnits, function(key, value) {
@@ -218,34 +217,7 @@ function splitTimeBlock(block) {
 	}
 }
 
-function createStepFromLong(time) {
-	var res = {};
-	if (time === 0)
-		return res.seconds = 0;
-	var temp = Object.getOwnPropertyNames(timelineGlobals.timeUnits);
-	for ( var i = temp.length; i >= 0; i--) {
-		if (Math.floor(time / timelineGlobals.timeUnits[temp[i]]) > 0) {
-			res[temp[i]] = Math
-					.floor(time / timelineGlobals.timeUnits[temp[i]]);
-			var remainder = time % timelineGlobals.timeUnits[temp[i]];
-			if (remainder != 0) {
-				return recPrettyString(remainder, string);
-			} else {
-				return res;
-			}
-		}
-	}
-	;
-}
-
-function createLongFromStep(step) {
-	var res = 0;
-	for ( var prop in step) {
-		res += step[prop] * timelineGlobals.timeUnits[prop];
-	}
-	return res;
-}
-
 function addComment(){
 	return;
 }
+

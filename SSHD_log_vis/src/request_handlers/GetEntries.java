@@ -119,7 +119,8 @@ public class GetEntries extends HttpServlet {
 		bins = (int) (Math.ceil(requestLength / (double) binLength));
 		bins = (bins < maxBins) ? bins : maxBins;
 		binLength = (bins == maxBins) ? (long) Math.ceil((requestLength/1000) //convert to seconds
-				/ bins) * 1000 /*convert back from seconds*/: binLength; 
+				/ bins) * 1000 //convert back from seconds
+		: binLength;
 		response.setContentType(GetEntries.JSONMimeType);
 
 		//TODO refactor this, it's too hard to understand and maintain.
@@ -191,6 +192,7 @@ public class GetEntries extends HttpServlet {
 		w.flush();
 		response.flushBuffer();
 	}
+	
 	private void setFlags(Line l, Entry e) {
 		Connect con;
 		Other other;
@@ -223,5 +225,4 @@ public class GetEntries extends HttpServlet {
 			e.incSubElemCount();
 		}
 	}
-
 }
