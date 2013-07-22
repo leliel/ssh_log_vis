@@ -14,7 +14,7 @@ function Globals(width, height){
 	this.timeUnits = new TimeUnits();
 	this.binLength = this.timeUnits.days;
 	this.server = null;
-	this.minBinWidth = 30;
+	this.minBinWidth = 50;
 	this.padding = {
 			vertical : 20,
 			left : 50,
@@ -161,13 +161,27 @@ function timeline(idx, range, domain, height, padding){
 			.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
 		
 		thisLine.selectAll(".flags")
-			.data(function(d){ return [{flags : d.flags, count :  d.subElemCount}];})
+			.data(function(d){ return [{flags : d.flags, count : d.subElemCount, startTime : d.startTime, endTime : d.endTime}];})
 			.enter()
 			.append("svg:text")
 			.attr("class", "flags");
 		thisLine.selectAll(".flags")
 			.attr("y", function(d){return yScaler(d.count)-2;})//-2 offset to float above bin by a small margin
-			.text(buildText);
+			.text(buildText)
+			.attr("textLength", function(d){
+				if (this.getComputedTextLength() > getEventWidth(d)){
+					return getEventWidth(d);
+				} else {
+					return this.getComputedTextLength();
+				}
+			})
+			.attr("lengthAdjust", "spacingAndGlyphs");
+			/*.each(function(d){
+				if (this.getComputedTextLength() > getEventWidth(d)){
+					this.textLength= getEventWidth(d);
+					this.lengthAdjust ="spacingAndGlyphs";
+				};
+			});*/
 			
 		thisLine.exit().remove();
 
@@ -271,11 +285,7 @@ function timeline(idx, range, domain, height, padding){
 	}
 
 	function getEventWidth(d, i){
-		if (d.endTime === d.startTime){
-			return timelineGlobals.minBinWidth;
-		} else {
-			return xScaler(d.endTime) - xScaler(d.startTime);
-		}
+		return xScaler(d.endTime) - xScaler(d.startTime);
 	}
 
 }
