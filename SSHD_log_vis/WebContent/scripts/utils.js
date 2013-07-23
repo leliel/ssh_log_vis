@@ -30,6 +30,17 @@ function setupOnLoad() {
 			}
 		}
 	}, "json");
+	
+	$("#rawLines").dialog({
+		autoOpen: false,
+		width: "auto",
+		closeOnEscape: true,
+		position: {
+			my: "center center",
+			at: "center center",
+			of: $("#time")},
+		title: "Raw Log lines"
+	});
 }
 
 function initPage(start, end) {

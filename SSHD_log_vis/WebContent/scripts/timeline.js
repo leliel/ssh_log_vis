@@ -361,39 +361,12 @@ function showRawlines(data, textStatus, jqXHR){
 	} else if (jqXHR.status == 200) {
 		var tooltip = $("#rawLines");
 		tooltip.empty();
-		tooltip.css("overflow", "scroll");
-		tooltip.append("<button id=\"closeButton\" type=\"button\">close</button>");
-		$("#closeButton").on("click", closeRawlines);
-		$("#closeButton").css("position", "absolute");
-		for (var e in data){
+				for (var e in data){
 			tooltip.append("<span id=line" + data[e].id + ">" + data[e].id + "</span> : " + data[e].rawLine + "<br>");
 			$("#line"+data[e].id).on("dblclick", addComment);
 		}
-		tooltip.position({
-			my : "left top",
-			at : "left top",
-			of : $("#time")
-		});
-		var spot = {
-				my : "right top",
-				at : "right top",
-				of : tooltip,
-				within : tooltip
-			};
-		$("#closeButton").position(spot);
-		tooltip.zIndex(1000);
-		tooltip.fadeIn(500);
+		tooltip.dialog("open");
 	}
-}
-
-function closeRawlines(){
-	$("#rawLines").fadeOut(200);
-	$("#rawLines").empty();
-	$("#rawLines").position({
-		my : "left top",
-		at : "left top",
-		of : $(window)
-	});
 }
 
 function showToolTip(d) {
