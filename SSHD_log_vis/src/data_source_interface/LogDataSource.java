@@ -5,7 +5,7 @@ import java.util.List;
 import JSONtypes.Line;
 import JSONtypes.Server;
 
-public interface SSHD_log_vis_datasource {
+public interface LogDataSource {
 
 	/**
 	 * Fetches log entries for a specified time period.
@@ -38,4 +38,15 @@ public interface SSHD_log_vis_datasource {
 	 * @throws DataSourceException if no data returned(this indicates a *serious* data consistency problem, or on any database error)
 	 */
 	public List<Server> getAllServers() throws DataSourceException;
+	
+	/**
+	 *  Writes a client provided comment on an event into the database.
+	 *  
+	 * @param entry_id entry identifier the comment should be associated, throws DataSourceException if entry_id does not exist in underlying datasource
+ 	 * @param comment String containing comment text, this cannot be null or empty.
+	 * @return true iff the comment is successfully stored
+	 * @throws DataSourceException on any error from underlying datasource.
+	 */
+	public boolean writeComment(long entry_id, String comment) throws DataSourceException;
 }
+

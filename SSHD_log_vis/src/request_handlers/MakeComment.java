@@ -1,31 +1,26 @@
 package request_handlers;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.List;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import JSONtypes.Line;
 import data_source_interface.DataSourceException;
 import data_source_interface.Mysql_Datasource;
 import data_source_interface.LogDataSource;
 
 /**
- * Servlet implementation class GetRawlines
+ * Servlet implementation class MakeComment
  */
-public class GetRawlines extends HttpServlet {
+public class MakeComment extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private static final String JSONMimeType = "application/json";
 	private LogDataSource datasource;
-
+       
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public GetRawlines() {
+    public MakeComment() {
         super();
         this.datasource = new Mysql_Datasource();
     }
@@ -41,35 +36,30 @@ public class GetRawlines extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		List<Line> lines;
-		if (request.getParameter("startTime") == null
-				|| request.getParameter("endTime") == null) {
+		boolean success = false;
+		
+		if (request.getParameter("entry_id") == null || request.getParameter("entry_id").equals("")
+				|| request.getParameter("comment") == null || request.getParameter("comment").equals("")){
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-			return;
 		}
+		
 		try {
-			lines = datasource.getEntriesFromDataSource(request.getParameter("serverName"), request.getParameter("startTime"), request.getParameter("endTime"));
-		} catch(DataSourceException e) {
+			long id = Long.parseLong(request.getParameter("entry_id")); 
+			success = this.datasource.writeComment(id, request.getParameter("comment"));
+		} catch (DataSourceException e) {
 			this.getServletContext().log(e.getMessage(), e.getCause());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			return;
+		} catch (NumberFormatException e){
+			this.getServletContext().log(e.getMessage(), e.getCause());
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
 		}
-
-		if (lines.size() == 0){
-			response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-			return;
+		
+		if (success){
+			response.sendError(HttpServletResponse.SC_NO_CONTENT);
+		} else {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN);
 		}
-
-		response.setContentType(GetRawlines.JSONMimeType);
-		PrintWriter resp = response.getWriter();
-		StringBuilder json = new StringBuilder("[");
-		for (Line l : lines){
-			json.append(l.toJSONString());
-			json.append(",");
-		}
-		json.deleteCharAt(json.length() - 1);
-		json.append("]");
-		resp.write(json.toString());
-		resp.flush();
 	}
+
 }

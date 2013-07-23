@@ -1,10 +1,10 @@
 window.onload = setupOnLoad;
+var setID;
 
 function setupOnLoad() {
 
 	$.ajax({
 		type : "POST",
-		async : true,
 		url : "GetBeginAndEnd",
 		data : "",
 		success : function(data, textStatus, jqXHR) {
@@ -41,6 +41,58 @@ function setupOnLoad() {
 			of: $("#time")},
 		title: "Raw Log lines"
 	});
+	
+	setID = makeCommentDialog();
+}
+
+function makeCommentDialog(){
+	 var comment = $( "#commentText" ),
+	 id = null,
+	 allFields = $( [] ).add( comment );
+	
+	$("#comment").dialog({
+		autoOpen: false,
+		width: "auto",
+		modal: true,
+		closeOnEscape: true,
+		position: {
+			my: "center center",
+			at: "center center",
+			of: $("#time")},
+		title: "Please Enter comment",
+		 buttons: {
+			 "Save": function() {
+				 allFields.removeClass( "ui-state-error" );
+			 	if ( comment.val().length > 0 ) {
+					$.post("MakeComment", {
+						entry_id: id,
+						comment: comment.val()
+						}, function(data, statusText, jqXHR){
+							if (jqXHR.status >= 200 && jqXHR.status < 300 ){
+								alert("Comment successfully added");
+							} else if (jqXHR.status == 400 || jqXHR.status == 500){
+								alert("Error entering comment");
+							} else {
+								alert("Comment entry failed");
+							}
+						}			
+					);
+					$( this ).dialog( "close" );
+			 	};
+			 },
+			 Cancel: function() {
+			 	$( this ).dialog( "close" );
+			 }
+		},
+		close: function() {
+			id = null;
+			allFields.val( "" ).removeClass( "ui-state-error" );
+		}
+	});
+	
+	return function setId(entry_id){
+		 id = entry_id;
+	};
 }
 
 function initPage(start, end) {
@@ -48,7 +100,7 @@ function initPage(start, end) {
 			.getElementById("time"), "width"), getPropertyNumberFromCSS(
 			document.getElementById("time"), "height"));
 
-	//how the hell does this get triggered after loading data?
+
 	var debounce = $.debounce(50, function(event) {
 		var times = $("#universe").dragslider("values");
 		var start = times[0];
@@ -238,6 +290,8 @@ function splitTimeBlock(block) {
 }
 
 function addComment(){
-	return;
+	var id = this.id.substring("line".length);
+	setID(parseInt(id));
+	$("#comment").dialog("open");
 }
 

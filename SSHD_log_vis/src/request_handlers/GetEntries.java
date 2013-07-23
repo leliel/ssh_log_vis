@@ -16,7 +16,7 @@ import JSONtypes.Line;
 import JSONtypes.Other;
 import data_source_interface.DataSourceException;
 import data_source_interface.Mysql_Datasource;
-import data_source_interface.SSHD_log_vis_datasource;
+import data_source_interface.LogDataSource;
 import enums.Status;
 
 /**
@@ -30,7 +30,7 @@ import enums.Status;
 public class GetEntries extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final String JSONMimeType = "application/json";
-	private SSHD_log_vis_datasource datasource;
+	private LogDataSource datasource;
 
 	/**
 	 * @see HttpServlet#HttpServlet()

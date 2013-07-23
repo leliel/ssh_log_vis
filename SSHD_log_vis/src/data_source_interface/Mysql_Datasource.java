@@ -24,7 +24,7 @@ import enums.AuthType;
 import enums.Status;
 import enums.SubSystem;
 
-public class Mysql_Datasource implements SSHD_log_vis_datasource {
+public class Mysql_Datasource implements LogDataSource {
 
 	@Override
 	public List<Line> getEntriesFromDataSource(String serverName,
@@ -305,6 +305,54 @@ public class Mysql_Datasource implements SSHD_log_vis_datasource {
 			}
 		}
 		return res;
+	}
+
+	@Override
+	public boolean writeComment(long entry_id, String comment)
+			throws DataSourceException {
+		if (entry_id < 0 || comment == null || comment.equals("")){
+			throw new DataSourceException("invalid arguments");
+		}
+		String query = "INSERT INTO entry_comment VALUE(DEFAULT, ?, ?)";
+		
+		Context context = null;
+		Connection connection = null;
+		PreparedStatement state = null;
+		boolean result = false;
+		try {
+			context = new InitialContext();
+
+			connection = ((DataSource) context
+					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
+			state = connection.prepareStatement(query);
+			state.setLong(1, entry_id);
+			state.setString(2, comment);
+			int res = state.executeUpdate();
+			result = (res == 1) ? true : false;
+		} catch (SQLException e) {
+			throw new DataSourceException(e);
+		} catch (NumberFormatException e) {
+			throw new DataSourceException(e);
+		} catch (NamingException e) {
+			throw new DataSourceException(e);
+		} finally {
+			try {
+				if (state != null) {
+					state.close();
+				}
+				if (connection != null) {
+					connection.close();
+				}
+				if (context != null) {
+					context.close();
+				}
+			} catch (SQLException e) {
+				throw new DataSourceException(e);
+			} catch (NamingException e) {
+				throw new DataSourceException(e);
+			}
+		}		
+		return result;
 	}
 
 }

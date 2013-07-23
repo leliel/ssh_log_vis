@@ -375,8 +375,8 @@ function showToolTip(d) {
 	selection = selection.style("top", d3.event.pageY + "px");
 	var html;
 	if (d.elem == null){
-		html = "Start Time: " + d.startTime.toLocaleString() + "<br>" +
-			"End Time: " + d.endTime.toLocaleString() + "<br>" +
+		html = "Start Time: " + d.startTime.toString() + "<br>" +
+			"End Time: " + d.endTime.toString() + "<br>" +
 			"Accepted Connections: " + d.acceptedConn + "<br>" +
 			"Failed Connections: " + d.failedConn + "<br>" +
 			"Invalid Usernames: " + d.invalidAttempts + "<br>" +
@@ -397,7 +397,7 @@ function tooltipText(elem){
 			if (prop == "server"){
 				text += prop + ": " + elem[prop].name + "<br>";
 			} else if (prop == "time") {
-				text += prop + ": " + elem[prop].toLocaleString() + "<br>";
+				text += prop + ": " + elem[prop].toString() + "<br>";
 			}else {
 				text += prop + ": " + elem[prop] + "<br>";
 			};

@@ -42,4 +42,14 @@
     <servlet-name>GetServers</servlet-name>
     <url-pattern>/GetServers</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>MakeComment</display-name>
+    <servlet-name>MakeComment</servlet-name>
+    <servlet-class>request_handlers.MakeComment</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>MakeComment</servlet-name>
+    <url-pattern>/MakeComment</url-pattern>
+  </servlet-mapping>
 </web-app>

@@ -10,14 +10,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import data_source_interface.DataSourceException;
 import data_source_interface.Mysql_Datasource;
-import data_source_interface.SSHD_log_vis_datasource;
+import data_source_interface.LogDataSource;
 
 /**
  * Servlet implementation class GetBeginAndEnd
  */
 public class GetBeginAndEnd extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private SSHD_log_vis_datasource datasource;
+	private LogDataSource datasource;
 
     /**
      * @see HttpServlet#HttpServlet()
