@@ -362,7 +362,7 @@ function showRawlines(data, textStatus, jqXHR){
 		var tooltip = $("#rawLines");
 		tooltip.empty();
 				for (var e in data){
-			tooltip.append("<span id=line" + data[e].id + ">" + data[e].id + "</span> : " + data[e].rawLine + "<br>");
+			tooltip.append("<span id=line" + data[e].id + ">" + data[e].id + " : " + data[e].rawLine + "</span><br>");
 			$("#line"+data[e].id).on("dblclick", addComment);
 		}
 		tooltip.dialog("open");
