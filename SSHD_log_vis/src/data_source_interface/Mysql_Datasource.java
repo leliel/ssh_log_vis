@@ -25,6 +25,9 @@ import enums.Status;
 import enums.SubSystem;
 
 public class Mysql_Datasource implements LogDataSource {
+	
+	public Mysql_Datasource(){
+	}
 
 	@Override
 	public List<Line> getEntriesFromDataSource(String serverName,
@@ -53,7 +56,6 @@ public class Mysql_Datasource implements LogDataSource {
 		ResultSet result = null;
 		try {
 			context = new InitialContext();
-
 			connection = ((DataSource) context
 					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
 			state = connection.prepareStatement(query);
@@ -104,7 +106,7 @@ public class Mysql_Datasource implements LogDataSource {
 				if (connection != null) {
 					connection.close();
 				}
-				if (context != null) {
+				if (context != null){
 					context.close();
 				}
 			} catch (SQLException e) {
