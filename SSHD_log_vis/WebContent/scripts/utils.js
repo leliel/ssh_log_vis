@@ -4,8 +4,7 @@ function setupOnLoad() {
 
 	$.ajax({
 		type : "POST",
-		async : true, // we really can't do anything else until we have the
-						// universe :/
+		async : true,
 		url : "GetBeginAndEnd",
 		data : "",
 		success : function(data, textStatus, jqXHR) {
@@ -13,7 +12,7 @@ function setupOnLoad() {
 		},
 		dataType : "json"
 	});
-	
+
 	function setServer(event){
 		if (this.value === ""){
 			timelineGlobals.server = null;
@@ -21,7 +20,7 @@ function setupOnLoad() {
 			timelineGlobals.server = this.value;
 		}
 	}
-	
+
 	$.post("GetServers", "", function(data, textStatus, jqXHR){
 		if (jqXHR.status == 200){
 			$("#servers").change(setServer);
@@ -38,21 +37,22 @@ function initPage(start, end) {
 			.getElementById("time"), "width"), getPropertyNumberFromCSS(
 			document.getElementById("time"), "height"));
 
+	//how the hell does this get triggered after loading data?
 	var debounce = $.debounce(50, function(event) {
 		var times = $("#universe").dragslider("values");
 		var start = times[0];
 		var end = times[1];
-		// TODO replace timepicker with one that works. existing timepicker does not handle DST or timezones at all properly.
-		$("#timelineStart").datetimepicker("setDate", (new Date(start)).toUTCString());
-		$("#timelineEnd").datetimepicker("setDate", (new Date(end)).toUTCString());
 		if (event.originalEvent != undefined){
 			performZoom(start, end, timelineGlobals.binLength,
 					timelineGlobals.server);
 		}
 	});
 
-	start -= start % timelineGlobals.binLength;
-	end += timelineGlobals.binLength - end % timelineGlobals.binLength;
+	timelineGlobals.universeStart = start;
+	timelineGlobals.universeEnd = end;
+	var length = end - start;
+	start -= start % length;
+	end += length - end % length;
 
 	$('#universe').dragslider({
 		animate : true, // Works with animation.
@@ -60,9 +60,9 @@ function initPage(start, end) {
 		rangeDrag : true, // Enable range dragging.
 		max : end,
 		min : start,
-		step : timelineGlobals.timeUnits.weeks,
-		values : [ start, start + timelineGlobals.timeUnits.weeks ],
-		change : debounce
+		step : timelineGlobals.timeUnits.months,
+		values : [ timelineGlobals.timelines[0].getStart(), timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd() ],
+		stop : debounce
 	});
 
 	$("#time").position({
@@ -126,12 +126,17 @@ function initPage(start, end) {
 								.getTime();
 						var end = endTime.datetimepicker('getDate').getTime();
 						var reqLength = end - start;
-						$("#universe").dragslider("option", "step", reqLength);
-						$("#universe").dragslider("values", [ start, end ]);
+						var univ = {
+							max : timelineGlobals.universeEnd + reqLength - timelineGlobals.universeEnd%reqLength,
+							min : timelineGlobals.universeStart - timelineGlobals.universeStart%reqLength,
+							step : reqLength,
+							values : [start, end]
+						};
+						$("#universe").dragslider("option", univ);
 						performZoom(start, end, timelineGlobals.binLength, timelineGlobals.server);
-						
+
 					});
-	
+
 	$("#reBinButton")
 		.click(
 				function(){
@@ -143,7 +148,7 @@ function initPage(start, end) {
 						performZoom(timelineGlobals.timelines[0].getStart(), timelineGlobals.timelines[timelineGlobals.timelines.length - 1].getEnd(), length, timelineGlobals.server);
 					} else {
 						alert("an integer number of timebins must fit on each timeline");
-					} 
+					}
 				});
 
 	var temp = $("#timelineUnits");
@@ -159,28 +164,32 @@ function initPage(start, end) {
 
 	if (window.location.search.length > 1) {
 		var data = getObjFromQueryString(window.location.search);
-		var start = parseInt(data.startTime);
-		var end = parseInt(data.endTime);
+		var startSel = parseInt(data.startTime);
+		var endSel = parseInt(data.endTime);
 		var length = parseInt(data.binLength);
 		if (data.server != undefined && data.server != "") {
 			timelineGlobals.server = data.server;
 		}
-		$("#universe").dragslider("option", "step", end - start);
-		$("#universe").dragslider("values", [ start, end ]);
-		performZoom(start, end, length, data.server);
+		updateUIandZoom(startSel, endSel, length, timelineGlobals.server);
 	} else {
-		var step = timelineGlobals.timelines[0].getEnd()
-				- timelineGlobals.timelines[timelineGlobals.timelines.length -1].getStart();
-		$("#universe").dragslider("option", "step", step);
-		$("#universe").dragslider(
-				"values",
-				[ timelineGlobals.timelines[0].getStart(),
-						timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd() ]);
-		performZoom(timelineGlobals.timelines[0].getStart(), 
-				timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(),
-				timelineGlobals.binLength, 
-				timelineGlobals.server);
+		var endSel = timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd();
+		var startSel = timelineGlobals.timelines[0].getStart();
+		updateUIandZoom(startSel, endSel, timelineGlobals.binLength, timelineGlobals.server);
 	}
+}
+
+function updateUIandZoom(start, end, length, server){
+	var reqLength = end - start;
+	var univ = {
+		max : timelineGlobals.universeEnd + reqLength - timelineGlobals.universeEnd%reqLength,
+		min : timelineGlobals.universeStart - timelineGlobals.universeStart%reqLength,
+		step : reqLength,
+		values : [start, end]
+	};
+	$("#universe").dragslider("option", univ);
+	$("#timelineStart").datetimepicker("setDate", new Date(start));
+	$("#timelineEnd").datetimepicker("setDate", new Date(end));
+	performZoom(start, end, length, server);
 }
 
 function getObjFromQueryString(string) {

@@ -14,6 +14,8 @@ function Globals(width, height){
 	this.timeUnits = new TimeUnits();
 	this.binLength = this.timeUnits.days;
 	this.server = null;
+	this.universeStart = null;
+	this.universeEnd = null;
 	this.minBinWidth = 50;
 	this.padding = {
 			vertical : 20,
@@ -159,7 +161,7 @@ function timeline(idx, range, domain, height, padding){
 			.attr("width", getEventWidth)
 			.attr("height", function(d){return binHeight - yScaler(d.subElemCount - d.acceptedConn - d.failedConn);})
 			.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
-		
+
 		thisLine.selectAll(".flags")
 			.data(function(d){ return [{flags : d.flags, count : d.subElemCount, startTime : d.startTime, endTime : d.endTime}];})
 			.enter()
@@ -176,13 +178,7 @@ function timeline(idx, range, domain, height, padding){
 				}
 			})
 			.attr("lengthAdjust", "spacingAndGlyphs");
-			/*.each(function(d){
-				if (this.getComputedTextLength() > getEventWidth(d)){
-					this.textLength= getEventWidth(d);
-					this.lengthAdjust ="spacingAndGlyphs";
-				};
-			});*/
-			
+
 		thisLine.exit().remove();
 
 		var xAxis = d3.svg.axis()
@@ -241,7 +237,7 @@ function timeline(idx, range, domain, height, padding){
 		.attr("width", getEventWidth)
 		.attr("height", function(d){return binHeight - yScaler(d.subElemCount - d.acceptedConn - d.failedConn);})
 		.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
-		
+
 		thisLine.selectAll(".flags")
 		.attr("y", function(d){return yScaler(d.count)-2;}); //-2 offset to float above bin by a small margin
 
@@ -263,7 +259,7 @@ function timeline(idx, range, domain, height, padding){
 		.attr("transform", "translate(" + timelineGlobals.padding.left + ", 0)")
 		.call(yAxis);
 	};
-	
+
 	function buildText(d, i){
 		var res = "";
 		for (var t in d.flags){
@@ -304,10 +300,9 @@ function zoomElem(d, i){
 		}
 		$.post("GetRawlines", dat, showRawlines, "json");
 		return;
+	} else {
+		updateUIandZoom(d.startTime.getTime(), d.endTime.getTime(), splitTimeBlock(d.endTime.getTime() - d.startTime.getTime()), timelineGlobals.server);
 	}
-	$("#universe").dragslider("option", "step", d.endTime.getTime() - d.startTime.getTime());
-	$("#universe").dragslider("values", [d.startTime.getTime(), d.endTime.getTime()]);
-	performZoom(d.startTime.getTime(), d.endTime.getTime(), splitTimeBlock(d.endTime.getTime() - d.startTime.getTime()), timelineGlobals.server);
 }
 
 function performZoom(startTime, endTime, binLength, server){
@@ -321,7 +316,7 @@ function performZoom(startTime, endTime, binLength, server){
 	if (timelineGlobals.server != undefined && timelineGlobals.server != null) {
 		url += "&serverName=" + encodeURIComponent(timelineGlobals.server);
 	}
-	//TODO generate bookmark metadata if possible.
+	//TODO generate bookmark metadata -set title argument to a string.
 	window.History.pushState(null, null, url);
 	zoom(startTime, endTime, binLength, timelineGlobals.server);
 }
@@ -337,10 +332,7 @@ function loadDataFromHistory(){
 		if (data.server != undefined && data.server != null && server != timelineGlobals.server){
 			timelineGlobals.server = data.server;
 		}
-		var size = end - start;
-		$("#universe").dragslider("option", "step", size);
-		$("#universe").dragslider("values", [start, end]);
-		performZoom(start, end, length, timelineGlobals.server);
+		updateUIandZoom(start, end, length, timelineGlobals.server);
 	} else {
 		window.location.reload(true);
 	};
@@ -372,6 +364,7 @@ function showRawlines(data, textStatus, jqXHR){
 		tooltip.css("overflow", "scroll");
 		tooltip.append("<button id=\"closeButton\" type=\"button\">close</button>");
 		$("#closeButton").on("click", closeRawlines);
+		$("#closeButton").css("position", "absolute");
 		for (var e in data){
 			tooltip.append("<span id=line" + data[e].id + ">" + data[e].id + "</span> : " + data[e].rawLine + "<br>");
 			$("#line"+data[e].id).on("dblclick", addComment);
@@ -381,12 +374,13 @@ function showRawlines(data, textStatus, jqXHR){
 			at : "left top",
 			of : $("#time")
 		});
-		$("#closeButton").position({
-			my : "right top",
-			at : "right top",
-			of : tooltip,
-			within : tooltip
-		});
+		var spot = {
+				my : "right top",
+				at : "right top",
+				of : tooltip,
+				within : tooltip
+			};
+		$("#closeButton").position(spot);
 		tooltip.zIndex(1000);
 		tooltip.fadeIn(500);
 	}
