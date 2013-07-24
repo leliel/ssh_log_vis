@@ -401,7 +401,7 @@ function showToolTip(d) {
 }
 
 function tooltipText(elem){
-	var text = "";
+	/*var text = "";
 	for (var prop in elem){
 		if (elem.hasOwnProperty(prop) && prop != "rawLine"){
 			if (prop == "server"){
@@ -414,8 +414,8 @@ function tooltipText(elem){
 				text += prop + ": " + elem[prop] + "<br>";
 			};
 		};
-	};
-	return text;
+	};*/
+	return elem.rawLine;
 }
 function hideToolTip(d) {
 	d3.select("#tooltip").transition().duration(200).style("opacity", 0);
