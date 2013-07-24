@@ -47,6 +47,7 @@ public class Parser {
 		this.write = new Writer(url, dbName, userName, pass);
 	}
 
+	//TODO implement list<line> per file, then merge.
 	private void parseLogs(String[] logName) {
 		for (String s : logName) {
 			BufferedReader read;

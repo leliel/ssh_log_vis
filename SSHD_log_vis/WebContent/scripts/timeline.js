@@ -73,7 +73,7 @@ function requestTimelineEvents(startTime, endTime, maxBins, timeline, server) {
 }
 
 function datify(key, value){
-	if (key.indexOf("Time") != -1 || key.indexOf("time") != -1){
+	if (key ==="startTime" || key === "endTime" || key === "time"){
 		return new Date(Number(value));
 	};
 	return value;
@@ -362,7 +362,7 @@ function showRawlines(data, textStatus, jqXHR){
 		var tooltip = $("#rawLines");
 		tooltip.empty();
 				for (var e in data){
-			tooltip.append("<span id=line" + data[e].id + ">" + data[e].id + "</span> : " + data[e].rawLine + "<br>");
+			tooltip.append("<span id=line" + data[e].id + ">" + data[e].id + " : " + data[e].rawLine + "</span><br>");
 			$("#line"+data[e].id).on("dblclick", addComment);
 		}
 		tooltip.dialog("open");
@@ -380,9 +380,19 @@ function showToolTip(d) {
 			"Accepted Connections: " + d.acceptedConn + "<br>" +
 			"Failed Connections: " + d.failedConn + "<br>" +
 			"Invalid Usernames: " + d.invalidAttempts + "<br>" +
-			"Total events: " + d.subElemCount + "<br>"
-			//TODO how do we print flags?
-			;
+			"Total events: " + d.subElemCount + "<br>";
+			if (d.flags.T !== undefined) {
+				html += "Unusual Times: " + d.flags.T + "<br>";
+			}
+			if (d.flags.L !== undefined) {
+				html += "Unusual Places: " + d.flags.L + "<br>";
+			}
+			if (d.flags.R !== undefined) {
+				html += "Failed Root Logins: " + d.flags.R + "<br>";
+			}
+			if (d.flags.E !== undefined) {
+				html += "Server Errors: " + d.flags.E + "<br>";
+			}
 	} else {
 		html = tooltipText(d.elem);
 	}
@@ -391,19 +401,21 @@ function showToolTip(d) {
 }
 
 function tooltipText(elem){
-	var text = "";
+	/*var text = "";
 	for (var prop in elem){
 		if (elem.hasOwnProperty(prop) && prop != "rawLine"){
 			if (prop == "server"){
 				text += prop + ": " + elem[prop].name + "<br>";
 			} else if (prop == "time") {
 				text += prop + ": " + elem[prop].toString() + "<br>";
-			}else {
+			} else if (prop === "freqTime" || prop === "freqLoc"){
+				text += (elem[prop] != "0") ? prop + ": true<br>" : prop + ": false<br>";
+			} else {
 				text += prop + ": " + elem[prop] + "<br>";
 			};
 		};
-	};
-	return text;
+	};*/
+	return elem.rawLine;
 }
 function hideToolTip(d) {
 	d3.select("#tooltip").transition().duration(200).style("opacity", 0);
