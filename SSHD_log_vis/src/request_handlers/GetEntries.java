@@ -132,7 +132,7 @@ public class GetEntries extends HttpServlet {
 			e.setEnd(e.getEnd() + binLength);
 		}
 		if (e.getStart() <= lines.get(0).getTime()
-				&& lines.get(0).getTime() <= e.getEnd()) {
+				&& lines.get(0).getTime() < e.getEnd()) {
 			entries.add(e);
 		}
 
@@ -148,8 +148,8 @@ public class GetEntries extends HttpServlet {
 			if (l.getTime() < e.getEnd()) {
 				setFlags(l, e);
 				// we're right on the edge of a bin
-			} else if (l.getTime() == e.getEnd()) {
-				setFlags(l, e);
+			} /*else if (l.getTime() == e.getEnd()) {
+				//setFlags(l, e);
 				// if lines.size == count, this is the last iteration anyway, so don't bother setting up a new element.
 				if (lines.size() > (i + 1)
 						// lookahead, if the next elem exist and is in a new bin, make it.
@@ -162,21 +162,19 @@ public class GetEntries extends HttpServlet {
 					e.setStart(l.getTime());
 					e.setEnd(startTime + binLength);
 				}
-			} else { // this element is past the end of the current bin
+			} */ else { // this element is past the end of the current bin
 				// it may be more than one binLength past
-				while (l.getTime() > startTime + binLength) {
+				while (l.getTime() >= startTime + binLength) {
 					startTime += binLength;// increment startTime in binLength increments, skipping N bins.
 				}
 				if (e.getSubElemCount() == 1) {
 					e.setElem(lines.get(i-1)); //the previous element must have been it.
 				}
-				if (lines.size() > i + 1) {
-					e = new Entry(l.getId(), null);
-					entries.add(e);
-					e.setStart(startTime);
-					setFlags(l, e);
-					e.setEnd(startTime + binLength);
-				}
+				e = new Entry(l.getId(), null);
+				entries.add(e);
+				e.setStart(startTime);
+				setFlags(l, e);
+				e.setEnd(startTime + binLength);
 			}
 		}
 		//END REFACTOR BLOCK
@@ -192,12 +190,12 @@ public class GetEntries extends HttpServlet {
 		w.flush();
 		response.flushBuffer();
 	}
-	
+
 	private void setFlags(Line l, Entry e) {
 		Connect con;
 		Other other;
+		e.incSubElemCount();
 		if (l.getClass().equals(Connect.class)) {
-			e.incSubElemCount();
 			con = (Connect) l;
 			if (con.getStatus() == Status.ACCEPTED) {
 				e.incAcceptedConn();
@@ -214,15 +212,12 @@ public class GetEntries extends HttpServlet {
 				e.addFlag("T");
 			}
 		} else if (l.getClass().equals(Invalid.class)) {
-			e.incInvalid(); //invalid attempts don't count as subelements as are always associated with a failed connect.
+			e.incInvalid();
 		} else if (l.getClass().equals(Other.class)) {
-			e.incSubElemCount();
 			other = (Other) l;
 			if (other.getMessage().toLowerCase().trim().startsWith("error")) {
 				e.addFlag("E");
 			}
-		} else { //it's one of the other types, increment the subelements.
-			e.incSubElemCount();
 		}
 	}
 }

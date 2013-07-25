@@ -137,4 +137,9 @@ public class Disconnect implements dataTypes.Line {
 		return; //nothing to do.
 	}
 
+	@Override
+	public int compareTo(Line o) {
+		return (int)(this.time - o.getTime());
+	}
+
 }

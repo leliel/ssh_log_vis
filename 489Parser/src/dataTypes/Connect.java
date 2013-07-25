@@ -15,8 +15,8 @@ public class Connect implements dataTypes.Line {
 	private static final int frequency = 5; // how often do we have to login
 											// somewhere before it's frequent?
 	private static final long ttl = 1000 * 60 * 60 * 24 * 7; // 1 week in seconds
-	private static final long timeAllowance = 1000*60*10;// construct  
-	
+	private static final long timeAllowance = 1000*60*10;// construct
+
 	private final long time;
 	private final Server server;
 	private final int connectID;
@@ -44,6 +44,7 @@ public class Connect implements dataTypes.Line {
 		this.rawLine = rawLine;
 	}
 
+	@Override
 	public long getTime() {
 		return time;
 	}
@@ -263,5 +264,8 @@ public class Connect implements dataTypes.Line {
 		return true;
 	}
 
-
+	@Override
+	public int compareTo(Line o) {
+		return (int)(this.time - o.getTime());
+	}
 }

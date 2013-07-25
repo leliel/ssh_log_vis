@@ -25,7 +25,7 @@ import enums.Status;
 import enums.SubSystem;
 
 public class Mysql_Datasource implements LogDataSource {
-	
+
 	public Mysql_Datasource(){
 	}
 
@@ -64,10 +64,10 @@ public class Mysql_Datasource implements LogDataSource {
 			if (serverName != null) {
 				state.setString(1, serverName);
 				state.setLong(2, Long.parseLong(startTime));
-				state.setLong(3, Long.parseLong(endTime));
+				state.setLong(3, Long.parseLong(endTime)-1);
 			} else {
 				state.setLong(1, Long.parseLong(startTime));
-				state.setLong(2, Long.parseLong(endTime));
+				state.setLong(2, Long.parseLong(endTime)-1);
 			}
 			state.execute();
 			result = state.getResultSet();
@@ -316,7 +316,7 @@ public class Mysql_Datasource implements LogDataSource {
 			throw new DataSourceException("invalid arguments");
 		}
 		String query = "INSERT INTO entry_comment VALUE(DEFAULT, ?, ?)";
-		
+
 		Context context = null;
 		Connection connection = null;
 		PreparedStatement state = null;
@@ -353,7 +353,7 @@ public class Mysql_Datasource implements LogDataSource {
 			} catch (NamingException e) {
 				throw new DataSourceException(e);
 			}
-		}		
+		}
 		return result;
 	}
 

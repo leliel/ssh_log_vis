@@ -9,11 +9,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 import dataTypes.Connect;
 import dataTypes.Disconnect;
@@ -36,18 +36,17 @@ public class Parser {
 
 	private Map<String, User> users;
 	private Map<String, Server> servers;
-	private List<Line> lines;
+	private Queue<Line> lines;
 
 	private Writer write;
 
 	public Parser() {
 		users = new HashMap<String, User>();
 		servers = new HashMap<String, Server>();
-		lines = new ArrayList<Line>();
+		lines = new PriorityQueue<Line>();
 		this.write = new Writer(url, dbName, userName, pass);
 	}
 
-	//TODO implement list<line> per file, then merge.
 	private void parseLogs(String[] logName) {
 		for (String s : logName) {
 			BufferedReader read;

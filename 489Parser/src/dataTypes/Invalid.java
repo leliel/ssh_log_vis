@@ -142,4 +142,9 @@ public class Invalid implements dataTypes.Line {
 			CallableStatement lookup) throws SQLException {
 		return; //nothing to do.
 	}
+
+	@Override
+	public int compareTo(Line o) {
+		return (int)(this.time - o.getTime());
+	}
 }
