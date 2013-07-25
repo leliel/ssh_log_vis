@@ -19,6 +19,8 @@ function setupOnLoad() {
 		} else {
 			timelineGlobals.server = this.value;
 		}
+		performZoom(timelineGlobals.timelines[0].getStart(),
+				timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength, timelineGlobals.server);
 	}
 
 	$.post("GetServers", "", function(data, textStatus, jqXHR){
@@ -30,7 +32,7 @@ function setupOnLoad() {
 			}
 		}
 	}, "json");
-	
+
 	$("#rawLines").dialog({
 		autoOpen: false,
 		width: "auto",
@@ -41,7 +43,7 @@ function setupOnLoad() {
 			of: $("#time")},
 		title: "Raw Log lines"
 	});
-	
+
 	setID = makeCommentDialog();
 }
 
@@ -49,7 +51,7 @@ function makeCommentDialog(){
 	 var comment = $( "#commentText" ),
 	 id = null,
 	 allFields = $( [] ).add( comment );
-	
+
 	$("#comment").dialog({
 		autoOpen: false,
 		width: "auto",
@@ -75,7 +77,7 @@ function makeCommentDialog(){
 							} else {
 								alert("Comment entry failed");
 							}
-						}			
+						}
 					);
 					$( this ).dialog( "close" );
 			 	};
@@ -89,7 +91,7 @@ function makeCommentDialog(){
 			allFields.val( "" ).removeClass( "ui-state-error" );
 		}
 	});
-	
+
 	return function setId(entry_id){
 		 id = entry_id;
 	};
