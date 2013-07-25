@@ -226,19 +226,21 @@ function initPage(start, end) {
 			temp.append($("<option />").val(key).text(key));
 		}
 	});
-
+	
+	var startSel, endSel;
 	if (window.location.search.length > 1) {
 		var data = getObjFromQueryString(window.location.search);
-		var startSel = parseInt(data.startTime);
-		var endSel = parseInt(data.endTime);
+		startSel = parseInt(data.startTime);
+		endSel = parseInt(data.endTime);
 		var length = parseInt(data.binLength);
 		if (data.server != undefined && data.server != "") {
 			timelineGlobals.server = data.server;
 		}
 		updateUIandZoom(startSel, endSel, length, timelineGlobals.server);
 	} else {
-		var endSel = timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd();
-		var startSel = timelineGlobals.timelines[0].getStart();
+		var idx = timelineGlobals.timelines.length -1;
+		endSel = timelineGlobals.timelines[idx].getEnd();
+		startSel = timelineGlobals.timelines[0].getStart();
 		updateUIandZoom(startSel, endSel, timelineGlobals.binLength, timelineGlobals.server);
 	}
 }
@@ -252,6 +254,9 @@ function updateUIandZoom(start, end, length, server){
 		values : [start, end]
 	};
 	$("#universe").dragslider("option", univ);
+	univ = $("#universe").dragslider("values");
+	start = univ[0];
+	end = univ[1];
 	$("#timelineStart").datetimepicker("setDate", new Date(start));
 	$("#timelineEnd").datetimepicker("setDate", new Date(end));
 	setUITimeUnits(length);

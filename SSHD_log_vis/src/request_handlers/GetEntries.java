@@ -127,7 +127,7 @@ public class GetEntries extends HttpServlet {
 		Entry e = new Entry(lines.get(0).getId(), null);
 		e.setStart(startTime);
 		e.setEnd(startTime + binLength);
-		while (e.getEnd() < lines.get(0).getTime()){
+		while (e.getEnd() <= lines.get(0).getTime()){
 			e.setStart(e.getEnd());
 			e.setEnd(e.getEnd() + binLength);
 		}
@@ -175,6 +175,9 @@ public class GetEntries extends HttpServlet {
 				e.setStart(startTime);
 				setFlags(l, e);
 				e.setEnd(startTime + binLength);
+				if ((lines.size() == i +1 || lines.get(i+1).getTime() >= e.getEnd()) && e.getSubElemCount() == 1){
+					e.setElem(l);
+				}
 			}
 		}
 		//END REFACTOR BLOCK

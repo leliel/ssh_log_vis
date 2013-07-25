@@ -27,7 +27,7 @@ function Globals(width, height){
 	this.timelines = [new timeline(0, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 15, 00, 00, 00)), new Date(Date.UTC(2013, 02, 22, 00, 00, 00))], height/4, this.padding),
 	                  new timeline(1, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 22, 00, 00, 00)), new Date(Date.UTC(2013, 02, 29, 00, 00, 00))], height/4, this.padding),
 	                  new timeline(2, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 29, 00, 00, 00)), new Date(Date.UTC(2013, 03, 05, 00, 00, 00))], height/4, this.padding),
-	                  new timeline(3, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 03, 05, 00, 00, 00)), new Date(Date.UTC(2013, 03, 12, 00, 00 ,00))], height/4, this.padding)];
+	                  new timeline(3, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 03, 05, 00, 00, 00)), new Date(Date.UTC(2013, 03, 13, 00, 00 ,00))], height/4, this.padding)];
 }
 
 function requestAllTimelines(){
@@ -382,17 +382,19 @@ function showToolTip(d) {
 			"Failed Connections: " + d.failedConn + "<br>" +
 			"Invalid Usernames: " + d.invalidAttempts + "<br>" +
 			"Total events: " + d.subElemCount + "<br>";
-			if (d.flags.T !== undefined) {
-				html += "Unusual Times: " + d.flags.T + "<br>";
-			}
-			if (d.flags.L !== undefined) {
-				html += "Unusual Places: " + d.flags.L + "<br>";
-			}
-			if (d.flags.R !== undefined) {
-				html += "Failed Root Logins: " + d.flags.R + "<br>";
-			}
-			if (d.flags.E !== undefined) {
-				html += "Server Errors: " + d.flags.E + "<br>";
+			if (d.flags != undefined && d.flags != null){
+				if (d.flags.T !== undefined) {
+					html += "Unusual Times: " + d.flags.T + "<br>";
+				}
+				if (d.flags.L !== undefined) {
+					html += "Unusual Places: " + d.flags.L + "<br>";
+				}
+				if (d.flags.R !== undefined) {
+					html += "Failed Root Logins: " + d.flags.R + "<br>";
+				}
+				if (d.flags.E !== undefined) {
+					html += "Server Errors: " + d.flags.E + "<br>";
+				}
 			}
 	} else {
 		html = tooltipText(d.elem);
