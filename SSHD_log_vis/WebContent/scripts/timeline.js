@@ -62,6 +62,7 @@ function requestTimelineEvents(startTime, endTime, maxBins, timeline, server) {
 			var json = JSON.parse(data, datify);
 			if (timelineGlobals.binLength != json[0].endTime.getTime() - json[0].startTime.getTime()){
 				timelineGlobals.binLength = json[0].endTime.getTime() - json[0].startTime.getTime();
+				setUITimeUnits(timelineGlobals.binLength);
 			}
 			timeline.renderBins(json);
 		} else if (jqXHR.status = 204) {

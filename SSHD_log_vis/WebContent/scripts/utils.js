@@ -254,7 +254,39 @@ function updateUIandZoom(start, end, length, server){
 	$("#universe").dragslider("option", univ);
 	$("#timelineStart").datetimepicker("setDate", new Date(start));
 	$("#timelineEnd").datetimepicker("setDate", new Date(end));
+	setUITimeUnits(length);
 	performZoom(start, end, length, server);
+}
+
+function setUITimeUnits(length){
+	if (length/timelineGlobals.timeUnits.years >=1) {
+		$("#binLength").val(twoPlaces(length/timelineGlobals.timeUnits.years));
+		$("#timelineUnits").val("years");
+	} else if (length/timelineGlobals.timeUnits.months >=1){
+		$("#binLength").val(twoPlaces(length/timelineGlobals.timeUnits.months));
+		$("#timelineUnits").val("months");
+	} else if (length/timelineGlobals.timeUnits.weeks >=1){
+		$("#binLength").val(twoPlaces(length/timelineGlobals.timeUnits.weeks));
+		$("#timelineUnits").val("Weeks");
+	} else if (length/timelineGlobals.timeUnits.days >=1){
+		$("#binLength").val(twoPlaces(length/timelineGlobals.timeUnits.days));
+		$("#timelineUnits").val("days");
+	} else if (length/timelineGlobals.timeUnits.hours >=1){
+		$("#binLength").val(twoPlaces(length/timelineGlobals.timeUnits.hours));
+		$("#timelineUnits").val("hours");
+	} else if (length/timelineGlobals.timeUnits.minutes >=1){
+		$("#binLength").val(twoPlaces(length/timelineGlobals.timeUnits.minutes));
+		$("#timelineUnits").val("minutes");
+	}else if (length/timelineGlobals.timeUnits.seconds >=1){
+		$("#binLength").val(twoPlaces(length/timelineGlobals.timeUnits.seconds));
+		$("#timelineUnits").val("seconds");
+	}
+}
+
+function twoPlaces(number){
+	var res = number*100;
+	res = Math.round(res);
+	return res/100;
 }
 
 function getObjFromQueryString(string) {
