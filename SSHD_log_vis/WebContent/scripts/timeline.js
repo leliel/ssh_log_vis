@@ -174,7 +174,9 @@ function timeline(idx, range, domain, height, padding){
 
 		thisLine.selectAll(".binFailed")
 			.data(function(d){
-				return [d];
+				return [{startTime : d.startTime, 
+						endTime : d.endTime, 
+						failedConn : d.failedConn}];
 			})
 			.enter()
 			.append("svg:rect")
@@ -186,7 +188,12 @@ function timeline(idx, range, domain, height, padding){
 			.attr("y", function(d, i){return yScaler(d.failedConn);});
 
 		thisLine.selectAll(".binAccepted")
-			.data(function(d){return[d];})
+			.data(function(d){
+				return[{startTime : d.startTime, 
+						endTime : d.endTime, 
+						acceptedConn : d.acceptedConn,
+						subElemCount : d.subElemCount}];
+			})
 			.enter()
 			.append("svg:rect")
 			.attr("class", "binAccepted");
@@ -198,7 +205,13 @@ function timeline(idx, range, domain, height, padding){
 
 
 		thisLine.selectAll(".binDivider")
-			.data(function(d){return [d];})
+			.data(function(d){
+				return [{startTime : d.startTime, 
+						endTime : d.endTime, 
+						failedConn : d.failedConn,
+						acceptedConn : d.acceptedConn,
+						subElemCount : d.subElemCount}];
+			})
 			.enter()
 			.append("svg:rect")
 			.attr("class", "binDivider");
@@ -209,7 +222,12 @@ function timeline(idx, range, domain, height, padding){
 			.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
 
 		thisLine.selectAll(".flags")
-			.data(function(d){ return [{flags : d.flags, count : d.subElemCount, startTime : d.startTime, endTime : d.endTime}];})
+			.data(function(d){ 
+				return [{flags : d.flags, 
+						count : d.subElemCount, 
+						startTime : d.startTime, 
+						endTime : d.endTime}];
+			})
 			.enter()
 			.append("svg:text")
 			.attr("class", "flags");
