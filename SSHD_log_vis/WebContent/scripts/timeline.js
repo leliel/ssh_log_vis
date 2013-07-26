@@ -28,9 +28,12 @@ function Globals(width, height){
 	                  new timeline(1, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 22, 00, 00, 00)), new Date(Date.UTC(2013, 02, 29, 00, 00, 00))], height/4, this.padding),
 	                  new timeline(2, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 29, 00, 00, 00)), new Date(Date.UTC(2013, 03, 05, 00, 00, 00))], height/4, this.padding),
 	                  new timeline(3, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 03, 05, 00, 00, 00)), new Date(Date.UTC(2013, 03, 13, 00, 00 ,00))], height/4, this.padding)];
+	this.maxima = new Array(4);
+	this.indScale = d3.scale.log();
 }
 
 function requestAllTimelines(){
+	timelineGlobals.maxima = new Array(4);
 	for (var i = 0; i < timelineGlobals.timelines.length; i++){
 		requestTimelineEvents(timelineGlobals.timelines[i].getStart(),
 				timelineGlobals.timelines[i].getEnd(), timelineGlobals.maxBins, timelineGlobals.timelines[i]);
@@ -65,12 +68,33 @@ function requestTimelineEvents(startTime, endTime, maxBins, timeline, server) {
 				setUITimeUnits(timelineGlobals.binLength);
 			}
 			timeline.renderBins(json);
+			if(noUndefs(timelineGlobals.maxima)){
+				timelineGlobals.indScale.domain([1, d3.max(timelineGlobals.maxima)]);
+				for (var l = 0; l < timelineGlobals.timelines.length; l++){
+					timelineGlobals.timelines[l].renderIndicator(timelineGlobals.maxima[l]);
+				}
+			}
 		} else if (jqXHR.status = 204) {
 			timeline.renderBins([]);
+			if(noUndefs(timelineGlobals.maxima)){
+				timelineGlobals.indScale.domain([1, d3.max(timelineGlobals.maxima)]);
+				for (var l = 0; l < timelineGlobals.timelines.length; l++){
+					timelineGlobals.timelines[l].renderIndicator(timelineGlobals.maxima[l]);
+				}
+			}
 		} else {
 			alert(textStatus);
 		};
 	}, "text");
+}
+
+function noUndefs(){
+	for (var i = 0; i < timelineGlobals.maxima.length; i++){
+		if (timelineGlobals.maxima[i] === undefined){
+			return false;
+		}
+	}
+	return true;
 }
 
 function datify(key, value){
@@ -113,7 +137,9 @@ function timeline(idx, range, domain, height, padding){
 	};
 
 	this.renderBins = function(element) {
-		yScaler.domain([0, d3.max(element, function(d){ return d.subElemCount;})]);
+		var max = d3.max(element, function(d){ return d.subElemCount;});
+		timelineGlobals.maxima[idx] = (max === undefined) ? 0 : max;
+		yScaler.domain([0, max]);
 
 		var thisLine = selection.selectAll(".bin")
 			.data(element);
@@ -285,6 +311,21 @@ function timeline(idx, range, domain, height, padding){
 		return xScaler(d.endTime) - xScaler(d.startTime);
 	}
 
+	this.renderIndicator = function (d){
+		timelineGlobals.indScale.range([binHeight, 0]);
+		if (selection.select(".indicator").empty()){
+			selection.append("svg:rect")
+				.attr("class", "indicator");
+		}
+		selection.select(".indicator")
+			.attr("y", function(d){
+				var temp = timelineGlobals.indScale(d);
+				return temp;})
+			.attr("width", 20)
+			.attr("height", function(d){
+				var temp = binHeight - timelineGlobals.indScale(d);
+				return temp;});
+	};
 }
 
 function zoomElem(d, i){

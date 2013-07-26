@@ -70,6 +70,11 @@
 	stroke: #000000;
 }
 
+.indicator{
+	fill: #000000;
+	stroke: #000000;
+}
+
 .flags{
 	fill: none;
 	stroke: black;
