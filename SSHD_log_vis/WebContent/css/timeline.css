@@ -3,13 +3,13 @@
 .controls {
 	position: absolute;
 	width: 24%;
-	height: 75%;
+	height:100%;
 }
 
-.timeline {
+.time {
 	position: absolute;
 	width: 75%;
-	height: 75%;
+	height: 100%;
 }
 
 .universe{
@@ -68,6 +68,9 @@
 	fill: #000000;
 	background-color: #000000;
 	stroke: #000000;
+}
+
+.timeline {
 }
 
 .indicator{
