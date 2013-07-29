@@ -22,6 +22,12 @@ function Globals(width, height){
 			left : 50,
 			right : 20
 	};
+	this.colours = {
+		accepted : "#0000ff",
+		failed : "#ff0000",
+		divider : "#000000",
+		invalid : "#ff00ff"
+	};
 	this.maxBins = Math.floor((width-this.padding.left - this.padding.right)/this.minBinWidth);
 	this.binHeight = (height/4)-this.padding.vertical;
 
@@ -336,7 +342,8 @@ function timeline(idx, range, domain, height, padding){
 			})
 			.enter()
 			.append("svg:rect")
-			.attr("class", "binFailed");
+			.attr("class", "binFailed")
+			.attr("fill", timelineGlobals.colours.failed);
 		thisLine.selectAll(".binFailed")
 			.attr("width", getEventWidth)
 			.attr("height", function(d, i){
@@ -352,29 +359,54 @@ function timeline(idx, range, domain, height, padding){
 			})
 			.enter()
 			.append("svg:rect")
-			.attr("class", "binAccepted");
+			.attr("class", "binAccepted")
+			.attr("fill", timelineGlobals.colours.accepted);
 		thisLine.selectAll(".binAccepted")
 			.attr("width", getEventWidth)
 			.attr("height", function(d){
 				return timelineGlobals.binHeight - yScaler(d.acceptedConn);})
 			.attr("y",	function(d){return yScaler(d.subElemCount);});
 
-
-		thisLine.selectAll(".binDivider")
+		thisLine.selectAll(".binInvalid")
 			.data(function(d){
-				return [{startTime : d.startTime,
-						endTime : d.endTime,
-						failedConn : d.failedConn,
-						acceptedConn : d.acceptedConn,
-						subElemCount : d.subElemCount}];
+				return [{
+					startTime : d.startTime,
+					endTime : d.endTime,
+					invalidAttempts : d.invalidAttempts,
+					failedConn : d.failedConn
+				}];
 			})
 			.enter()
 			.append("svg:rect")
-			.attr("class", "binDivider");
+			.attr("class", "binInvalid")
+			.attr("fill", timelineGlobals.colours.invalid);
+		thisLine.selectAll(".binInvalid")
+			.attr("width", getEventWidth)
+			.attr("height", function(d){
+				return timelineGlobals.binHeight - yScaler(d.invalidAttempts);
+			})
+			.attr("y", function(d){
+				return yScaler(d.failedConn + d.invalidAttempts);
+			});
+
+		thisLine.selectAll(".binDivider")
+			.data(function(d){
+				return [{
+					startTime : d.startTime,
+					endTime : d.endTime,
+					other : d.other,
+					subElemCount : d.subElemCount,
+					acceptedConn : d.acceptedConn
+				}];
+			})
+			.enter()
+			.append("svg:rect")
+			.attr("class", "binDivider")
+			.attr("fill", timelineGlobals.colours.divider);
 		thisLine.selectAll(".binDivider")
 			.attr("width", getEventWidth)
 			.attr("height", function(d){
-				return timelineGlobals.binHeight - yScaler(d.subElemCount - d.acceptedConn - d.failedConn);})
+				return timelineGlobals.binHeight - yScaler(d.other);})
 			.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
 
 		thisLine.selectAll(".flags")
@@ -458,6 +490,11 @@ function timeline(idx, range, domain, height, padding){
 		.attr("width", getEventWidth)
 		.attr("height", function(d){return timelineGlobals.binHeight - yScaler(d.subElemCount - d.acceptedConn - d.failedConn);})
 		.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
+
+		thisLine.selectAll(".binInvalid")
+		.attr("width", getEventWidth)
+		.attr("height", function(d){return timelineGlobals.binHeight - yScaler(d.invalidAttempt);})
+		.attr("y", function(d){return yScaler(d.failedConn + d.invalidAttempt);});
 
 		thisLine.selectAll(".flags")
 		.attr("y", function(d){return yScaler(d.count)-2;}); //-2 offset to float above bin by a small margin

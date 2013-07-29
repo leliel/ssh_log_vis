@@ -11,6 +11,7 @@ public class Entry {
 	private int acceptedConn;
 	private int failedConn;
 	private int invalidAttempts;
+	private int other;
 	private Line elem;
 
 	public Entry(int id, Line elem) {
@@ -108,6 +109,7 @@ public class Entry {
 		json.append(",\"acceptedConn\":"); json.append(this.acceptedConn);
 		json.append(",\"failedConn\":"); json.append(this.failedConn);
 		json.append(",\"invalidAttempts\":"); json.append(this.invalidAttempts);
+		json.append(",\"other\":"); json.append(this.other);
 		if (this.elem == null){
 			json.append(",\"elem\":"); json.append("null");
 		} else {
@@ -119,5 +121,9 @@ public class Entry {
 
 	public void setElem(Line l) {
 		this.elem = l;
+	}
+
+	public void incOther() {
+		this.other++;
 	}
 }

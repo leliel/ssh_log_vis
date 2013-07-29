@@ -19,7 +19,7 @@ function setupOnLoad() {
 		} else {
 			timelineGlobals.server = this.value;
 		}
-		timelineGlobals.performZoom(timelineGlobals.timelines[0].getStart(),
+		timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(),
 				timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength, timelineGlobals.server);
 	}
 
@@ -108,7 +108,7 @@ function initPage(start, end) {
 		var start = times[0];
 		var end = times[1];
 		if (event.originalEvent != undefined){
-			timelineGlobals.performZoom(start, end, timelineGlobals.binLength,
+			timelineGlobals.updateUIandZoom(start, end, timelineGlobals.binLength,
 					timelineGlobals.server);
 		}
 	});

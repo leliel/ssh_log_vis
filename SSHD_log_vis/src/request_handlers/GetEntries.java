@@ -204,6 +204,7 @@ public class GetEntries extends HttpServlet {
 			e.incInvalid();
 		} else if (l.getClass().equals(Other.class)) {
 			other = (Other) l;
+			e.incOther();
 			if (other.getMessage().toLowerCase().trim().startsWith("error")) {
 				e.addFlag("E");
 			}

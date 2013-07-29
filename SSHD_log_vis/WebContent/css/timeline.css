@@ -24,8 +24,8 @@
 }
 
 .legendColors {
-	width: 50%;
-	height: 99%;
+	width: 99%;
+	height: 50%;
 }
 
 .legendLabel{
@@ -53,20 +53,18 @@
 }
 
 .binFailed {
-	fill: #ff0000;
-	background-color: #ff0000;
 	stroke: #000000;
 }
 
 .binAccepted {
-	fill: #0000ff;
-	background-color: #0000ff;
 	stroke: #000000;
 }
 
 .binDivider {
-	fill: #000000;
-	background-color: #000000;
+	stroke: #000000;
+}
+
+.binInvalid {
 	stroke: #000000;
 }
 

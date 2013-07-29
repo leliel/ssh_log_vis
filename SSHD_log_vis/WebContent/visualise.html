@@ -23,16 +23,23 @@
 			End Date/time: <input type="text" id="timelineEnd" class="inputHuge ui-widget-content ui-corner-all"><br>
 			<button type="button" id="zoomButton" class="ui-widget-content ui-corner-all" value="zoomButton">Jump to dates</button><br>
 		</div>
-		<div style="width: 99%" class="ui-widget-content ui-corner-all">	
+		<div style="width: 99%" class="ui-widget-content ui-corner-all">
 			Bin length: <input type="text" id="binLength" class="inputSmall ui-widget-content ui-corner-all" value="1">
 			<select name="units" id="timelineUnits" class="inputLarge ui-widget-content select ui-corner-all"></select><br>
 			<button type="button" id="reBinButton" class="ui-widget-content ui-corner-all" value="reBinButton">Resize timebins</button><br>
 		</div>
 		Active server : <select name="servers" id="servers" class="inputLarge ui-widget-content select ui-corner-all"></select>
 		<div id="legend" class="legend ui-widget ui-widget-content ui-corner-all">
-			<div id="successColor" class="legendLabel ui-corner-all binAccepted"></div> Accepted connection
-			<div id="failedColor" class="legendLabel ui-corner-all binFailed"></div> Failed connection
-			<div id="otherColor" class="legendLabel ui-corner-all binDivider"></div> Other log entries<br>
+			<svg id="binColours" class="legendColors">
+				<rect id="binAccepted" class="binAccepted" x="0" y="0" width="40%" height="20%" />
+				<text class="" x="45%" y="10%">Accepted connections</text>
+				<rect id="binInvalid" x="0" y="25%" width="40%" height="20%" />
+				<text class="" x="45%" y="35%">Invalid Usernames</text>
+				<rect id="binFailed" x="0" y="50%" width="40%" height="20%" />
+				<text class="" x="45%" y="60%">Failed connections</text>
+				<rect id="binDivider" x="0" y="75%" width="40%" height="20%" />
+				<text class="" x="45%" y="85%">Server messages</text>
+			</svg>
 			T: Login at an unusual time<br>
 			L: Login from unusual location<br>
 			R: Failed root login<br>
