@@ -148,21 +148,7 @@ public class GetEntries extends HttpServlet {
 			if (l.getTime() < e.getEnd()) {
 				setFlags(l, e);
 				// we're right on the edge of a bin
-			} /*else if (l.getTime() == e.getEnd()) {
-				//setFlags(l, e);
-				// if lines.size == count, this is the last iteration anyway, so don't bother setting up a new element.
-				if (lines.size() > (i + 1)
-						// lookahead, if the next elem exist and is in a new bin, make it.
-						&& lines.get(i + 1).getTime() > (l.getTime())) {
-					if (e.getSubElemCount() == 1) {
-						e.setElem(l);
-					}
-					e = new Entry(l.getId(), null);
-					entries.add(e);
-					e.setStart(l.getTime());
-					e.setEnd(startTime + binLength);
-				}
-			} */ else { // this element is past the end of the current bin
+			} else { // this element is past the end of the current bin
 				// it may be more than one binLength past
 				while (l.getTime() >= startTime + binLength) {
 					startTime += binLength;// increment startTime in binLength increments, skipping N bins.

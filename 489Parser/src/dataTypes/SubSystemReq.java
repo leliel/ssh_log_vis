@@ -126,6 +126,11 @@ public class SubSystemReq implements dataTypes.Line {
 
 	@Override
 	public int compareTo(Line o) {
-		return (int)(this.time - o.getTime());
+		return (int)Math.signum(this.time - o.getTime());
+	}
+
+	@Override
+	public String toString() {
+		return "SubSystemReq [rawLine=" + rawLine + "]";
 	}
 }

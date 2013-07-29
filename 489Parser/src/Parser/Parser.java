@@ -9,11 +9,12 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.TimeZone;
 
 import dataTypes.Connect;
 import dataTypes.Disconnect;
@@ -34,9 +35,10 @@ public class Parser {
 	private final static String userName = Messages.getString("Parser.dbUser"); //$NON-NLS-1$
 	private final static String pass = Messages.getString("Parser.dbPass"); //$NON-NLS-1$
 
+	private final SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
 	private Map<String, User> users;
 	private Map<String, Server> servers;
-	private Queue<Line> lines;
+	private PriorityQueue<Line> lines;
 
 	private Writer write;
 
@@ -45,6 +47,7 @@ public class Parser {
 		servers = new HashMap<String, Server>();
 		lines = new PriorityQueue<Line>();
 		this.write = new Writer(url, dbName, userName, pass);
+		this.format.setTimeZone(TimeZone.getTimeZone("GMT" + Messages.getString("Parser.Timezone")));
 	}
 
 	private void parseLogs(String[] logName) {
@@ -72,10 +75,10 @@ public class Parser {
 	private void parseLog(BufferedReader read) throws IOException,
 			ParseException {
 		String line;
-		while ((line = read.readLine()) != null) {
+	while ((line = read.readLine()) != null) {
 			Line res = parseLine(line);
 			if (res != null) {
-				lines.add(res);
+				lines.offer(res);
 			}
 		}
 	}
@@ -90,21 +93,24 @@ public class Parser {
 			return parseConn(line);
 		} else if (line.contains("Invalid")) { //$NON-NLS-1$
 			return parseInvalid(line);
-		} else if (line.contains("Server") || line.contains("error")) { //$NON-NLS-1$ //$NON-NLS-2$
+		} else if (line.contains("Server") || line.contains("error") || line.startsWith("Recieved")) { //$NON-NLS-1$ //$NON-NLS-2$
 			return parseOther(line);
 		} else
 			return null;
+	}
+
+	private long parseTimestamp(String month, String day, String time) throws ParseException{
+		 return format.parse(
+						Messages.getString("Parser.Year") + Messages.getString("Parser.TimestampSeperator") + month + Messages.getString("Parser.TimestampSeperator") + day + Messages.getString("Parser.TimestampSeperator") + time + Messages.getString("Parser.TimestampSeperator") + Messages.getString("Parser.Timezone")) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		 				.getTime();
+
 	}
 
 	private Line parseOther(String line) throws ParseException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat(
-				Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
-		long time = format.parse(
-						Messages.getString("Parser.Year") + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-						.getTime();
+		long time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
 
 		Server s = getServer(parts[idx++]);
 
@@ -132,17 +138,7 @@ public class Parser {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat(
-				Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
-		long time = format.parse(
-				Messages.getString("Parser.Year")
-						+ Messages.getString("Parser.TimestampSeperator")
-						+ parts[idx++]
-						+ Messages.getString("Parser.TimestampSeperator")
-						+ parts[idx++]
-						+ Messages.getString("Parser.TimestampSeperator")
-						+ parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				.getTime();
+		long time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
 
 		Server s = getServer(parts[idx++]);
 
@@ -212,11 +208,7 @@ public class Parser {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat(
-				Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
-		long time = format.parse(
-						Messages.getString("Parser.Year") + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-						.getTime();
+		long time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
 
 		Server s = getServer(parts[idx++]);
 
@@ -250,11 +242,7 @@ public class Parser {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat(
-				Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
-		long time = format.parse(
-						Messages.getString("Parser.Year") + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-						.getTime();
+		long time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
 
 		Server s = getServer(parts[idx++]);
 
@@ -280,11 +268,7 @@ public class Parser {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
 		String[] parts = line.split("\\s+"); //$NON-NLS-1$
 
-		SimpleDateFormat format = new SimpleDateFormat(
-				Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
-		long time = format.parse(
-						Messages.getString("Parser.Year") + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++] + Messages.getString("Parser.TimestampSeperator") + parts[idx++]) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-						.getTime();
+		long time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
 
 		Server s = getServer(parts[idx++]);
 

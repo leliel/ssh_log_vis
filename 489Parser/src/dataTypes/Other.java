@@ -125,6 +125,11 @@ public class Other implements Line {
 
 	@Override
 	public int compareTo(Line o) {
-		return (int)(this.time - o.getTime());
+		return (int)Math.signum(this.time - o.getTime());
+	}
+
+	@Override
+	public String toString() {
+		return "Other [rawLine=" + rawLine + "]";
 	}
 }

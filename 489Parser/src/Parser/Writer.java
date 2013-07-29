@@ -6,7 +6,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.Queue;
+import java.util.PriorityQueue;
+
 
 import dataTypes.Line;
 import dataTypes.Server;
@@ -20,7 +21,7 @@ public class Writer {
 
 	private Collection<User> users;
 	private Collection<Server> servers;
-	private Queue<Line> lines;
+	private PriorityQueue<Line> lines;
 
 
 
@@ -49,7 +50,7 @@ public class Writer {
 
 
 
-	public void setLines(Queue<Line> lines) {
+	public void setLines(PriorityQueue<Line> lines) {
 		this.lines = lines;
 	}
 

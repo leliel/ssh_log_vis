@@ -52,72 +52,228 @@ function Globals(width, height){
 			.attr("height", function(d){
 				return (d == 0) ? 0 : timelineGlobals.binHeight - scale(d);});
 	};
-}
 
-function requestAllTimelines(){
-	timelineGlobals.maxima = new Array(4);
-	for (var i = 0; i < timelineGlobals.timelines.length; i++){
-		requestTimelineEvents(timelineGlobals.timelines[i].getStart(),
-				timelineGlobals.timelines[i].getEnd(), timelineGlobals.maxBins, timelineGlobals.timelines[i]);
-	};
-}
-
-function requestTimelineEvents(startTime, endTime, maxBins, timeline, server) {
-	timeline.updateTimeline(startTime, endTime);
-	var dat;
-	if (arguments.length == 5) {
-		 dat = {
-					"startTime" : startTime,
-					"endTime" : endTime,
-					"maxBins" : maxBins,
-					"binLength" : timelineGlobals.binLength,
-					"serverName" : server
-				};
-	} else {
-		 dat = {
-					"startTime" : startTime,
-					"endTime" : endTime,
-					"maxBins" : maxBins,
-					"binLength" : timelineGlobals.binLength
-				};
-	}
-
-	$.post("getEntries", dat, function(data, textStatus, jqXHR){
-		if (jqXHR.status == 200) {
-			var json = JSON.parse(data, datify);
-			if (timelineGlobals.binLength != json[0].endTime.getTime() - json[0].startTime.getTime()){
-				timelineGlobals.binLength = json[0].endTime.getTime() - json[0].startTime.getTime();
-				setUITimeUnits(timelineGlobals.binLength);
-			}
-			timeline.renderBins(json);
-			if(noUndefs(timelineGlobals.maxima)){
-				timelineGlobals.renderIndicators();
-			}
-		} else if (jqXHR.status == 204) {
-			timeline.renderBins([]);
-			if(noUndefs(timelineGlobals.maxima)){
-				timelineGlobals.renderIndicators();
-			}
-		} else {
-			alert(textStatus);
+	this.requestAllTimelines = function (){
+		this.maxima = new Array(4);
+		for (var i = 0; i < timelineGlobals.timelines.length; i++){
+			requestTimelineEvents(timelineGlobals.timelines[i].getStart(),
+					timelineGlobals.timelines[i].getEnd(), timelineGlobals.maxBins, timelineGlobals.timelines[i]);
 		};
-	}, "text");
-}
-
-function noUndefs(){
-	for (var i = 0; i < timelineGlobals.maxima.length; i++){
-		if (timelineGlobals.maxima[i] === undefined){
-			return false;
-		}
-	}
-	return true;
-}
-
-function datify(key, value){
-	if (key ==="startTime" || key === "endTime" || key === "time"){
-		return new Date(Number(value));
 	};
-	return value;
+
+	function requestTimelineEvents(startTime, endTime, maxBins, timeline, server) {
+		timeline.updateTimeline(startTime, endTime);
+		var dat;
+		if (arguments.length == 5) {
+			 dat = {
+						"startTime" : startTime,
+						"endTime" : endTime,
+						"maxBins" : maxBins,
+						"binLength" : this.binLength,
+						"serverName" : server
+					};
+		} else {
+			 dat = {
+						"startTime" : startTime,
+						"endTime" : endTime,
+						"maxBins" : maxBins,
+						"binLength" : this.binLength
+					};
+		}
+
+		$.post("getEntries", dat, function(data, textStatus, jqXHR){
+			if (jqXHR.status == 200) {
+				var json = JSON.parse(data, datify);
+				if (this.binLength != json[0].endTime.getTime() - json[0].startTime.getTime()){
+					this.binLength = json[0].endTime.getTime() - json[0].startTime.getTime();
+					setUITimeUnits(this.binLength);
+				}
+				timeline.renderBins(json);
+				if(noUndefs(this.maxima)){
+					timelineGlobals.renderIndicators();
+				}
+			} else if (jqXHR.status == 204) {
+				timeline.renderBins([]);
+				if(noUndefs(this.maxima)){
+					timelineGlobals.renderIndicators();
+				}
+			} else {
+				alert(textStatus);
+			};
+		}, "text");
+	}
+
+	function noUndefs(){
+		for (var i = 0; i < timelineGlobals.maxima.length; i++){
+			if (timelineGlobals.maxima[i] === undefined){
+				return false;
+			}
+		}
+		return true;
+	}
+
+	function datify(key, value){
+		if (key ==="startTime" || key === "endTime" || key === "time"){
+			return new Date(Number(value));
+		};
+		return value;
+	}
+
+	this.zoomElem = function(d, i){
+		if (d.elem != null) {
+			alert("Can't zoom in on a single event");
+			return;
+		} else if ((d.endTime.getTime() - d.startTime.getTime()) == timelineGlobals.timeUnits.seconds) {
+			var dat = {
+					startTime : d.startTime.getTime(),
+					endTime : d.endTime.getTime()
+			};
+			if (timelineGlobals.server != undefined && timelineGlobals.server != null && ttimelineGlobals.server != ""){
+				dat.serverName = timelineGlobals.server;
+			}
+			$.post("GetRawlines", dat, timelineGlobals.showRawlines, "json");
+			return;
+		} else {
+			timelineGlobals.updateUIandZoom(d.startTime.getTime(), d.endTime.getTime(), splitTimeBlock(d.endTime.getTime() - d.startTime.getTime()), this.server);
+		}
+	};
+
+	this.updateUIandZoom = function(start, end, length, server){
+		var reqLength = end - start;
+		var univ = {
+			max : this.universeEnd + reqLength - this.universeEnd%reqLength,
+			min : this.universeStart - this.universeStart%reqLength,
+			step : reqLength,
+			values : [start, end]
+		};
+		$("#universe").dragslider("option", univ);
+		univ = $("#universe").dragslider("values");
+		start = univ[0];
+		end = univ[1];
+		$("#timelineStart").datetimepicker("setDate", new Date(start));
+		$("#timelineEnd").datetimepicker("setDate", new Date(end));
+		setUITimeUnits(length);
+		performZoom(start, end, length, server);
+	};
+
+	function performZoom(startTime, endTime, binLength, server){
+		var url;
+		var location = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
+		location = encodeURIComponent(location);
+		if (server != undefined && server != null && server != ""){
+			this.server = server;
+		}
+		url = location + "?startTime=" + encodeURIComponent(startTime) + "&endTime=" + encodeURIComponent(endTime) + "&binLength=" + encodeURIComponent(binLength);
+		if (this.server != undefined && this.server != null) {
+			url += "&serverName=" + encodeURIComponent(this.server);
+		}
+		//TODO generate bookmark metadata -set title argument to a string.
+		window.History.pushState(null, null, url);
+		zoom(startTime, endTime, binLength, this.server);
+	}
+
+	this.loadDataFromHistory = function(){
+		var state = History.getState();
+		var url = state.url.substring(state.url.lastIndexOf("?") + 1);
+		if (url != state.url){
+			var data = getObjFromQueryString(url);
+			var start = parseInt(data.startTime);
+			var end = parseInt(data.endTime);
+			var length = parseInt(data.binLength);
+			if (data.server != undefined && data.server != null && data.server != timelineGlobals.server){
+				timelineGlobals.server = data.server;
+			}
+			timelineGlobals.updateUIandZoom(start, end, length, this.server);
+		} else {
+			window.location.reload(true);
+		};
+	};
+
+	function zoom(startTime, endTime, binLength, server){
+			this.binLength = binLength;
+			if (server != undefined && server != null){
+				this.server = server;
+			}
+			var chunk = (endTime - startTime)/timelineGlobals.timelines.length;
+			var currentTime = startTime;
+			var starts , ends;
+			for (var i = 0; i < timelineGlobals.timelines.length; i++){
+				starts = currentTime;
+				currentTime += chunk;
+				ends = currentTime;
+				timelineGlobals.timelines[i].updateTimeline(starts, ends);
+			};
+		timelineGlobals.requestAllTimelines();
+	}
+
+	this.showRawlines = function(data, textStatus, jqXHR){
+		if (jqXHR.status == 204){
+			alert("No log entries in this time period");
+		} else if (jqXHR.status == 200) {
+			var tooltip = $("#rawLines");
+			tooltip.empty();
+					for (var e in data){
+				tooltip.append("<span id=line" + data[e].id + ">" + data[e].id + " : " + data[e].rawLine + "</span><br>");
+				//$("#line"+data[e].id).on("dblclick", addComment); //removed to disable commenting for evaluation.
+			}
+			tooltip.dialog("open");
+		}
+	};
+
+	this.showToolTip = function(d) {
+		var selection = d3.select("#tooltip");
+		selection = selection.style("left", (d3.event.pageX + 10) + "px");
+		selection = selection.style("top", d3.event.pageY + "px");
+		var html;
+		if (d.elem == null){
+			html = "Start Time: " + d.startTime.toString() + "<br>" +
+				"End Time: " + d.endTime.toString() + "<br>" +
+				"Accepted Connections: " + d.acceptedConn + "<br>" +
+				"Failed Connections: " + d.failedConn + "<br>" +
+				"Invalid Usernames: " + d.invalidAttempts + "<br>" +
+				"Total events: " + d.subElemCount + "<br>";
+				if (d.flags != undefined && d.flags != null){
+					if (d.flags.T !== undefined) {
+						html += "Unusual Times: " + d.flags.T + "<br>";
+					}
+					if (d.flags.L !== undefined) {
+						html += "Unusual Places: " + d.flags.L + "<br>";
+					}
+					if (d.flags.R !== undefined) {
+						html += "Failed Root Logins: " + d.flags.R + "<br>";
+					}
+					if (d.flags.E !== undefined) {
+						html += "Server Errors: " + d.flags.E + "<br>";
+					}
+				}
+		} else {
+			html = timelineGlobals.tooltipText(d.elem);
+		}
+		selection.html(html);
+		selection.transition().duration(200).style("opacity", .9);
+	};
+
+	this.tooltipText = function(elem){
+		/*var text = "";
+		for (var prop in elem){
+			if (elem.hasOwnProperty(prop) && prop != "rawLine"){
+				if (prop == "server"){
+					text += prop + ": " + elem[prop].name + "<br>";
+				} else if (prop == "time") {
+					text += prop + ": " + elem[prop].toString() + "<br>";
+				} else if (prop === "freqTime" || prop === "freqLoc"){
+					text += (elem[prop] != "0") ? prop + ": true<br>" : prop + ": false<br>";
+				} else {
+					text += prop + ": " + elem[prop] + "<br>";
+				};
+			};
+		};*/
+		return elem.rawLine;
+	};
+
+	this.hideToolTip = function (d) {
+		d3.select("#tooltip").transition().duration(200).style("opacity", 0);
+	};
 }
 
 function timeline(idx, range, domain, height, padding){
@@ -167,15 +323,15 @@ function timeline(idx, range, domain, height, padding){
 			function(d) {
 				return d.id;
 			})
-			.on("mouseover", showToolTip)
-			.on("mouseout", hideToolTip)
-			.on("dblclick", zoomElem)
+			.on("mouseover", timelineGlobals.showToolTip)
+			.on("mouseout", timelineGlobals.hideToolTip)
+			.on("dblclick", timelineGlobals.zoomElem)
 			.attr("transform", getEventCoords);
 
 		thisLine.selectAll(".binFailed")
 			.data(function(d){
-				return [{startTime : d.startTime, 
-						endTime : d.endTime, 
+				return [{startTime : d.startTime,
+						endTime : d.endTime,
 						failedConn : d.failedConn}];
 			})
 			.enter()
@@ -183,14 +339,14 @@ function timeline(idx, range, domain, height, padding){
 			.attr("class", "binFailed");
 		thisLine.selectAll(".binFailed")
 			.attr("width", getEventWidth)
-			.attr("height", function(d, i){ 
+			.attr("height", function(d, i){
 				return timelineGlobals.binHeight - yScaler(d.failedConn);})
 			.attr("y", function(d, i){return yScaler(d.failedConn);});
 
 		thisLine.selectAll(".binAccepted")
 			.data(function(d){
-				return[{startTime : d.startTime, 
-						endTime : d.endTime, 
+				return[{startTime : d.startTime,
+						endTime : d.endTime,
 						acceptedConn : d.acceptedConn,
 						subElemCount : d.subElemCount}];
 			})
@@ -206,8 +362,8 @@ function timeline(idx, range, domain, height, padding){
 
 		thisLine.selectAll(".binDivider")
 			.data(function(d){
-				return [{startTime : d.startTime, 
-						endTime : d.endTime, 
+				return [{startTime : d.startTime,
+						endTime : d.endTime,
 						failedConn : d.failedConn,
 						acceptedConn : d.acceptedConn,
 						subElemCount : d.subElemCount}];
@@ -222,10 +378,10 @@ function timeline(idx, range, domain, height, padding){
 			.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
 
 		thisLine.selectAll(".flags")
-			.data(function(d){ 
-				return [{flags : d.flags, 
-						count : d.subElemCount, 
-						startTime : d.startTime, 
+			.data(function(d){
+				return [{flags : d.flags,
+						count : d.subElemCount,
+						startTime : d.startTime,
 						endTime : d.endTime}];
 			})
 			.enter()
@@ -283,9 +439,9 @@ function timeline(idx, range, domain, height, padding){
 
 		selection.attr("transform", "translate(0, " + rowY + ")");
 		var thisLine = selection.selectAll(".bin")
-			.on("mouseover", showToolTip)
-			.on("mouseout", hideToolTip)
-			.on("dblclick", zoomElem)
+			.on("mouseover", timelineGlobals.showToolTip)
+			.on("mouseout", timelineGlobals.hideToolTip)
+			.on("dblclick", timelineGlobals.zoomElem)
 			.attr("transform", getEventCoords);
 
 		thisLine.selectAll(".binFailed")
@@ -350,139 +506,3 @@ function timeline(idx, range, domain, height, padding){
 	}
 }
 
-function zoomElem(d, i){
-	if (d.elem != null) {
-		alert("Can't zoom in on a single event");
-		return;
-	} else if ((d.endTime.getTime() - d.startTime.getTime()) == timelineGlobals.timeUnits.seconds) {
-		var dat = {
-				startTime : d.startTime.getTime(),
-				endTime : d.endTime.getTime()
-		};
-		if (timelineGlobals.server != undefined && timelineGlobals.server != null && timelineGlobals.server != ""){
-			dat.serverName = timelineGlobals.server;
-		}
-		$.post("GetRawlines", dat, showRawlines, "json");
-		return;
-	} else {
-		updateUIandZoom(d.startTime.getTime(), d.endTime.getTime(), splitTimeBlock(d.endTime.getTime() - d.startTime.getTime()), timelineGlobals.server);
-	}
-}
-
-function performZoom(startTime, endTime, binLength, server){
-	var url;
-	var location = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
-	location = encodeURIComponent(location);
-	if (server != undefined && server != null && server != ""){
-		timelineGlobals.server = server;
-	}
-	url = location + "?startTime=" + encodeURIComponent(startTime) + "&endTime=" + encodeURIComponent(endTime) + "&binLength=" + encodeURIComponent(binLength);
-	if (timelineGlobals.server != undefined && timelineGlobals.server != null) {
-		url += "&serverName=" + encodeURIComponent(timelineGlobals.server);
-	}
-	//TODO generate bookmark metadata -set title argument to a string.
-	window.History.pushState(null, null, url);
-	zoom(startTime, endTime, binLength, timelineGlobals.server);
-}
-
-function loadDataFromHistory(){
-	var state = History.getState();
-	var url = state.url.substring(state.url.lastIndexOf("?") + 1);
-	if (url != state.url){
-		var data = getObjFromQueryString(url);
-		var start = parseInt(data.startTime);
-		var end = parseInt(data.endTime);
-		var length = parseInt(data.binLength);
-		if (data.server != undefined && data.server != null && server != timelineGlobals.server){
-			timelineGlobals.server = data.server;
-		}
-		updateUIandZoom(start, end, length, timelineGlobals.server);
-	} else {
-		window.location.reload(true);
-	};
-}
-
-function zoom(startTime, endTime, binLength, server){
-		timelineGlobals.binLength = binLength;
-		if (server != undefined && server != null){
-			timelineGlobals.server = server;
-		}
-		var chunk = (endTime - startTime)/timelineGlobals.timelines.length;
-		var currentTime = startTime;
-		var starts , ends;
-		for (var i = 0; i < timelineGlobals.timelines.length; i++){
-			starts = currentTime;
-			currentTime += chunk;
-			ends = currentTime;
-			timelineGlobals.timelines[i].updateTimeline(starts, ends);
-		};
-	requestAllTimelines();
-}
-
-function showRawlines(data, textStatus, jqXHR){
-	if (jqXHR.status == 204){
-		alert("No log entries in this time period");
-	} else if (jqXHR.status == 200) {
-		var tooltip = $("#rawLines");
-		tooltip.empty();
-				for (var e in data){
-			tooltip.append("<span id=line" + data[e].id + ">" + data[e].id + " : " + data[e].rawLine + "</span><br>");
-			$("#line"+data[e].id).on("dblclick", addComment);
-		}
-		tooltip.dialog("open");
-	}
-}
-
-function showToolTip(d) {
-	var selection = d3.select("#tooltip");
-	selection = selection.style("left", (d3.event.pageX + 10) + "px");
-	selection = selection.style("top", d3.event.pageY + "px");
-	var html;
-	if (d.elem == null){
-		html = "Start Time: " + d.startTime.toString() + "<br>" +
-			"End Time: " + d.endTime.toString() + "<br>" +
-			"Accepted Connections: " + d.acceptedConn + "<br>" +
-			"Failed Connections: " + d.failedConn + "<br>" +
-			"Invalid Usernames: " + d.invalidAttempts + "<br>" +
-			"Total events: " + d.subElemCount + "<br>";
-			if (d.flags != undefined && d.flags != null){
-				if (d.flags.T !== undefined) {
-					html += "Unusual Times: " + d.flags.T + "<br>";
-				}
-				if (d.flags.L !== undefined) {
-					html += "Unusual Places: " + d.flags.L + "<br>";
-				}
-				if (d.flags.R !== undefined) {
-					html += "Failed Root Logins: " + d.flags.R + "<br>";
-				}
-				if (d.flags.E !== undefined) {
-					html += "Server Errors: " + d.flags.E + "<br>";
-				}
-			}
-	} else {
-		html = tooltipText(d.elem);
-	}
-	selection.html(html);
-	selection.transition().duration(200).style("opacity", .9);
-}
-
-function tooltipText(elem){
-	/*var text = "";
-	for (var prop in elem){
-		if (elem.hasOwnProperty(prop) && prop != "rawLine"){
-			if (prop == "server"){
-				text += prop + ": " + elem[prop].name + "<br>";
-			} else if (prop == "time") {
-				text += prop + ": " + elem[prop].toString() + "<br>";
-			} else if (prop === "freqTime" || prop === "freqLoc"){
-				text += (elem[prop] != "0") ? prop + ": true<br>" : prop + ": false<br>";
-			} else {
-				text += prop + ": " + elem[prop] + "<br>";
-			};
-		};
-	};*/
-	return elem.rawLine;
-}
-function hideToolTip(d) {
-	d3.select("#tooltip").transition().duration(200).style("opacity", 0);
-}
