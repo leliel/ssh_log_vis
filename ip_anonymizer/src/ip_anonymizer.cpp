@@ -36,7 +36,8 @@ int main(int argc, char* argv[]) {
 	struct in_addr bits;
 	smatch match;
 	try {
-		regex addr("(?:[0-9]{1,3}\\.){3}[0-9]{1,3}", std::regex_constants::ECMAScript);
+		//TODO rebuild with Boost regex library. G++ C++11 support questionable.
+		regex addr("([0-9]{1,3}\\.){3}[0-9]{1,3}", std::regex_constants::ECMAScript);
 		regex local_addr("^(10\\.*|172\\.16\\.*|192\\.168\\.*)");
 		while (getline(input, str)) {
 			regex_match(str, match, addr);
