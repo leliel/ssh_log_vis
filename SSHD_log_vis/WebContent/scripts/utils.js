@@ -108,7 +108,7 @@ function initPage(start, end) {
 		var start = times[0];
 		var end = times[1];
 		if (event.originalEvent != undefined){
-			timelineGlobals.updateUIandZoom(start, end, timelineGlobals.binLength,
+			timelineGlobals.performZoom(start, end, timelineGlobals.binLength,
 					timelineGlobals.server);
 		}
 	});

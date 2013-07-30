@@ -161,10 +161,10 @@ function Globals(width, height){
 		$("#timelineStart").datetimepicker("setDate", new Date(start));
 		$("#timelineEnd").datetimepicker("setDate", new Date(end));
 		setUITimeUnits(length);
-		performZoom(start, end, length, server);
+		this.performZoom(start, end, length, server);
 	};
 
-	function performZoom(startTime, endTime, binLength, server){
+	this.performZoom = function (startTime, endTime, binLength, server){
 		var url;
 		var location = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
 		location = encodeURIComponent(location);
