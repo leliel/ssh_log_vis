@@ -14,6 +14,7 @@ function Globals(width, height){
 	this.timeUnits = new TimeUnits();
 	this.binLength = this.timeUnits.days;
 	this.server = null;
+	this.IP = null;
 	this.universeStart = null;
 	this.universeEnd = null;
 	this.minBinWidth = 50;
@@ -67,24 +68,19 @@ function Globals(width, height){
 		};
 	};
 
-	function requestTimelineEvents(startTime, endTime, maxBins, timeline, server) {
+	function requestTimelineEvents(startTime, endTime, maxBins, timeline) {
 		timeline.updateTimeline(startTime, endTime);
-		var dat;
-		if (arguments.length == 5) {
-			 dat = {
-						"startTime" : startTime,
-						"endTime" : endTime,
-						"maxBins" : maxBins,
-						"binLength" : timelineGlobals.binLength,
-						"serverName" : server
-					};
-		} else {
-			 dat = {
-						"startTime" : startTime,
-						"endTime" : endTime,
-						"maxBins" : maxBins,
-						"binLength" : timelineGlobals.binLength
-					};
+		var dat = {
+			"startTime" : startTime,
+			"endTime" : endTime,
+			"maxBins" : maxBins,
+			"binLength" : timelineGlobals.binLength,
+		};
+		if (timelineGlobals.server !== null) {
+			 dat.server = timelineGlobals.server;
+		}
+		if (timelineGlobals.IP !== null) {
+			dat.source = timelineGlobals.IP;
 		}
 
 		$.post("getEntries", dat, function(data, textStatus, jqXHR){
@@ -119,7 +115,7 @@ function Globals(width, height){
 	}
 
 	function datify(key, value){
-		if (key ==="startTime" || key === "endTime" || key === "time"){
+		if (key === "startTime" || key === "endTime" || key === "time"){
 			return new Date(Number(value));
 		};
 		return value;
@@ -134,22 +130,25 @@ function Globals(width, height){
 					startTime : d.startTime.getTime(),
 					endTime : d.endTime.getTime()
 			};
-			if (timelineGlobals.server != undefined && timelineGlobals.server != null && ttimelineGlobals.server != ""){
+			if (timelineGlobals.server !== undefined && timelineGlobals.server !== null && timelineGlobals.server != ""){
 				dat.serverName = timelineGlobals.server;
+			}
+			if (timelineGlobals.IP !== undefined && timelineGlobals.IP !== null && timelineGlobals.IP !== ""){
+				dat.source = timelineGlobals.IP;
 			}
 			$.post("GetRawlines", dat, timelineGlobals.showRawlines, "json");
 			return;
 		} else {
-			timelineGlobals.updateUIandZoom(d.startTime.getTime(), d.endTime.getTime(), splitTimeBlock(d.endTime.getTime() - d.startTime.getTime()), this.server);
+			timelineGlobals.updateUIandZoom(d.startTime.getTime(), d.endTime.getTime(), splitTimeBlock(d.endTime.getTime() - d.startTime.getTime()));
 		}
 	};
 
-	this.updateUIandZoom = function(start, end, length, server){
-		var times = this.updateUI(start, end, length, server);
-		this.performZoom(times[0], times[1], length, server);
+	this.updateUIandZoom = function(start, end, length){
+		var times = this.updateUI(start, end, length);
+		this.performZoom(times[0], times[1], length);
 	};
-	
-	this.updateUI = function(start, end, length, server){
+
+	this.updateUI = function(start, end, length){
 		var reqLength = end - start;
 		var univStart = timelineGlobals.universeStart - timelineGlobals.universeStart%reqLength;
 		var univEnd = timelineGlobals.universeEnd + reqLength - timelineGlobals.universeEnd%reqLength;
@@ -164,19 +163,25 @@ function Globals(width, height){
 		$("#timelineStart").datetimepicker("setDate", new Date(start));
 		$("#timelineEnd").datetimepicker("setDate", new Date(end));
 		setUITimeUnits(length);
+		if($("#servers").val() !== "" && $("#servers").val() != timelineGlobals.server){
+			$("#servers").val(timelineGlobals.server);
+		}
+		if($("#IP").val() !== timelineGlobals.IP){
+			$("#IP").val(timelineGlobals.IP);
+		}
 		return univ;
-	}
+	};
 
-	this.performZoom = function (startTime, endTime, binLength, server){
+	this.performZoom = function (startTime, endTime, binLength){
 		var url;
 		var location = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
 		location = encodeURIComponent(location);
-		if (server != undefined && server != null && server != ""){
-			this.server = server;
-		}
 		url = location + "?startTime=" + encodeURIComponent(startTime) + "&endTime=" + encodeURIComponent(endTime) + "&binLength=" + encodeURIComponent(binLength);
-		if (this.server != undefined && this.server != null) {
-			url += "&serverName=" + encodeURIComponent(this.server);
+		if (timelineGlobals.server !== undefined && timelineGlobals.server !== null) {
+			url += "&serverName=" + encodeURIComponent(timelineGlobals.server);
+		}
+		if(timelineGlobals.IP !== undefined && timelineGlobals.IP !== null){
+			url += "&source=" + encodeURIComponent(timelineGlobals.IP);
 		}
 		//TODO generate bookmark metadata -set title argument to a string.
 		window.History.pushState(null, null, url);
@@ -190,22 +195,21 @@ function Globals(width, height){
 			var start = parseInt(data.startTime);
 			var end = parseInt(data.endTime);
 			var length = parseInt(data.binLength);
-			if (data.server != undefined && data.server != null && data.server != timelineGlobals.server){
+			if (data.server !== undefined && data.server !== null && data.server !== timelineGlobals.server){
 				timelineGlobals.server = data.server;
 			}
-			var times = timelineGlobals.updateUI(start, end, length, timelineGlobals.server);
-			timelineGlobals.zoom(times[0], times[1], length, timelineGlobals.server);
+			if (data.source !== undefined && data.source !== null && data.source !== timelineGlobals.IP){
+				timelineGlobals.IP = data.source;
+			}
+			var times = timelineGlobals.updateUI(start, end, length);
+			timelineGlobals.zoom(times[0], times[1], length);
 		} else {
 			window.location.reload(true);
 		};
 	};
 
-	this.zoom = function (startTime, endTime, binLength, server){
+	this.zoom = function (startTime, endTime, binLength){
 			timelineGlobals.binLength = binLength;
-			if (server != undefined && server != null){
-				this.server = server;
-			}
-			
 			var chunk = (endTime - startTime)/timelineGlobals.timelines.length;
 			var currentTime = startTime;
 			var starts , ends;
@@ -216,7 +220,7 @@ function Globals(width, height){
 				timelineGlobals.timelines[i].updateTimeline(starts, ends);
 			};
 		timelineGlobals.requestAllTimelines();
-	}
+	};
 
 	this.showRawlines = function(data, textStatus, jqXHR){
 		if (jqXHR.status == 204){

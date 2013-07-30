@@ -30,24 +30,44 @@ public class Mysql_Datasource implements LogDataSource {
 	}
 
 	@Override
-	public List<Line> getEntriesFromDataSource(String serverName,
+	public List<Line> getEntriesFromDataSource(String serverName, String source,
 			String startTime, String endTime) throws DataSourceException {
 		String query;
 		if (serverName == null) {
-			query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
+			if (source == null) {
+				query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
 					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
 					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
 					+ "FROM entry LEFT JOIN server ON entry.server = server.id "
 					+ "LEFT JOIN user ON entry.user = user.id "
 					+ "WHERE entry.timestamp BETWEEN ? AND ?;";
+			} else {
+				query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
+					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
+					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
+					+ "FROM entry LEFT JOIN server ON entry.server = server.id "
+					+ "LEFT JOIN user ON entry.user = user.id "
+					+ "WHERE entry.source = ? AND entry.timestamp BETWEEN ? AND ?;";
+			}
 		} else {
-			query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
+			if (source == null){
+				query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
 					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
 					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
 					+ "FROM entry LEFT JOIN server ON entry.server = server.id "
 					+ "LEFT JOIN user ON entry.user = user.id "
 					+ "WHERE server.name = ? AND "
 					+ "entry.timestamp BETWEEN ? AND ?;";
+			} else {
+				query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
+					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
+					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
+					+ "FROM entry LEFT JOIN server ON entry.server = server.id "
+					+ "LEFT JOIN user ON entry.user = user.id "
+					+ "WHERE server.name = ? AND "
+					+ "entry.source = ? AND"
+					+ "entry.timestamp BETWEEN ? AND ?;";
+			}
 		}
 		List<Line> lines = null;
 		Context context = null;
@@ -62,12 +82,25 @@ public class Mysql_Datasource implements LogDataSource {
 
 
 			if (serverName != null) {
-				state.setString(1, serverName);
-				state.setLong(2, Long.parseLong(startTime));
-				state.setLong(3, Long.parseLong(endTime)-1);
+				if (source != null) {
+					state.setString(1, serverName);
+					state.setString(2, source);
+					state.setLong(3, Long.parseLong(startTime));
+					state.setLong(4, Long.parseLong(endTime)-1);
+				} else {
+					state.setString(1, serverName);
+					state.setLong(2, Long.parseLong(startTime));
+					state.setLong(3, Long.parseLong(endTime)-1);
+				}
 			} else {
-				state.setLong(1, Long.parseLong(startTime));
-				state.setLong(2, Long.parseLong(endTime)-1);
+				if (source != null){
+					state.setString(1, source);
+					state.setLong(2, Long.parseLong(startTime));
+					state.setLong(3, Long.parseLong(endTime)-1);
+				} else {
+					state.setLong(1, Long.parseLong(startTime));
+					state.setLong(2, Long.parseLong(endTime)-1);
+				}
 			}
 			state.execute();
 			result = state.getResultSet();

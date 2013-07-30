@@ -13,6 +13,23 @@ function setupOnLoad() {
 		dataType : "json"
 	});
 
+	function setIP(event){
+		if (this.value === ""){
+			timelineGlobals.IP = null;
+			timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(),
+					timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength);
+		} else {
+			var ipNum = dottedQuadToInt(this.value);
+			if (ipNum > 0 ) {
+				timelineGlobals.IP = this.value;
+				timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(),
+					timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength);
+			}
+		}
+	}
+
+	$("#IP").on("input", setIP);
+
 	function setServer(event){
 		if (this.value === ""){
 			timelineGlobals.server = null;
@@ -20,7 +37,7 @@ function setupOnLoad() {
 			timelineGlobals.server = this.value;
 		}
 		timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(),
-				timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength, timelineGlobals.server);
+				timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength);
 	}
 
 	$.post("GetServers", "", function(data, textStatus, jqXHR){
@@ -45,6 +62,29 @@ function setupOnLoad() {
 	});
 
 	setID = makeCommentDialog();
+}
+
+function dottedQuadToInt(ip){
+    var parts = ip.split('.', 4);
+    if(parts.length < 4) return -1;
+
+    var result = 0, base = 1;
+    for (var i = 3;i>=0;i--){
+       //validation
+       if (parts[i].length == 0 || parts[i].length > 3){
+    	   return -1;
+       }
+
+       var segment = parseInt(parts[i],10);
+       if (isNaN(segment) || segment<0 || segment > 255){
+    	   return -1;
+       }
+
+       //compute next segment
+       result += base * segment;
+       base = base << 8;
+    }
+    return result;
 }
 
 function makeCommentDialog(){
@@ -98,36 +138,9 @@ function makeCommentDialog(){
 }
 
 function initPage(start, end) {
-	timelineGlobals = new Globals(getPropertyNumberFromCSS(document
-			.getElementById("time"), "width"), getPropertyNumberFromCSS(
-			document.getElementById("time"), "height"));
+	$("#time").width($(window).width()-$("#controls").width() - 20);
 
-	var sel = d3.select("#binColours");
-	sel.select(".binFailed")
-		.attr("fill", timelineGlobals.colours.failed);
-	sel.select(".binAccepted")
-		.attr("fill", timelineGlobals.colours.accepted);
-	sel.select(".binDivider")
-		.attr("fill", timelineGlobals.colours.divider);	
-	sel.select(".binInvalid")
-		.attr("fill", timelineGlobals.colours.invalid);
-	
-
-	var debounce = $.debounce(50, function(event) {
-		var times = $("#universe").dragslider("values");
-		var start = times[0];
-		var end = times[1];
-		if (event.originalEvent != undefined){
-			timelineGlobals.updateUIandZoom(start, end, timelineGlobals.binLength,
-					timelineGlobals.server);
-		}
-	});
-
-	timelineGlobals.universeStart = start;
-	timelineGlobals.universeEnd = end;
-	var length = timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd() - timelineGlobals.timelines[0].getStart();
-	start -= start % length;
-	end += length - end % length;
+	timelineGlobals = new Globals($("#time").width(), $("#time").height());
 
 	$('#universe').dragslider({
 		animate : true, // Works with animation.
@@ -139,6 +152,33 @@ function initPage(start, end) {
 		values : [ timelineGlobals.timelines[0].getStart(), timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd() ],
 		stop : debounce
 	});
+	var sel = d3.select("#binColours");
+	sel.select(".binFailed")
+		.attr("fill", timelineGlobals.colours.failed);
+	sel.select(".binAccepted")
+		.attr("fill", timelineGlobals.colours.accepted);
+	sel.select(".binDivider")
+		.attr("fill", timelineGlobals.colours.divider);
+	sel.select(".binInvalid")
+		.attr("fill", timelineGlobals.colours.invalid);
+
+
+	var debounce = $.debounce(50, function(event) {
+		var times = $("#universe").dragslider("values");
+		var start = times[0];
+		var end = times[1];
+		if (event.originalEvent != undefined){
+			timelineGlobals.updateUIandZoom(start, end, timelineGlobals.binLength);
+		}
+	});
+
+	timelineGlobals.universeStart = start;
+	timelineGlobals.universeEnd = end;
+	var length = timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd() - timelineGlobals.timelines[0].getStart();
+	start -= start % length;
+	end += length - end % length;
+
+
 
 	$("#time").position({
 		my : "left top",
@@ -200,7 +240,7 @@ function initPage(start, end) {
 						var start = startTime.datetimepicker("getDate")
 								.getTime();
 						var end = endTime.datetimepicker('getDate').getTime();
-						timelineGlobals.updateUIandZoom(start, end, timelineGlobals.binLength, timelineGlobals.server);
+						timelineGlobals.updateUIandZoom(start, end, timelineGlobals.binLength);
 
 					});
 
@@ -212,7 +252,7 @@ function initPage(start, end) {
 					var length = num * timelineGlobals.timeUnits[unit];
 					if ((timelineGlobals.timelines[0].getEnd() - timelineGlobals.timelines[0].getStart())
 							%length === 0){ //is this really the condition we want to ensure it's appropriate?
-						timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(), timelineGlobals.timelines[timelineGlobals.timelines.length - 1].getEnd(), length, timelineGlobals.server);
+						timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(), timelineGlobals.timelines[timelineGlobals.timelines.length - 1].getEnd(), length);
 					} else {
 						alert("an integer number of timebins must fit on each timeline");
 					}
@@ -238,13 +278,16 @@ function initPage(start, end) {
 		if (data.server != undefined && data.server != "") {
 			timelineGlobals.server = data.server;
 		}
-		var times = timelineGlobals.updateUI(startSel, endSel, length, timelineGlobals.server);
-		timelineGlobals.zoom(times[0], times[1], length, timelineGlobals.server);
+		if (data.source != undefined && dottedQuadToInt(data.source) > 0) {
+			timelineGlobals.IP = data.source;
+		}
+		var times = timelineGlobals.updateUI(startSel, endSel, length);
+		timelineGlobals.zoom(times[0], times[1], length);
 	} else {
 		var idx = timelineGlobals.timelines.length -1;
 		endSel = timelineGlobals.timelines[idx].getEnd();
 		startSel = timelineGlobals.timelines[0].getStart();
-		timelineGlobals.updateUIandZoom(startSel, endSel, timelineGlobals.binLength, timelineGlobals.server);
+		timelineGlobals.updateUIandZoom(startSel, endSel, timelineGlobals.binLength);
 	}
 }
 
@@ -288,12 +331,6 @@ function getObjFromQueryString(string) {
 				: "";
 	}
 	return data;
-}
-
-function getPropertyNumberFromCSS(element, propertyName) {
-	var css = window.getComputedStyle(element);
-	var ans = parseInt(css.getPropertyValue(propertyName));
-	return ans;
 }
 
 function splitTimeBlock(block) {

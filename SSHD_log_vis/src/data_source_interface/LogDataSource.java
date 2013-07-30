@@ -21,12 +21,12 @@ public interface LogDataSource {
 	 * @return Empty List if no data found, or a List containing every log entry fetched.
 	 * @throws DataSourceException on any database error
 	 */
-	public List<Line> getEntriesFromDataSource(String serverName, String startTime, String endTime) throws DataSourceException;
+	public List<Line> getEntriesFromDataSource(String serverName, String source, String startTime, String endTime) throws DataSourceException;
 
 	/**
 	 * Fetches earliest and latest entry timestamps in the database
 	 * timestamps are read for all servers.
-	 * 
+	 *
 	 * @return long[] containing start and end
 	 * @throws DataSourceException on any database error.
 	 */
@@ -38,10 +38,10 @@ public interface LogDataSource {
 	 * @throws DataSourceException if no data returned(this indicates a *serious* data consistency problem, or on any database error)
 	 */
 	public List<Server> getAllServers() throws DataSourceException;
-	
+
 	/**
 	 *  Writes a client provided comment on an event into the database.
-	 *  
+	 *
 	 * @param entry_id entry identifier the comment should be associated, throws DataSourceException if entry_id does not exist in underlying datasource
  	 * @param comment String containing comment text, this cannot be null or empty.
 	 * @return true iff the comment is successfully stored
