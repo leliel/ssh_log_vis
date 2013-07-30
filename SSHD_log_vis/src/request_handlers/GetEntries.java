@@ -208,6 +208,8 @@ public class GetEntries extends HttpServlet {
 			if (other.getMessage().toLowerCase().trim().startsWith("error")) {
 				e.addFlag("E");
 			}
+		} else {
+			e.incOther();
 		}
 	}
 }

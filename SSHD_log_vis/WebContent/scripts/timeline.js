@@ -176,14 +176,18 @@ function Globals(width, height){
 			url += "&serverName=" + encodeURIComponent(this.server);
 		}
 		//TODO generate bookmark metadata -set title argument to a string.
-		var temp = History.getState().url.substring(History.getState().url.lastIndexOf("?") +1)
-		var hist = History.getState().url.substring(History.getState().url.lastIndexOf("/") +1);
-		if (temp === History.getState().url || hist !== url) {
+		//var temp = History.getState().url.substring(History.getState().url.lastIndexOf("?") +1)
+		//var hist = History.getState().url.substring(History.getState().url.lastIndexOf("/") +1);
+		//if (temp === History.getState().url || hist !== url) {
 			window.History.pushState(null, null, url);
-		}
-	}
+			zoom(startTime, endTime, binLength, server);
+		//}
+	};
 
-	this.loadDataFromHistory = function(){
+	this.loadDataFromHistory = function(e){
+		if  ( e.originalevent !== undefined) {
+			return;
+		};
 		var state = History.getState();
 		var url = state.url.substring(state.url.lastIndexOf("?") + 1);
 		if (url != state.url){
@@ -195,7 +199,7 @@ function Globals(width, height){
 				timelineGlobals.server = data.server;
 			}
 			timelineGlobals.updateUIandZoom(start, end, length, this.server);
-			zoom(start, end, length, this.server);
+			//zoom(start, end, length, this.server);
 		} else {
 			window.location.reload(true);
 		};
