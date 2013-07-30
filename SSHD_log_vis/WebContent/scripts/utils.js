@@ -118,14 +118,14 @@ function initPage(start, end) {
 		var start = times[0];
 		var end = times[1];
 		if (event.originalEvent != undefined){
-			timelineGlobals.performZoom(start, end, timelineGlobals.binLength,
+			timelineGlobals.updateUIandZoom(start, end, timelineGlobals.binLength,
 					timelineGlobals.server);
 		}
 	});
 
 	timelineGlobals.universeStart = start;
 	timelineGlobals.universeEnd = end;
-	var length = end - start;
+	var length = timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd() - timelineGlobals.timelines[0].getStart();
 	start -= start % length;
 	end += length - end % length;
 
@@ -180,7 +180,7 @@ function initPage(start, end) {
 		}
 	});
 
-	$(window).on("statechange", timelineGlobals.loadDataFromHistory);
+	$(window).on("popstate", timelineGlobals.loadDataFromHistory);
 
 	var startTime = $("#timelineStart");
 	startTime.datetimepicker({
@@ -200,15 +200,7 @@ function initPage(start, end) {
 						var start = startTime.datetimepicker("getDate")
 								.getTime();
 						var end = endTime.datetimepicker('getDate').getTime();
-						var reqLength = end - start;
-						var univ = {
-							max : timelineGlobals.universeEnd + reqLength - timelineGlobals.universeEnd%reqLength,
-							min : timelineGlobals.universeStart - timelineGlobals.universeStart%reqLength,
-							step : reqLength,
-							values : [start, end]
-						};
-						$("#universe").dragslider("option", univ);
-						timelineGlobals.performZoom(start, end, timelineGlobals.binLength, timelineGlobals.server);
+						timelineGlobals.updateUIandZoom(start, end, timelineGlobals.binLength, timelineGlobals.server);
 
 					});
 
@@ -220,7 +212,7 @@ function initPage(start, end) {
 					var length = num * timelineGlobals.timeUnits[unit];
 					if ((timelineGlobals.timelines[0].getEnd() - timelineGlobals.timelines[0].getStart())
 							%length === 0){ //is this really the condition we want to ensure it's appropriate?
-						timelineGlobals.performZoom(timelineGlobals.timelines[0].getStart(), timelineGlobals.timelines[timelineGlobals.timelines.length - 1].getEnd(), length, timelineGlobals.server);
+						timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(), timelineGlobals.timelines[timelineGlobals.timelines.length - 1].getEnd(), length, timelineGlobals.server);
 					} else {
 						alert("an integer number of timebins must fit on each timeline");
 					}
@@ -246,7 +238,8 @@ function initPage(start, end) {
 		if (data.server != undefined && data.server != "") {
 			timelineGlobals.server = data.server;
 		}
-		timelineGlobals.updateUIandZoom(startSel, endSel, length, timelineGlobals.server);
+		var times = timelineGlobals.updateUI(startSel, endSel, length, timelineGlobals.server);
+		timelineGlobals.zoom(times[0], times[1], length, timelineGlobals.server);
 	} else {
 		var idx = timelineGlobals.timelines.length -1;
 		endSel = timelineGlobals.timelines[idx].getEnd();

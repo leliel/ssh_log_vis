@@ -31,10 +31,10 @@ function Globals(width, height){
 	this.maxBins = Math.floor((width-this.padding.left - this.padding.right)/this.minBinWidth);
 	this.binHeight = (height/4)-this.padding.vertical;
 
-	this.timelines = [new timeline(0, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 15, 00, 00, 00)), new Date(Date.UTC(2013, 02, 22, 00, 00, 00))], height/4, this.padding),
-	                  new timeline(1, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 22, 00, 00, 00)), new Date(Date.UTC(2013, 02, 29, 00, 00, 00))], height/4, this.padding),
-	                  new timeline(2, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 02, 29, 00, 00, 00)), new Date(Date.UTC(2013, 03, 05, 00, 00, 00))], height/4, this.padding),
-	                  new timeline(3, [this.padding.left, width-this.padding.right], [new Date(Date.UTC(2013, 03, 05, 00, 00, 00)), new Date(Date.UTC(2013, 03, 13, 00, 00 ,00))], height/4, this.padding)];
+	this.timelines = [new timeline(0, [this.padding.left, width-this.padding.right], [new Date(2013, 02, 15, 00, 00, 00), new Date(2013, 02, 22, 00, 00, 00)], height/4, this.padding),
+	                  new timeline(1, [this.padding.left, width-this.padding.right], [new Date(2013, 02, 22, 00, 00, 00), new Date(2013, 02, 29, 00, 00, 00)], height/4, this.padding),
+	                  new timeline(2, [this.padding.left, width-this.padding.right], [new Date(2013, 02, 29, 00, 00, 00), new Date(2013, 03, 05, 00, 00, 00)], height/4, this.padding),
+	                  new timeline(3, [this.padding.left, width-this.padding.right], [new Date(2013, 03, 05, 00, 00, 00), new Date(2013, 03, 13, 00, 00 ,00)], height/4, this.padding)];
 	this.maxima = new Array(4);
 
 	this.renderIndicators = function (){
@@ -75,7 +75,7 @@ function Globals(width, height){
 						"startTime" : startTime,
 						"endTime" : endTime,
 						"maxBins" : maxBins,
-						"binLength" : this.binLength,
+						"binLength" : timelineGlobals.binLength,
 						"serverName" : server
 					};
 		} else {
@@ -83,7 +83,7 @@ function Globals(width, height){
 						"startTime" : startTime,
 						"endTime" : endTime,
 						"maxBins" : maxBins,
-						"binLength" : this.binLength
+						"binLength" : timelineGlobals.binLength
 					};
 		}
 
@@ -145,11 +145,11 @@ function Globals(width, height){
 	};
 
 	this.updateUIandZoom = function(start, end, length, server){
-		var times = updateUI(start, end, length, server);
+		var times = this.updateUI(start, end, length, server);
 		this.performZoom(times[0], times[1], length, server);
 	};
 	
-	function updateUI(start, end, length, server){
+	this.updateUI = function(start, end, length, server){
 		var reqLength = end - start;
 		var univStart = timelineGlobals.universeStart - timelineGlobals.universeStart%reqLength;
 		var univEnd = timelineGlobals.universeEnd + reqLength - timelineGlobals.universeEnd%reqLength;
@@ -161,8 +161,6 @@ function Globals(width, height){
 		};
 		$("#universe").dragslider("option", univ);
 		univ = $("#universe").dragslider("values");
-		start = univ[0];
-		end = univ[1];
 		$("#timelineStart").datetimepicker("setDate", new Date(start));
 		$("#timelineEnd").datetimepicker("setDate", new Date(end));
 		setUITimeUnits(length);
@@ -185,9 +183,6 @@ function Globals(width, height){
 	};
 
 	this.loadDataFromHistory = function(e){
-		if  ( e.originalevent !== undefined) {
-			return;
-		};
 		var state = History.getState();
 		var url = state.url.substring(state.url.lastIndexOf("?") + 1);
 		if (url != state.url){
@@ -198,18 +193,19 @@ function Globals(width, height){
 			if (data.server != undefined && data.server != null && data.server != timelineGlobals.server){
 				timelineGlobals.server = data.server;
 			}
-			var times = updateUI(start, end, length, this.server);
-			zoom(times[0], times[1], length, this.server);
+			var times = timelineGlobals.updateUI(start, end, length, timelineGlobals.server);
+			timelineGlobals.zoom(times[0], times[1], length, timelineGlobals.server);
 		} else {
 			window.location.reload(true);
 		};
 	};
 
-	function zoom(startTime, endTime, binLength, server){
-			this.binLength = binLength;
+	this.zoom = function (startTime, endTime, binLength, server){
+			timelineGlobals.binLength = binLength;
 			if (server != undefined && server != null){
 				this.server = server;
 			}
+			
 			var chunk = (endTime - startTime)/timelineGlobals.timelines.length;
 			var currentTime = startTime;
 			var starts , ends;
