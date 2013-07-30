@@ -102,6 +102,16 @@ function initPage(start, end) {
 			.getElementById("time"), "width"), getPropertyNumberFromCSS(
 			document.getElementById("time"), "height"));
 
+	var sel = d3.select("#binColours");
+	sel.select(".binFailed")
+		.attr("fill", timelineGlobals.colours.failed);
+	sel.select(".binAccepted")
+		.attr("fill", timelineGlobals.colours.accepted);
+	sel.select(".binDivider")
+		.attr("fill", timelineGlobals.colours.divider);	
+	sel.select(".binInvalid")
+		.attr("fill", timelineGlobals.colours.invalid);
+	
 
 	var debounce = $.debounce(50, function(event) {
 		var times = $("#universe").dragslider("values");
