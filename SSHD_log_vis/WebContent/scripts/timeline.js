@@ -146,9 +146,11 @@ function Globals(width, height){
 
 	this.updateUIandZoom = function(start, end, length, server){
 		var reqLength = end - start;
+		var univStart = this.universeStart - this.universeStart%reqLength;
+		var univEnd = this.universeEnd + reqLength - this.universeEnd%reqLength;
 		var univ = {
-			max : this.universeEnd + reqLength - this.universeEnd%reqLength,
-			min : this.universeStart - this.universeStart%reqLength,
+			max : univEnd,
+			min : univStart,
 			step : reqLength,
 			values : [start, end]
 		};
@@ -174,8 +176,11 @@ function Globals(width, height){
 			url += "&serverName=" + encodeURIComponent(this.server);
 		}
 		//TODO generate bookmark metadata -set title argument to a string.
-		window.History.pushState(null, null, url);
-		zoom(startTime, endTime, binLength, this.server);
+		var temp = History.getState().url.substring(History.getState().url.lastIndexOf("?") +1)
+		var hist = History.getState().url.substring(History.getState().url.lastIndexOf("/") +1);
+		if (temp === History.getState().url || hist !== url) {
+			window.History.pushState(null, null, url);
+		}
 	}
 
 	this.loadDataFromHistory = function(){
@@ -190,6 +195,7 @@ function Globals(width, height){
 				timelineGlobals.server = data.server;
 			}
 			timelineGlobals.updateUIandZoom(start, end, length, this.server);
+			zoom(start, end, length, this.server);
 		} else {
 			window.location.reload(true);
 		};

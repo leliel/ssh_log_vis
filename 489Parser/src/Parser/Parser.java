@@ -28,7 +28,6 @@ import enums.AuthType;
 import enums.Status;
 import enums.SubSystem;
 
-//TODO - implement Ip anonymizer as standalone. c++?
 public class Parser {
 	private final static String url = Messages.getString("Parser.dbLoc"); //$NON-NLS-1$
 	private final static String dbName = Messages.getString("Parser.dbName"); //$NON-NLS-1$
