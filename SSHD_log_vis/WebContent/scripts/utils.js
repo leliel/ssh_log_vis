@@ -170,7 +170,7 @@ function initPage(start, end) {
 		}
 	});
 
-	$(window).on('statechange', timelineGlobals.loadDataFromHistory);
+	$(window).on("statechange", timelineGlobals.loadDataFromHistory);
 
 	var startTime = $("#timelineStart");
 	startTime.datetimepicker({

@@ -145,9 +145,14 @@ function Globals(width, height){
 	};
 
 	this.updateUIandZoom = function(start, end, length, server){
+		var times = updateUI(start, end, length, server);
+		this.performZoom(times[0], times[1], length, server);
+	};
+	
+	function updateUI(start, end, length, server){
 		var reqLength = end - start;
-		var univStart = this.universeStart - this.universeStart%reqLength;
-		var univEnd = this.universeEnd + reqLength - this.universeEnd%reqLength;
+		var univStart = timelineGlobals.universeStart - timelineGlobals.universeStart%reqLength;
+		var univEnd = timelineGlobals.universeEnd + reqLength - timelineGlobals.universeEnd%reqLength;
 		var univ = {
 			max : univEnd,
 			min : univStart,
@@ -161,8 +166,8 @@ function Globals(width, height){
 		$("#timelineStart").datetimepicker("setDate", new Date(start));
 		$("#timelineEnd").datetimepicker("setDate", new Date(end));
 		setUITimeUnits(length);
-		this.performZoom(start, end, length, server);
-	};
+		return univ;
+	}
 
 	this.performZoom = function (startTime, endTime, binLength, server){
 		var url;
@@ -176,12 +181,7 @@ function Globals(width, height){
 			url += "&serverName=" + encodeURIComponent(this.server);
 		}
 		//TODO generate bookmark metadata -set title argument to a string.
-		//var temp = History.getState().url.substring(History.getState().url.lastIndexOf("?") +1)
-		//var hist = History.getState().url.substring(History.getState().url.lastIndexOf("/") +1);
-		//if (temp === History.getState().url || hist !== url) {
-			window.History.pushState(null, null, url);
-			zoom(startTime, endTime, binLength, server);
-		//}
+		window.History.pushState(null, null, url);
 	};
 
 	this.loadDataFromHistory = function(e){
@@ -198,8 +198,8 @@ function Globals(width, height){
 			if (data.server != undefined && data.server != null && data.server != timelineGlobals.server){
 				timelineGlobals.server = data.server;
 			}
-			timelineGlobals.updateUIandZoom(start, end, length, this.server);
-			//zoom(start, end, length, this.server);
+			var times = updateUI(start, end, length, this.server);
+			zoom(times[0], times[1], length, this.server);
 		} else {
 			window.location.reload(true);
 		};
