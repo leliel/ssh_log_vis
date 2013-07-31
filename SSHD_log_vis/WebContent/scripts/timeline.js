@@ -83,8 +83,11 @@ function Globals(width, height){
 		if (timelineGlobals.IP !== null) {
 			dat.source = timelineGlobals.IP;
 		}
+		if (timelineGlobals.user !== null){
+			dat.user = timelineGlobals.user;
+		}
 
-		$.post("getEntries", dat, function(data, textStatus, jqXHR){
+		$.get("getEntries", dat, function(data, textStatus, jqXHR){
 			if (jqXHR.status == 200) {
 				var json = JSON.parse(data, datify);
 				if (this.binLength != json[0].endTime.getTime() - json[0].startTime.getTime()){
@@ -131,13 +134,16 @@ function Globals(width, height){
 					startTime : d.startTime.getTime(),
 					endTime : d.endTime.getTime()
 			};
-			if (timelineGlobals.server !== null && timelineGlobals.server != ""){
+			if (timelineGlobals.server !== null){
 				dat.serverName = timelineGlobals.server;
 			}
-			if (timelineGlobals.IP !== null && timelineGlobals.IP !== ""){
+			if (timelineGlobals.IP !== null){
 				dat.source = timelineGlobals.IP;
 			}
-			$.post("GetRawlines", dat, timelineGlobals.showRawlines, "json");
+			if (timelineGlobals.user !== null){
+				dat.user = timelineGlobals.user;
+			}
+			$.get("GetRawlines", dat, timelineGlobals.showRawlines, "json");
 			return;
 		} else {
 			timelineGlobals.updateUIandZoom(d.startTime.getTime(), d.endTime.getTime(), splitTimeBlock(d.endTime.getTime() - d.startTime.getTime()));
@@ -169,6 +175,9 @@ function Globals(width, height){
 		}
 		if($("#IP").val() !== timelineGlobals.IP){
 			$("#IP").val(timelineGlobals.IP);
+		}
+		if($("#user").val() !== timelineGlobals.user){
+			$("#user").val(timelineGlobals.user);
 		}
 		return univ;
 	};

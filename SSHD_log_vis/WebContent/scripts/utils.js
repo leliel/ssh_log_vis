@@ -3,17 +3,11 @@ var setID;
 
 function setupOnLoad() {
 
-	$.ajax({
-		type : "POST",
-		url : "GetBeginAndEnd",
-		data : "",
-		success : function(data, textStatus, jqXHR) {
+	$.get("GetBeginAndEnd", "", function(data, textStatus, jqXHR) {
 			initPage(parseInt(data.start), parseInt(data.end));
-		},
-		dataType : "json"
-	});
+		}, "json");
 
-	function setIP(event){
+	$("#IP").on("input", $.debounce(500, 	function(event){
 		if (this.value === ""){
 			timelineGlobals.IP = null;
 			timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(),
@@ -26,11 +20,9 @@ function setupOnLoad() {
 					timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength);
 			}
 		}
-	}
+	}));
 
-	$("#IP").on("input", setIP);
-
-	$("#user").on("input", function(event){
+	$("#user").on("input", $.debounce(500, function(event){
 		if (this.value === ""){
 			timelineGlobals.user = null;
 		} else {
@@ -38,7 +30,7 @@ function setupOnLoad() {
 		}
 		timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(),
 				timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength);
-	});
+	}));
 
 	function setServer(event){
 		if (this.value === ""){
@@ -50,7 +42,7 @@ function setupOnLoad() {
 				timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength);
 	}
 
-	$.post("GetServers", "", function(data, textStatus, jqXHR){
+	$.get("GetServers", "", function(data, textStatus, jqXHR){
 		if (jqXHR.status == 200){
 			$("#servers").change(setServer);
 			$("#servers").append($("<option />").val("").text("All Servers"));
@@ -160,8 +152,16 @@ function initPage(start, end) {
 		min : start,
 		step : timelineGlobals.timeUnits.months,
 		values : [ timelineGlobals.timelines[0].getStart(), timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd() ],
-		stop : debounce
+		stop : $.debounce(50, function(event) {
+			var times = $("#universe").dragslider("values");
+			var start = times[0];
+			var end = times[1];
+			if (event.originalEvent != undefined){
+				timelineGlobals.updateUIandZoom(start, end, timelineGlobals.binLength);
+			}
+		})
 	});
+	
 	var sel = d3.select("#binColours");
 	sel.select(".binFailed")
 		.attr("fill", timelineGlobals.colours.failed);
@@ -171,16 +171,6 @@ function initPage(start, end) {
 		.attr("fill", timelineGlobals.colours.divider);
 	sel.select(".binInvalid")
 		.attr("fill", timelineGlobals.colours.invalid);
-
-
-	var debounce = $.debounce(50, function(event) {
-		var times = $("#universe").dragslider("values");
-		var start = times[0];
-		var end = times[1];
-		if (event.originalEvent != undefined){
-			timelineGlobals.updateUIandZoom(start, end, timelineGlobals.binLength);
-		}
-	});
 
 	timelineGlobals.universeStart = start;
 	timelineGlobals.universeEnd = end;
