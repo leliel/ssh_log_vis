@@ -21,7 +21,7 @@ public interface LogDataSource {
 	 * @return Empty List if no data found, or a List containing every log entry fetched.
 	 * @throws DataSourceException on any database error
 	 */
-	public List<Line> getEntriesFromDataSource(String serverName, String source, String startTime, String endTime) throws DataSourceException;
+	public List<Line> getEntriesFromDataSource(String serverName, String source, String user, String startTime, String endTime) throws DataSourceException;
 
 	/**
 	 * Fetches earliest and latest entry timestamps in the database
@@ -48,5 +48,7 @@ public interface LogDataSource {
 	 * @throws DataSourceException on any error from underlying datasource.
 	 */
 	public boolean writeComment(long entry_id, String comment) throws DataSourceException;
+
+
 }
 

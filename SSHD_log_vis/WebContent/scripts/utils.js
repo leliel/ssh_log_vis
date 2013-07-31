@@ -30,6 +30,16 @@ function setupOnLoad() {
 
 	$("#IP").on("input", setIP);
 
+	$("#user").on("input", function(event){
+		if (this.value === ""){
+			timelineGlobals.user = null;
+		} else {
+			timelineGlobals.user = this.value;
+		}
+		timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(),
+				timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength);
+	});
+
 	function setServer(event){
 		if (this.value === ""){
 			timelineGlobals.server = null;
@@ -271,18 +281,7 @@ function initPage(start, end) {
 
 	var startSel, endSel;
 	if (window.location.search.length > 1) {
-		var data = getObjFromQueryString(window.location.search);
-		startSel = parseInt(data.startTime);
-		endSel = parseInt(data.endTime);
-		var length = parseInt(data.binLength);
-		if (data.server != undefined && data.server != "") {
-			timelineGlobals.server = data.server;
-		}
-		if (data.source != undefined && dottedQuadToInt(data.source) > 0) {
-			timelineGlobals.IP = data.source;
-		}
-		var times = timelineGlobals.updateUI(startSel, endSel, length);
-		timelineGlobals.zoom(times[0], times[1], length);
+		timelineGlobals.loadDataFromHistory();
 	} else {
 		var idx = timelineGlobals.timelines.length -1;
 		endSel = timelineGlobals.timelines[idx].getEnd();

@@ -15,6 +15,7 @@ function Globals(width, height){
 	this.binLength = this.timeUnits.days;
 	this.server = null;
 	this.IP = null;
+	this.user = null;
 	this.universeStart = null;
 	this.universeEnd = null;
 	this.minBinWidth = 50;
@@ -77,7 +78,7 @@ function Globals(width, height){
 			"binLength" : timelineGlobals.binLength,
 		};
 		if (timelineGlobals.server !== null) {
-			 dat.server = timelineGlobals.server;
+			 dat.serverName = timelineGlobals.server;
 		}
 		if (timelineGlobals.IP !== null) {
 			dat.source = timelineGlobals.IP;
@@ -130,10 +131,10 @@ function Globals(width, height){
 					startTime : d.startTime.getTime(),
 					endTime : d.endTime.getTime()
 			};
-			if (timelineGlobals.server !== undefined && timelineGlobals.server !== null && timelineGlobals.server != ""){
+			if (timelineGlobals.server !== null && timelineGlobals.server != ""){
 				dat.serverName = timelineGlobals.server;
 			}
-			if (timelineGlobals.IP !== undefined && timelineGlobals.IP !== null && timelineGlobals.IP !== ""){
+			if (timelineGlobals.IP !== null && timelineGlobals.IP !== ""){
 				dat.source = timelineGlobals.IP;
 			}
 			$.post("GetRawlines", dat, timelineGlobals.showRawlines, "json");
@@ -177,11 +178,14 @@ function Globals(width, height){
 		var location = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
 		location = encodeURIComponent(location);
 		url = location + "?startTime=" + encodeURIComponent(startTime) + "&endTime=" + encodeURIComponent(endTime) + "&binLength=" + encodeURIComponent(binLength);
-		if (timelineGlobals.server !== undefined && timelineGlobals.server !== null) {
+		if (timelineGlobals.server !== null) {
 			url += "&serverName=" + encodeURIComponent(timelineGlobals.server);
 		}
-		if(timelineGlobals.IP !== undefined && timelineGlobals.IP !== null){
+		if(timelineGlobals.IP !== null){
 			url += "&source=" + encodeURIComponent(timelineGlobals.IP);
+		}
+		if(timelineGlobals.user !== null){
+			url += "&user=" + encodeURIComponent(timelineGlobals.user);
 		}
 		//TODO generate bookmark metadata -set title argument to a string.
 		window.History.pushState(null, null, url);
@@ -195,11 +199,14 @@ function Globals(width, height){
 			var start = parseInt(data.startTime);
 			var end = parseInt(data.endTime);
 			var length = parseInt(data.binLength);
-			if (data.server !== undefined && data.server !== null && data.server !== timelineGlobals.server){
-				timelineGlobals.server = data.server;
+			if (data.serverName !== undefined && data.serverName !== timelineGlobals.server){
+				timelineGlobals.server = data.serverName;
 			}
-			if (data.source !== undefined && data.source !== null && data.source !== timelineGlobals.IP){
+			if (data.source !== undefined && data.source !== timelineGlobals.IP){
 				timelineGlobals.IP = data.source;
+			}
+			if (data.user !== undefined && data.user !== timelineGlobals.user){
+				timelineGlobals.user = data.user;
 			}
 			var times = timelineGlobals.updateUI(start, end, length);
 			timelineGlobals.zoom(times[0], times[1], length);

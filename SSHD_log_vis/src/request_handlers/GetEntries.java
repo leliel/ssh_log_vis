@@ -71,6 +71,7 @@ public class GetEntries extends HttpServlet {
 			lines = this.datasource.getEntriesFromDataSource(
 					request.getParameter("serverName"),
 					request.getParameter("source"),
+					request.getParameter("user"),
 					request.getParameter("startTime"),
 					request.getParameter("endTime"));
 		} catch (DataSourceException e2) {

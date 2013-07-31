@@ -31,44 +31,35 @@ public class Mysql_Datasource implements LogDataSource {
 
 	@Override
 	public List<Line> getEntriesFromDataSource(String serverName, String source,
-			String startTime, String endTime) throws DataSourceException {
-		String query;
-		if (serverName == null) {
-			if (source == null) {
-				query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
-					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
-					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
-					+ "FROM entry LEFT JOIN server ON entry.server = server.id "
-					+ "LEFT JOIN user ON entry.user = user.id "
-					+ "WHERE entry.timestamp BETWEEN ? AND ?;";
+			String user, String startTime, String endTime) throws DataSourceException {
+		String query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
+				+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
+				+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
+				+ "FROM entry LEFT JOIN server ON entry.server = server.id "
+				+ "LEFT JOIN user ON entry.user = user.id WHERE ";
+		if (serverName != null){
+			query += "server.name = ?";
+		}
+		if (source != null){
+			if (query.endsWith("?")){
+				query += " AND entry.source = ?";
 			} else {
-				query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
-					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
-					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
-					+ "FROM entry LEFT JOIN server ON entry.server = server.id "
-					+ "LEFT JOIN user ON entry.user = user.id "
-					+ "WHERE entry.source = ? AND entry.timestamp BETWEEN ? AND ?;";
-			}
-		} else {
-			if (source == null){
-				query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
-					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
-					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
-					+ "FROM entry LEFT JOIN server ON entry.server = server.id "
-					+ "LEFT JOIN user ON entry.user = user.id "
-					+ "WHERE server.name = ? AND "
-					+ "entry.timestamp BETWEEN ? AND ?;";
-			} else {
-				query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
-					+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
-					+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
-					+ "FROM entry LEFT JOIN server ON entry.server = server.id "
-					+ "LEFT JOIN user ON entry.user = user.id "
-					+ "WHERE server.name = ? AND "
-					+ "entry.source = ? AND"
-					+ "entry.timestamp BETWEEN ? AND ?;";
+				query += "entry.source = ?";
 			}
 		}
+		if (user != null) {
+			if (query.endsWith("?")){
+				query += " AND user.name = ?";
+			} else {
+				query += "user.name = ?";
+			}
+		}
+		if (query.endsWith("?")){
+			query += " AND entry.timestamp BETWEEN ? AND ?;";
+		} else {
+			query += "entry.timestamp BETWEEN ? AND ?;";
+		}
+
 		List<Line> lines = null;
 		Context context = null;
 		Connection connection = null;
@@ -80,48 +71,55 @@ public class Mysql_Datasource implements LogDataSource {
 					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
 			state = connection.prepareStatement(query);
 
-
-			if (serverName != null) {
-				if (source != null) {
-					state.setString(1, serverName);
+			if (serverName != null){
+				state.setString(1, serverName);
+				if (source != null){
 					state.setString(2, source);
-					state.setLong(3, Long.parseLong(startTime));
-					state.setLong(4, Long.parseLong(endTime)-1);
+					if (user != null) {
+						state.setString(3, user);
+						state.setLong(4, Long.parseLong(startTime));
+						state.setLong(5, Long.parseLong(endTime));
+					} else {
+						state.setLong(3, Long.parseLong(startTime));
+						state.setLong(4, Long.parseLong(endTime));
+					}
 				} else {
-					state.setString(1, serverName);
-					state.setLong(2, Long.parseLong(startTime));
-					state.setLong(3, Long.parseLong(endTime)-1);
+					if (user != null){
+						state.setString(2, user);
+						state.setLong(3, Long.parseLong(startTime));
+						state.setLong(4, Long.parseLong(endTime));
+					} else {
+						state.setLong(2, Long.parseLong(startTime));
+						state.setLong(3, Long.parseLong(endTime));
+					}
 				}
 			} else {
 				if (source != null){
 					state.setString(1, source);
-					state.setLong(2, Long.parseLong(startTime));
-					state.setLong(3, Long.parseLong(endTime)-1);
+					if (user != null){
+						state.setString(2, user);
+						state.setLong(3, Long.parseLong(startTime));
+						state.setLong(4, Long.parseLong(endTime));
+					} else {
+						state.setLong(2, Long.parseLong(startTime));
+						state.setLong(3, Long.parseLong(endTime));
+					}
 				} else {
-					state.setLong(1, Long.parseLong(startTime));
-					state.setLong(2, Long.parseLong(endTime)-1);
+					if (user != null){
+						state.setString(1, user);
+						state.setLong(2, Long.parseLong(startTime));
+						state.setLong(3, Long.parseLong(endTime));
+					} else {
+						state.setLong(1, Long.parseLong(startTime));
+						state.setLong(2, Long.parseLong(endTime));
+					}
 				}
 			}
+
 			state.execute();
 			result = state.getResultSet();
-			lines = new ArrayList<Line>();
-			Line res;
-			String colVal;
-			while (result.next()) {
-				colVal = result.getString("entry.reqtype");
-				if ("connect".equalsIgnoreCase(colVal)) {
-					res = loadConnect(result);
-				} else if ("disconnect".equalsIgnoreCase(colVal)) {
-					res = loadDisconnect(result);
-				} else if ("subsystem".equalsIgnoreCase(colVal)) {
-					res = loadSubsystem(result);
-				} else if ("invalid".equalsIgnoreCase(colVal)) {
-					res = loadInvalid(result);
-				} else {
-					res = loadOther(result);
-				}
-				lines.add(res);
-			}
+			lines = parseResults(result);
+
 		} catch (SQLException e) {
 			throw new DataSourceException(e);
 		} catch (NumberFormatException e) {
@@ -147,6 +145,28 @@ public class Mysql_Datasource implements LogDataSource {
 			} catch (NamingException e) {
 				throw new DataSourceException(e);
 			}
+		}
+		return lines;
+	}
+
+	private List<Line> parseResults(ResultSet result) throws SQLException{
+		List<Line> lines = new ArrayList<Line>();
+		Line res;
+		String colVal;
+		while (result.next()) {
+			colVal = result.getString("entry.reqtype");
+			if ("connect".equalsIgnoreCase(colVal)) {
+				res = loadConnect(result);
+			} else if ("disconnect".equalsIgnoreCase(colVal)) {
+				res = loadDisconnect(result);
+			} else if ("subsystem".equalsIgnoreCase(colVal)) {
+				res = loadSubsystem(result);
+			} else if ("invalid".equalsIgnoreCase(colVal)) {
+				res = loadInvalid(result);
+			} else {
+				res = loadOther(result);
+			}
+			lines.add(res);
 		}
 		return lines;
 	}
