@@ -150,9 +150,9 @@ function initPage(start, end) {
 		rangeDrag : true, // Enable range dragging.
 		max : end,
 		min : start,
-		step : timelineGlobals.timeUnits.months,
+		//step : timelineGlobals.timeUnits.months,
 		values : [ timelineGlobals.timelines[0].getStart(), timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd() ],
-		stop : $.debounce(50, function(event) {
+		stop : $.debounce(500, function(event) {
 			var times = $("#universe").dragslider("values");
 			var start = times[0];
 			var end = times[1];

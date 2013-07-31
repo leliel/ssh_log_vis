@@ -162,7 +162,7 @@ function Globals(width, height){
 		var univ = {
 			max : univEnd,
 			min : univStart,
-			step : reqLength,
+			//step : reqLength,
 			values : [start, end]
 		};
 		$("#universe").dragslider("option", univ);
