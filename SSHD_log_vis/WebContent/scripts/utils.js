@@ -161,7 +161,7 @@ function initPage(start, end) {
 			}
 		})
 	});
-	
+
 	var sel = d3.select("#binColours");
 	sel.select(".binFailed")
 		.attr("fill", timelineGlobals.colours.failed);
@@ -200,9 +200,11 @@ function initPage(start, end) {
 	});
 
 	$(window).resize(function() {
+		$("#time").width($(window).width()-$("#controls").width() - 20);
+
 		$("#time").position({
 			my : "left top",
-			at : "right top",
+			at : "right top+15",
 			of : $("#controls")
 		});
 
@@ -215,6 +217,7 @@ function initPage(start, end) {
 
 		var width = $("#time").width();
 		var height = $("#time").height() / timelineGlobals.timelines.length;
+		timelineGlobals.binHeight = height - timelineGlobals.padding.vertical;
 		for ( var i in timelineGlobals.timelines) {
 			timelineGlobals.timelines[i].redrawBins(width, height);
 		}

@@ -525,7 +525,6 @@ function timeline(idx, range, domain, height, padding){
 
 	this.redrawBins = function(width, height){
 		rowY = height * idx;
-		binHeight = height - padding.vertical;
 		xScaler = xScaler.range([timelineGlobals.padding.left, width-timelineGlobals.padding.right]);
 		yScaler = yScaler.range([height-timelineGlobals.padding.vertical, timelineGlobals.padding.vertical]);
 
@@ -548,13 +547,13 @@ function timeline(idx, range, domain, height, padding){
 
 		thisLine.selectAll(".binDivider")
 		.attr("width", getEventWidth)
-		.attr("height", function(d){return timelineGlobals.binHeight - yScaler(d.subElemCount - d.acceptedConn - d.failedConn);})
+		.attr("height", function(d){return timelineGlobals.binHeight - yScaler(d.other);})
 		.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
 
 		thisLine.selectAll(".binInvalid")
 		.attr("width", getEventWidth)
-		.attr("height", function(d){return timelineGlobals.binHeight - yScaler(d.invalidAttempt);})
-		.attr("y", function(d){return yScaler(d.failedConn + d.invalidAttempt);});
+		.attr("height", function(d){return timelineGlobals.binHeight - yScaler(d.invalidAttempts);})
+		.attr("y", function(d){return yScaler(d.failedConn + d.invalidAttempts);});
 
 		thisLine.selectAll(".flags")
 		.attr("y", function(d){return yScaler(d.count)-2;}); //-2 offset to float above bin by a small margin
