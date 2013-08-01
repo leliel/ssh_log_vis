@@ -157,27 +157,36 @@ function Globals(width, height){
 
 	function setUnivEnd(end, reqLength){
 		var univEnd = timelineGlobals.universeEnd;
-		var count = 0;
-		while(univEnd < end){
-			univEnd += reqLength;
+		if (univEnd <= end){
+			return end;
+		} else {
+			if ((univEnd - end)%reqLength !== 0){
+				var newEnd = end;
+				while (newEnd < univEnd){
+					newEnd += reqLength;
+				}
+				return newEnd;
+			} else {
+				return univEnd;
+			}
 		}
-		if (univEnd%reqLength !== 0){
-			univEnd = end = (reqLength * count);
-		}
-		return univEnd;
 	}
 
 	function setUnivStart(start, reqLength){
 		var univStart = timelineGlobals.universeStart;
-		var count = 0;
-		while(univStart > start){
-			univStart -= reqLength;
-			count++;
+		if (start <= univStart){
+			return start;
+		} else {
+			if ((start - univStart)%reqLength !== 0){
+				var newStart = start;
+				while (newStart > univStart){
+					newStart -= reqLength;
+				}
+				return newStart;
+			} else {
+				return univStart;
+			}
 		}
-		if (univStart%reqLength !== 0){
-			univStart = start - (reqLength * count);
-		}
-		return univStart;
 	}
 
 	this.updateUI = function(start, end, length){
