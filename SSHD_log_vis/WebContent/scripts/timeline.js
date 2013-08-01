@@ -155,10 +155,35 @@ function Globals(width, height){
 		this.performZoom(times[0], times[1], length);
 	};
 
+	function setUnivEnd(end, reqLength){
+		var univEnd = timelineGlobals.universeEnd;
+		var count = 0;
+		while(univEnd < end){
+			univEnd += reqLength;
+		}
+		if (univEnd%reqLength !== 0){
+			univEnd = end = (reqLength * count);
+		}
+		return univEnd;
+	}
+
+	function setUnivStart(start, reqLength){
+		var univStart = timelineGlobals.universeStart;
+		var count = 0;
+		while(univStart > start){
+			univStart -= reqLength;
+			count++;
+		}
+		if (univStart%reqLength !== 0){
+			univStart = start - (reqLength * count);
+		}
+		return univStart;
+	}
+
 	this.updateUI = function(start, end, length){
 		var reqLength = end - start;
-		var univStart = timelineGlobals.universeStart - timelineGlobals.universeStart%reqLength;
-		var univEnd = timelineGlobals.universeEnd + reqLength - timelineGlobals.universeEnd%reqLength;
+		var univStart = setUnivStart(start, reqLength);
+		var univEnd = setUnivEnd(end, reqLength);
 		var univ = {
 			max : univEnd,
 			min : univStart,
@@ -166,9 +191,9 @@ function Globals(width, height){
 			values : [start, end]
 		};
 		$("#universe").dragslider("option", univ);
-		univ = $("#universe").dragslider("values");
-		$("#timelineStart").datetimepicker("setDate", new Date(start));
-		$("#timelineEnd").datetimepicker("setDate", new Date(end));
+		var realStarts = $("#universe").dragslider("values");
+		$("#timelineStart").datetimepicker("setDate", new Date(realStarts[0]));
+		$("#timelineEnd").datetimepicker("setDate", new Date(realStarts[1]));
 		setUITimeUnits(length);
 		if($("#servers").val() !== "" && $("#servers").val() != timelineGlobals.server){
 			$("#servers").val(timelineGlobals.server);
@@ -179,7 +204,7 @@ function Globals(width, height){
 		if($("#user").val() !== timelineGlobals.user){
 			$("#user").val(timelineGlobals.user);
 		}
-		return univ;
+		return realStarts;
 	};
 
 	this.performZoom = function (startTime, endTime, binLength){
