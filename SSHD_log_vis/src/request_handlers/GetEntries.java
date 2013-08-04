@@ -2,8 +2,12 @@ package request_handlers;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.naming.NamingException;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -15,8 +19,8 @@ import JSONtypes.Invalid;
 import JSONtypes.Line;
 import JSONtypes.Other;
 import data_source_interface.DataSourceException;
-import data_source_interface.Mysql_Datasource;
 import data_source_interface.LogDataSource;
+import data_source_interface.Mysql_Datasource;
 import enums.Status;
 
 /**
@@ -37,7 +41,31 @@ public class GetEntries extends HttpServlet {
 	 */
 	public GetEntries() {
 		super();
-		this.datasource = new Mysql_Datasource();
+	}
+	
+	public void init(ServletConfig context){
+		try {
+			super.init(context);
+			this.datasource = new Mysql_Datasource();
+		} catch (ServletException e) {
+			this.getServletContext().log(e.getMessage(), e.getCause());
+			return;
+		} catch (NamingException e) {
+			this.getServletContext().log(e.getMessage(), e.getCause());
+			return;
+		} catch (SQLException e) {
+			this.getServletContext().log(e.getMessage(), e.getCause());
+			return;
+		}
+
+	}
+	
+	public void destroy(){
+		try {
+			this.datasource.destroy();
+		} catch (DataSourceException e) {
+			this.getServletContext().log(e.getMessage(), e.getCause());
+		}
 	}
 
 	/**
@@ -118,7 +146,7 @@ public class GetEntries extends HttpServlet {
 		 * bins to max bins, and recompute bin length based on the length of
 		 * request and maxbins
 		 */
-		bins = (int) (Math.ceil(requestLength / (double) binLength));
+		bins = (int)requestLength/binLength;
 		bins = (bins < maxBins) ? bins : maxBins;
 		binLength = (bins == maxBins) ? (long) Math.ceil((requestLength/1000) //convert to seconds
 				/ bins) * 1000 //convert back from seconds

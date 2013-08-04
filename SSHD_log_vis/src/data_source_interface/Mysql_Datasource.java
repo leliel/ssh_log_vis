@@ -25,8 +25,18 @@ import enums.Status;
 import enums.SubSystem;
 
 public class Mysql_Datasource implements LogDataSource {
+	private Context context = null;
+	private Connection connection = null;
 
-	public Mysql_Datasource(){
+
+	public Mysql_Datasource() throws NamingException, SQLException{
+		this.context = new InitialContext();
+		this.connection = ((DataSource) context.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
+	}
+	
+	public Mysql_Datasource(String dbName) throws NamingException, SQLException {
+		this.context = new InitialContext();
+		this.connection = ((DataSource) context.lookup("java:comp/env/jdbc/" + dbName)).getConnection();
 	}
 
 	@Override
@@ -61,14 +71,9 @@ public class Mysql_Datasource implements LogDataSource {
 		}
 
 		List<Line> lines = null;
-		Context context = null;
-		Connection connection = null;
 		PreparedStatement state = null;
 		ResultSet result = null;
 		try {
-			context = new InitialContext();
-			connection = ((DataSource) context
-					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
 			state = connection.prepareStatement(query);
 
 			if (serverName != null){
@@ -124,8 +129,6 @@ public class Mysql_Datasource implements LogDataSource {
 			throw new DataSourceException(e);
 		} catch (NumberFormatException e) {
 			throw new DataSourceException(e);
-		} catch (NamingException e) {
-			throw new DataSourceException(e);
 		} finally {
 			try {
 				if (result != null) {
@@ -134,15 +137,7 @@ public class Mysql_Datasource implements LogDataSource {
 				if (state != null) {
 					state.close();
 				}
-				if (connection != null) {
-					connection.close();
-				}
-				if (context != null){
-					context.close();
-				}
 			} catch (SQLException e) {
-				throw new DataSourceException(e);
-			} catch (NamingException e) {
 				throw new DataSourceException(e);
 			}
 		}
@@ -270,15 +265,9 @@ public class Mysql_Datasource implements LogDataSource {
 		String query = "SELECT MIN(timestamp) as start, MAX(timestamp) as end FROM entry;";
 		long[] res = new long[2];
 
-		Context context = null;
-		Connection connection = null;
 		Statement state = null;
 		ResultSet result = null;
 		try {
-			context = new InitialContext();
-
-			connection = ((DataSource) context
-					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
 			state = connection.createStatement();
 			result = state.executeQuery(query);
 			if (result.first()){
@@ -289,8 +278,6 @@ public class Mysql_Datasource implements LogDataSource {
 			throw new DataSourceException(e);
 		} catch (NumberFormatException e) {
 			throw new DataSourceException(e);
-		} catch (NamingException e) {
-			throw new DataSourceException(e);
 		} finally {
 			try {
 				if (result != null) {
@@ -299,15 +286,7 @@ public class Mysql_Datasource implements LogDataSource {
 				if (state != null) {
 					state.close();
 				}
-				if (connection != null) {
-					connection.close();
-				}
-				if (context != null) {
-					context.close();
-				}
 			} catch (SQLException e) {
-				throw new DataSourceException(e);
-			} catch (NamingException e) {
 				throw new DataSourceException(e);
 			}
 		}
@@ -319,15 +298,9 @@ public class Mysql_Datasource implements LogDataSource {
 		String query = "SELECT id, name, block FROM server;";
 		List<Server> res = new ArrayList<Server>();
 
-		Context context = null;
-		Connection connection = null;
 		Statement state = null;
 		ResultSet result = null;
-		try {
-			context = new InitialContext();
-
-			connection = ((DataSource) context
-					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
+		try {			
 			state = connection.createStatement();
 			result = state.executeQuery(query);
 			while (result.next()) {
@@ -337,8 +310,6 @@ public class Mysql_Datasource implements LogDataSource {
 			throw new DataSourceException(e);
 		} catch (NumberFormatException e) {
 			throw new DataSourceException(e);
-		} catch (NamingException e) {
-			throw new DataSourceException(e);
 		} finally {
 			try {
 				if (result != null) {
@@ -347,15 +318,7 @@ public class Mysql_Datasource implements LogDataSource {
 				if (state != null) {
 					state.close();
 				}
-				if (connection != null) {
-					connection.close();
-				}
-				if (context != null) {
-					context.close();
-				}
 			} catch (SQLException e) {
-				throw new DataSourceException(e);
-			} catch (NamingException e) {
 				throw new DataSourceException(e);
 			}
 		}
@@ -370,15 +333,9 @@ public class Mysql_Datasource implements LogDataSource {
 		}
 		String query = "INSERT INTO entry_comment VALUE(DEFAULT, ?, ?)";
 
-		Context context = null;
-		Connection connection = null;
 		PreparedStatement state = null;
 		boolean result = false;
 		try {
-			context = new InitialContext();
-
-			connection = ((DataSource) context
-					.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
 			state = connection.prepareStatement(query);
 			state.setLong(1, entry_id);
 			state.setString(2, comment);
@@ -388,26 +345,32 @@ public class Mysql_Datasource implements LogDataSource {
 			throw new DataSourceException(e);
 		} catch (NumberFormatException e) {
 			throw new DataSourceException(e);
-		} catch (NamingException e) {
-			throw new DataSourceException(e);
 		} finally {
 			try {
 				if (state != null) {
 					state.close();
 				}
-				if (connection != null) {
-					connection.close();
-				}
-				if (context != null) {
-					context.close();
-				}
 			} catch (SQLException e) {
-				throw new DataSourceException(e);
-			} catch (NamingException e) {
 				throw new DataSourceException(e);
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public void destroy() throws DataSourceException {
+		try {
+			if (this.connection != null){
+				connection.close();
+			}
+			if (this.context != null){
+				context.close();
+			}
+		} catch (SQLException e) {
+			throw new DataSourceException(e);
+		} catch (NamingException e) {
+			throw new DataSourceException(e);
+		}
 	}
 
 }

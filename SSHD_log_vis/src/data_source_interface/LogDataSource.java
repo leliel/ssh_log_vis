@@ -49,6 +49,12 @@ public interface LogDataSource {
 	 */
 	public boolean writeComment(long entry_id, String comment) throws DataSourceException;
 
+	/**
+	 * Called when containing servlet unloaded, used to ensure all resources closed appropriately.
+	 * @throws DataSourceException if underlying resources fail to close properly.
+	 */
+	public void destroy() throws DataSourceException;
+
 
 }
 
