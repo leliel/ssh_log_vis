@@ -13,6 +13,16 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Insert;
+import org.jooq.JoinType;
+import org.jooq.Query;
+import org.jooq.SQLDialect;
+import org.jooq.Select;
+import org.jooq.SelectWhereStep;
+import org.jooq.impl.DSL;
+
 import JSONtypes.Connect;
 import JSONtypes.Disconnect;
 import JSONtypes.Invalid;
@@ -27,13 +37,15 @@ import enums.SubSystem;
 public class Mysql_Datasource implements LogDataSource {
 	private Context context = null;
 	private Connection connection = null;
+	private DSLContext queryBuilder = null;
 
 
 	public Mysql_Datasource() throws NamingException, SQLException{
 		this.context = new InitialContext();
 		this.connection = ((DataSource) context.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
+		this.queryBuilder = DSL.using(SQLDialect.MYSQL);
 	}
-	
+
 	public Mysql_Datasource(String dbName) throws NamingException, SQLException {
 		this.context = new InitialContext();
 		this.connection = ((DataSource) context.lookup("java:comp/env/jdbc/" + dbName)).getConnection();
@@ -42,83 +54,54 @@ public class Mysql_Datasource implements LogDataSource {
 	@Override
 	public List<Line> getEntriesFromDataSource(String serverName, String source,
 			String user, String startTime, String endTime) throws DataSourceException {
-		String query = "SELECT entry.id, entry.timestamp, server.name as server, entry.connid, entry.reqtype, "
-				+ "entry.authtype, entry.status, user.name as user, entry.source, entry.port, entry.subsystem, entry.code, "
-				+ "entry.isfreqtime, entry.isfreqloc, entry.rawline "
-				+ "FROM entry LEFT JOIN server ON entry.server = server.id "
-				+ "LEFT JOIN user ON entry.user = user.id WHERE ";
+
+		SelectWhereStep base = this.queryBuilder.select(DSL.fieldByName("entry", "id"), DSL.fieldByName("entry", "timestamp"), DSL.fieldByName("server", "name").as("server")
+				, DSL.fieldByName("entry", "connid") , DSL.fieldByName("entry", "reqtype"), DSL.fieldByName("entry", "authtype"), DSL.fieldByName("entry", "status")
+				, DSL.fieldByName("user", "name").as("user"), DSL.fieldByName("entry", "source"), DSL.fieldByName("entry", "port"), DSL.fieldByName("entry", "subsystem")
+				, DSL.fieldByName("entry", "code"), DSL.fieldByName("entry", "isFreqTime"), DSL.fieldByName("entry", "isFreqLoc"), DSL.fieldByName("entry", "rawline"))
+				.from(DSL.tableByName("entry"))
+				.join(DSL.tableByName("server"), JoinType.JOIN)
+				.on(DSL.fieldByName("entry", "server").equal(DSL.fieldByName("server", "id")))
+				.join(DSL.tableByName("user"), JoinType.LEFT_OUTER_JOIN)
+				.on(DSL.fieldByName("entry", "user").equal(DSL.fieldByName("user", "id")));
+
+		Condition cond = null;
 		if (serverName != null){
-			query += "server.name = ?";
+			cond = DSL.fieldByName("server", "name").equal(serverName);
 		}
-		if (source != null){
-			if (query.endsWith("?")){
-				query += " AND entry.source = ?";
+		if (source != null) {
+			if (cond != null) {
+				cond.and(DSL.fieldByName("entry", "source").like(source));
 			} else {
-				query += "entry.source = ?";
+				cond = DSL.fieldByName("entry", "source").like(source);
 			}
 		}
 		if (user != null) {
-			if (query.endsWith("?")){
-				query += " AND user.name = ?";
+			if (cond != null) {
+				cond.and(DSL.fieldByName("entry", "user").like(user));
 			} else {
-				query += "user.name = ?";
+				cond = DSL.fieldByName("entry", "user").like(user);
 			}
 		}
-		if (query.endsWith("?")){
-			query += " AND entry.timestamp BETWEEN ? AND ?;";
+		if (cond != null) {
+			cond.and(DSL.fieldByName("entry", "timestamp").between(startTime, endTime));
 		} else {
-			query += "entry.timestamp BETWEEN ? AND ?;";
+			cond = DSL.fieldByName("entry", "timestamp").between(startTime, endTime);
 		}
+
+		Query query = base.where(cond);
+		String sql = query.getSQL();
 
 		List<Line> lines = null;
 		PreparedStatement state = null;
 		ResultSet result = null;
 		try {
-			state = connection.prepareStatement(query);
+			state = connection.prepareStatement(sql);
 
-			if (serverName != null){
-				state.setString(1, serverName);
-				if (source != null){
-					state.setString(2, source);
-					if (user != null) {
-						state.setString(3, user);
-						state.setLong(4, Long.parseLong(startTime));
-						state.setLong(5, Long.parseLong(endTime));
-					} else {
-						state.setLong(3, Long.parseLong(startTime));
-						state.setLong(4, Long.parseLong(endTime));
-					}
-				} else {
-					if (user != null){
-						state.setString(2, user);
-						state.setLong(3, Long.parseLong(startTime));
-						state.setLong(4, Long.parseLong(endTime));
-					} else {
-						state.setLong(2, Long.parseLong(startTime));
-						state.setLong(3, Long.parseLong(endTime));
-					}
-				}
-			} else {
-				if (source != null){
-					state.setString(1, source);
-					if (user != null){
-						state.setString(2, user);
-						state.setLong(3, Long.parseLong(startTime));
-						state.setLong(4, Long.parseLong(endTime));
-					} else {
-						state.setLong(2, Long.parseLong(startTime));
-						state.setLong(3, Long.parseLong(endTime));
-					}
-				} else {
-					if (user != null){
-						state.setString(1, user);
-						state.setLong(2, Long.parseLong(startTime));
-						state.setLong(3, Long.parseLong(endTime));
-					} else {
-						state.setLong(1, Long.parseLong(startTime));
-						state.setLong(2, Long.parseLong(endTime));
-					}
-				}
+			//FIXME iterate over bound variables, binding in prepared statement.
+			List<Object> vars = query.getBindValues();
+			for (int i = 0; i < vars.size(); i++){
+				state.setObject(i+1, vars.get(i));
 			}
 
 			state.execute();
@@ -262,14 +245,16 @@ public class Mysql_Datasource implements LogDataSource {
 
 	@Override
 	public long[] getStartAndEndOfUniverse() throws DataSourceException {
-		String query = "SELECT MIN(timestamp) as start, MAX(timestamp) as end FROM entry;";
+		Select query = this.queryBuilder.select(DSL.max(DSL.fieldByName("entry", "timestamp")).as("start"),
+												DSL.max(DSL.fieldByName("entry", "timestamp")).as("end"))
+												.from("entry");
 		long[] res = new long[2];
 
 		Statement state = null;
 		ResultSet result = null;
 		try {
 			state = connection.createStatement();
-			result = state.executeQuery(query);
+			result = state.executeQuery(query.getSQL());
 			if (result.first()){
 				res[0] = result.getLong("start");
 				res[1] = result.getLong("end");
@@ -295,14 +280,15 @@ public class Mysql_Datasource implements LogDataSource {
 
 	@Override
 	public List<Server> getAllServers() throws DataSourceException {
-		String query = "SELECT id, name, block FROM server;";
+		Select query = this.queryBuilder.select(DSL.fieldByName("server",  "id"), DSL.fieldByName("server", "name"), DSL.fieldByName("server", "block"))
+						.from(DSL.tableByName("server"));
 		List<Server> res = new ArrayList<Server>();
 
 		Statement state = null;
 		ResultSet result = null;
-		try {			
+		try {
 			state = connection.createStatement();
-			result = state.executeQuery(query);
+			result = state.executeQuery(query.getSQL());
 			while (result.next()) {
 				res.add(new Server(result.getInt("id"), result.getString("name"), result.getString("block")));
 			}
@@ -331,14 +317,19 @@ public class Mysql_Datasource implements LogDataSource {
 		if (entry_id < 0 || comment == null || comment.equals("")){
 			throw new DataSourceException("invalid arguments");
 		}
-		String query = "INSERT INTO entry_comment VALUE(DEFAULT, ?, ?)";
+		Insert query = this.queryBuilder.insertInto(DSL.tableByName("entry_comment"), DSL.fieldByName("entry_comment", "id"), DSL.fieldByName("entry_comment", "entry_id"), DSL.fieldByName("entry_comment", "text"))
+										.values(DSL.val("DEFAULT"), DSL.val(entry_id), DSL.val(comment));
 
 		PreparedStatement state = null;
 		boolean result = false;
 		try {
-			state = connection.prepareStatement(query);
-			state.setLong(1, entry_id);
-			state.setString(2, comment);
+			state = connection.prepareStatement(query.getSQL());
+			List<Object> vars = query.getBindValues();
+			for (int i = 0; i < vars.size(); i++){
+				state.setObject(i+1, vars.get(i));
+			}
+			//state.setLong(1, entry_id);
+			//state.setString(2, comment);
 			int res = state.executeUpdate();
 			result = (res == 1) ? true : false;
 		} catch (SQLException e) {
