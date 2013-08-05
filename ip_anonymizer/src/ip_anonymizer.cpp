@@ -8,8 +8,8 @@
 
 #include <iostream>
 #include <fstream>
-#include <regex>
 #include <arpa/inet.h>
+#include <boost/regex.hpp>
 #include "panonymizer.h"
 
 int main(int argc, char* argv[]) {
@@ -34,55 +34,27 @@ int main(int argc, char* argv[]) {
 	string str, res;
 	char rep[INET_ADDRSTRLEN];
 	struct in_addr bits;
-	smatch match;
+	boost::smatch match;
 	try {
 		//TODO rebuild with Boost regex library. G++ C++11 support questionable.
-		regex addr("([0-9]{1,3}\\.){3}[0-9]{1,3}", std::regex_constants::ECMAScript);
-		regex local_addr("^(10\\.*|172\\.16\\.*|192\\.168\\.*)");
+		boost::regex addr("([0-9]{1,3}\\.){3}[0-9]{1,3}", boost::regex_constants::ECMAScript);
+		boost::regex local_addr("^(10\\.*|172\\.16\\.*|192\\.168\\.*)", boost::regex_constants::ECMAScript);
 		while (getline(input, str)) {
-			regex_match(str, match, addr);
-			if (!regex_match(str, local_addr)) {
+			boost::regex_search(str, addr);
+			if (!boost::regex_match(str, local_addr)) {
 				for (uint i = 0; i < match.size(); ++i) {
 					cout << match.str(i) << endl;
 					inet_pton(AF_INET, match.str(i).c_str(), &bits);
 					bits.s_addr = anon.anonymize(bits.s_addr);
 					inet_ntop(AF_INET, &bits, rep, INET_ADDRSTRLEN);
 					res = std::string(rep);
-					regex_replace(str, addr, res);
+					boost::regex_replace(str, addr, res);
 				}
 			}
 			output << str << endl;
 		}
-	} catch (std::regex_error& e){
-	     if (e.code() == std::regex_constants::error_badrepeat){
-	       std::cerr << "Repeat was not preceded by a valid regular expression.\n";
-	     } else if (e.code() == std::regex_constants::error_collate){
-	    	 cerr << "The expression contained an invalid collating element name.\n";
-	     } else if (e.code() == regex_constants::error_complexity){
-	    	 cerr <<  "The complexity of an attempted match against a regular expression exceeded a pre-set level.\n";
-	     } else if (e.code() == regex_constants::error_ctype){
-	    	 cerr << "The expression contained an invalid character class name.\n";
-	     } else if (e.code() == regex_constants::error_escape){
-	    	 cerr << "The expression contained an invalid escaped character, or a trailing escape.\n";
-	     }  else if (e.code() == regex_constants::error_backref){
-	    	 cerr << "The expression contained an invalid back reference.\n";
-	     }  else if (e.code() == regex_constants::error_brack){
-	    	 cerr << "The expression contained mismatched brackets ([ and ]).\n";
-	     }  else if (e.code() == regex_constants::error_paren){
-	    	 cerr << "The expression contained mismatched parentheses (( and )).\n";
-	     }  else if (e.code() == regex_constants::error_brace){
-	    	 cerr << "The expression contained mismatched braces ({ and }).\n";
-	     }  else if (e.code() == regex_constants::error_badbrace){
-	    	 cerr << "The expression contained an invalid range between braces ({ and }).\n";
-	     }  else if (e.code() == regex_constants::error_range){
-	    	 cerr << "The expression contained an invalid character range.\n";
-	     }  else if (e.code() == regex_constants::error_space){
-	    	 cerr << "There was insufficient memory to convert the expression into a finite state machine.\n";
-	     }  else if (e.code() == regex_constants::error_stack){
-	    	 cerr << "There was insufficient memory to determine whether the regular expression could match the specified character sequence.\n";
-	     } else {
-	    	 std::cerr << "Some other regex exception happened.\n";
-	     }
+	} catch (boost::regex_error& e){
+	       std::cerr << e.code();
 	}
 	output.close();
 	input.close();
