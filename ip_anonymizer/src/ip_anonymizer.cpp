@@ -36,25 +36,25 @@ int main(int argc, char* argv[]) {
 	struct in_addr bits;
 	boost::smatch match;
 	try {
-		//TODO rebuild with Boost regex library. G++ C++11 support questionable.
-		boost::regex addr("([0-9]{1,3}\\.){3}[0-9]{1,3}", boost::regex_constants::ECMAScript);
-		boost::regex local_addr("^(10\\.*|172\\.16\\.*|192\\.168\\.*)", boost::regex_constants::ECMAScript);
+		boost::regex addr("(?>[0-9]{1,3}\\.){3}[0-9]{1,3}",
+				boost::regex_constants::ECMAScript);
+		boost::regex local_addr("^(10\\.*|172\\.16\\.*|192\\.168\\.*)",
+				boost::regex_constants::ECMAScript); //got to be a better way.
 		while (getline(input, str)) {
-			boost::regex_search(str, addr);
-			if (!boost::regex_match(str, local_addr)) {
-				for (uint i = 0; i < match.size(); ++i) {
-					cout << match.str(i) << endl;
-					inet_pton(AF_INET, match.str(i).c_str(), &bits);
+			if (boost::regex_search(str, match, addr)) {
+				res = string(match[0].first, match[0].second);
+				if (!boost::regex_match(res, local_addr)) {
+					inet_pton(AF_INET, res.c_str(), &bits);
 					bits.s_addr = anon.anonymize(bits.s_addr);
 					inet_ntop(AF_INET, &bits, rep, INET_ADDRSTRLEN);
 					res = std::string(rep);
-					boost::regex_replace(str, addr, res);
+					str = boost::regex_replace(str, addr, res);
 				}
 			}
 			output << str << endl;
 		}
-	} catch (boost::regex_error& e){
-	       std::cerr << e.code();
+	} catch (boost::regex_error& e) {
+		std::cerr << e.code();
 	}
 	output.close();
 	input.close();
