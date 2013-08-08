@@ -30,7 +30,11 @@
 		</div>
 		Active server : <select name="servers" id="servers" class="inputLarge ui-widget-content select ui-corner-all"></select><br>
 		IP of Interest : <input id="IP" name="IP" type="text" value="" class="inputLarge ui-widget-content select ui-corner-all" /><br>
-		User of Interest : <input id="user" name="user" type="text" value="" class="inputLarge ui-widget-content select ui-corner-all" />
+		User of Interest : <input id="user" name="user" type="text" value="" class="inputLarge ui-widget-content select ui-corner-all" /><br>
+		<input type="checkbox" id="showAccepted" name="showAccepted" value="acceptedConn" checked="checked">Show Accepted Connections </input><br>
+		<input type="checkbox" id="showFailed" name="showFailed" value="failedConn" checked="checked">Show Failed Connections </input><br>
+		<input type="checkbox" id="showInvalid" name="showInvalid" value="invalidAttempts" checked="checked">Show Invalid Usernames </input><br>
+		<input type="checkbox" id="showOther" name="showOther" value="other" checked="checked">Show Other Events </input><br>
 		<div id="legend" class="legend ui-widget ui-widget-content ui-corner-all">
 			<svg id="binColours" class="legendColors">
 				<rect class="binAccepted" x="0" y="0" width="20%" height="20%" />

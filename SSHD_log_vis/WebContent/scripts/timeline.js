@@ -30,6 +30,12 @@ function Globals(width, height){
 		divider : "#000000",
 		invalid : "#ff00ff"
 	};
+	this.display = {
+			acceptedConn : true,
+			failedConn : true,
+			invalidAttempts : true,
+			other : true
+	};
 	this.maxBins = Math.floor((width-this.padding.left - this.padding.right)/this.minBinWidth);
 	this.binHeight = (height/4)-this.padding.vertical;
 
@@ -373,9 +379,19 @@ function timeline(idx, range, domain, height, padding){
 	this.getEnd = function(){
 		return xScaler.domain()[1].getTime();
 	};
+	
+	 function subElemSum(d){
+		 var sum = 0;
+		 for (var prop in timelineGlobals.display){
+			 if (timelineGlobals.display[prop]){
+				 sum += d[prop];
+			 }
+		 }
+		 d.displayTotals = sum;
+	 }
 
 	this.renderBins = function(element) {
-		var max = d3.max(element, function(d){ return d.subElemCount;});
+		var max = d3.max(element, function(d){ subElemSum(d); return d.displayTotals;});
 		timelineGlobals.maxima[idx] = (max === undefined) ? [0] : [max];
 		yScaler.domain([0, max]);
 
@@ -407,15 +423,17 @@ function timeline(idx, range, domain, height, padding){
 		thisLine.selectAll(".binFailed")
 			.attr("width", getEventWidth)
 			.attr("height", function(d, i){
-				return timelineGlobals.binHeight - yScaler(d.failedConn);})
-			.attr("y", function(d, i){return yScaler(d.failedConn);});
+				return timelineGlobals.binHeight - yScaler((timelineGlobals.display.failedConn) ? d.failedConn : 0);})
+			.attr("y", function(d, i){
+				return yScaler((timelineGlobals.display.failedConn) ? d.failedConn : 0);});
 
 		thisLine.selectAll(".binAccepted")
 			.data(function(d){
 				return[{startTime : d.startTime,
 						endTime : d.endTime,
 						acceptedConn : d.acceptedConn,
-						subElemCount : d.subElemCount}];
+						subElemCount : d.subElemCount,
+						displayTotals : d.displayTotals}];
 			})
 			.enter()
 			.append("svg:rect")
@@ -424,8 +442,8 @@ function timeline(idx, range, domain, height, padding){
 		thisLine.selectAll(".binAccepted")
 			.attr("width", getEventWidth)
 			.attr("height", function(d){
-				return timelineGlobals.binHeight - yScaler(d.acceptedConn);})
-			.attr("y",	function(d){return yScaler(d.subElemCount);});
+				return timelineGlobals.binHeight - yScaler((timelineGlobals.display.acceptedConn) ? d.acceptedConn : 0);})
+			.attr("y",	function(d){return yScaler(d.displayTotals);});
 
 		thisLine.selectAll(".binInvalid")
 			.data(function(d){
@@ -443,10 +461,10 @@ function timeline(idx, range, domain, height, padding){
 		thisLine.selectAll(".binInvalid")
 			.attr("width", getEventWidth)
 			.attr("height", function(d){
-				return timelineGlobals.binHeight - yScaler(d.invalidAttempts);
+				return timelineGlobals.binHeight - yScaler((timelineGlobals.display.invalidAttempts) ? d.invalidAttempts : 0);
 			})
 			.attr("y", function(d){
-				return yScaler(d.failedConn + d.invalidAttempts);
+				return yScaler(((timelineGlobals.display.failedConn) ? d.failedConn : 0) + ((timelineGlobals.display.invalidAttempts) ? d.invalidAttempts : 0));
 			});
 
 		thisLine.selectAll(".binDivider")
@@ -456,6 +474,7 @@ function timeline(idx, range, domain, height, padding){
 					endTime : d.endTime,
 					other : d.other,
 					subElemCount : d.subElemCount,
+					displayTotals : d.displayTotals,
 					acceptedConn : d.acceptedConn
 				}];
 			})
@@ -466,13 +485,13 @@ function timeline(idx, range, domain, height, padding){
 		thisLine.selectAll(".binDivider")
 			.attr("width", getEventWidth)
 			.attr("height", function(d){
-				return timelineGlobals.binHeight - yScaler(d.other);})
-			.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
+				return timelineGlobals.binHeight - yScaler((timelineGlobals.display.other) ? d.other : 0);})
+			.attr("y", function(d){return yScaler(d.displayTotals - ((timelineGlobals.display.acceptedConn) ? d.acceptedConn : 0));});
 
 		thisLine.selectAll(".flags")
 			.data(function(d){
 				return [{flags : d.flags,
-						count : d.subElemCount,
+						count : d.displayTotals,
 						startTime : d.startTime,
 						endTime : d.endTime}];
 			})
@@ -537,23 +556,31 @@ function timeline(idx, range, domain, height, padding){
 
 		thisLine.selectAll(".binFailed")
 		.attr("width", getEventWidth)
-		.attr("height", function(d, i){ return timelineGlobals.binHeight - yScaler(d.failedConn);})
-		.attr("y", function(d, i){return yScaler(d.failedConn);});
+		.attr("height", function(d, i){
+			return timelineGlobals.binHeight - yScaler((timelineGlobals.display.failedConn) ? d.failedConn : 0);})
+		.attr("y", function(d, i){
+			return yScaler((timelineGlobals.display.failedConn) ? d.failedConn : 0);});
 
 		thisLine.selectAll(".binAccepted")
 		.attr("width", getEventWidth)
-		.attr("height", function(d){return timelineGlobals.binHeight - yScaler(d.acceptedConn);})
-		.attr("y",	function(d){return yScaler(d.subElemCount);});
-
+		.attr("height", function(d){
+			return timelineGlobals.binHeight - yScaler((timelineGlobals.display.acceptedConn) ? d.acceptedConn : 0);})
+		.attr("y",	function(d){return yScaler(d.displayTotals);});
+		
 		thisLine.selectAll(".binDivider")
 		.attr("width", getEventWidth)
-		.attr("height", function(d){return timelineGlobals.binHeight - yScaler(d.other);})
-		.attr("y", function(d){return yScaler(d.subElemCount - d.acceptedConn);});
+		.attr("height", function(d){
+			return timelineGlobals.binHeight - yScaler((timelineGlobals.display.other) ? d.other : 0);})
+		.attr("y", function(d){return yScaler(d.displayTotals - ((timelineGlobals.display.acceptedConn) ? d.acceptedConn : 0));});
 
 		thisLine.selectAll(".binInvalid")
 		.attr("width", getEventWidth)
-		.attr("height", function(d){return timelineGlobals.binHeight - yScaler(d.invalidAttempts);})
-		.attr("y", function(d){return yScaler(d.failedConn + d.invalidAttempts);});
+		.attr("height", function(d){
+			return timelineGlobals.binHeight - yScaler((timelineGlobals.display.invalidAttempts) ? d.invalidAttempts : 0);
+		})
+		.attr("y", function(d){
+			return yScaler(((timelineGlobals.display.failedConn) ? d.failedConn : 0) + ((timelineGlobals.display.invalidAttempts) ? d.invalidAttempts : 0));
+		});
 
 		thisLine.selectAll(".flags")
 		.attr("y", function(d){return yScaler(d.count)-2;}); //-2 offset to float above bin by a small margin

@@ -245,7 +245,7 @@ public class Mysql_Datasource implements LogDataSource {
 
 	@Override
 	public long[] getStartAndEndOfUniverse() throws DataSourceException {
-		Select query = this.queryBuilder.select(DSL.max(DSL.fieldByName("entry", "timestamp")).as("start"),
+		Select query = this.queryBuilder.select(DSL.min(DSL.fieldByName("entry", "timestamp")).as("start"),
 												DSL.max(DSL.fieldByName("entry", "timestamp")).as("end"))
 												.from("entry");
 		long[] res = new long[2];
