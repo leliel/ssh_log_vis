@@ -1,4 +1,5 @@
 window.onload = setupOnLoad;
+
 var setID;
 
 function setupOnLoad() {
@@ -33,17 +34,42 @@ function setupOnLoad() {
 	}));
 
 	$("input[type='checkbox']").on("change", function(event){
-		if (this.checked === true){
-			timelineGlobals.display[this.value] = true;
-		} else {
-			timelineGlobals.display[this.value] = false;
+		if(event.originalEvent !== undefined) {
+			if (this.checked === true){
+				timelineGlobals.display[this.value] = true;
+			} else {
+				timelineGlobals.display[this.value] = false;
+			}
+			timelineGlobals.maxima = new Array(4);
+			for (var i = 0; i < timelineGlobals.timelines.length; i++){
+				timelineGlobals.timelines[i].updateDisplays();
+			}
+			timelineGlobals.renderIndicators();
+			insertFilter(this.name.substring(0, 1));
 		}
-		timelineGlobals.maxima = new Array(4);
-		for (var i = 0; i < timelineGlobals.timelines.length; i++){
-			timelineGlobals.timelines[i].updateDisplays();
-		}
-		timelineGlobals.renderIndicators();
 	});
+	
+	function insertFilter(filterCode){
+		var url = window.location.href;
+		if (url.indexOf("&types=") != -1){
+			var working, base; 
+			working = base = url.substring(url.indexOf("&types="));
+			if (working.indexOf(filterCode) != -1){
+				working = working.replace(filterCode, '');
+				if (working == "&types="){
+					url = url.replace(base, '');
+				} else {
+					url = url.replace(base, working);
+				}
+			} else {
+				working += filterCode;
+				url = url.replace(base, working);
+			}
+		} else {
+			url += "&types=" + filterCode;
+		}
+		window.history.replaceState(null, null, url);
+	}
 
 	function setServer(event){
 		if (this.value === ""){
@@ -156,6 +182,8 @@ function initPage(start, end) {
 	$("#time").width($(window).width()-$("#controls").width() - 20);
 
 	timelineGlobals = new Globals($("#time").width(), $("#time").height());
+	
+	window.onpopstate = timelineGlobals.loadDataFromHistory;
 
 	$('#universe').dragslider({
 		animate : true, // Works with animation.
@@ -166,10 +194,10 @@ function initPage(start, end) {
 		step : timelineGlobals.timeUnits.months,
 		values : [ timelineGlobals.timelines[0].getStart(), timelineGlobals.timelines[timelineGlobals.timelines.length -1].getEnd() ],
 		stop : $.debounce(50, function(event) {
-			var times = $("#universe").dragslider("values");
-			var start = times[0];
-			var end = times[1];
-			if (event.originalEvent != undefined){
+			if (event.originalEvent !== undefined){
+				var times = $("#universe").dragslider("values");
+				var start = times[0];
+				var end = times[1];
 				timelineGlobals.updateUIandZoom(start, end, timelineGlobals.binLength);
 			}
 		})
@@ -236,7 +264,7 @@ function initPage(start, end) {
 		}
 	});
 
-	$(window).on("popstate", timelineGlobals.loadDataFromHistory);
+
 
 	var startTime = $("#timelineStart");
 	startTime.datetimepicker({

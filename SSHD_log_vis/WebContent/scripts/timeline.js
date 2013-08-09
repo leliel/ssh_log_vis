@@ -219,6 +219,18 @@ function Globals(width, height){
 		if($("#user").val() !== timelineGlobals.user){
 			$("#user").val(timelineGlobals.user);
 		}
+		if($("#acceptedConn").prop("checked") !== timelineGlobals.display.acceptedConn){
+			$("#acceptedConn").prop("checked", timelineGlobals.display.acceptedConn);
+		}
+		if($("#failedConn").prop("checked") !== timelineGlobals.display.failedConn){
+			$("#failedConn").prop("checked", timelineGlobals.display.failedConn);
+		}
+		if($("#invalidAttempts").prop("checked") !== timelineGlobals.display.invalidAttempts){
+			$("#invalidAttempts").prop("checked", timelineGlobals.display.invalidAttempts);
+		}
+		if($("#other").prop("checked") !== timelineGlobals.display.other){
+			$("#other").prop("checked", timelineGlobals.display.other);
+		}
 		return realStarts;
 	};
 
@@ -236,14 +248,23 @@ function Globals(width, height){
 		if(timelineGlobals.user !== null){
 			url += "&user=" + encodeURIComponent(timelineGlobals.user);
 		}
+		var types = "";
+		for (var prop in timelineGlobals.display){
+			if(!timelineGlobals.display[prop]){
+				types += prop.substring(0, 1);
+			}
+		}
+		if (types !== ""){
+			url += "&types=" + encodeURIComponent(types); 
+		}
 		//TODO generate bookmark metadata -set title argument to a string.
-		window.History.pushState(null, null, url);
+		window.history.pushState(null, null, url);
 	};
 
 	this.loadDataFromHistory = function(e){
-		var state = History.getState();
-		var url = state.url.substring(state.url.lastIndexOf("?") + 1);
-		if (url != state.url){
+		var state = window.location.href;
+		var url = state.substring(state.lastIndexOf("?") + 1);
+		if (url != state){
 			var data = getObjFromQueryString(url);
 			var start = parseInt(data.startTime);
 			var end = parseInt(data.endTime);
@@ -256,6 +277,20 @@ function Globals(width, height){
 			}
 			if (data.user !== undefined && data.user !== timelineGlobals.user){
 				timelineGlobals.user = data.user;
+			}
+			if (data.types !== undefined) {
+				if (data.types.indexOf("a") != -1){
+					timelineGlobals.display.acceptedConn = false;
+				}
+				if (data.types.indexOf("f") != -1){
+					timelineGlobals.display.failedConn = false;
+				}
+				if (data.types.indexOf("i") != -1){
+					timelineGlobals.display.invalidAttempts = false;
+				}
+				if (data.types.indexOf("o") != -1){
+					timelineGlobals.display.other = false;
+				}
 			}
 			var times = timelineGlobals.updateUI(start, end, length);
 			timelineGlobals.zoom(times[0], times[1], length);
@@ -393,12 +428,20 @@ function timeline(idx, range, domain, height, padding){
 	 this.updateDisplays = function(){
 		selection.selectAll(".bin")
 		 	.each(updateDatum);
-		var domain = [0, timelineGlobals.maxima[idx]];
+		if (timelineGlobals.maxima[idx] === undefined) {
+			timelineGlobals.maxima[idx] = [0];
+		}
+		var domain = [0, timelineGlobals.maxima[idx][0]];
 		yScaler.domain(domain);
 		selection.selectAll("rect")
 		 	.each(subElemSum);
 
-		selection.selectAll(".binAccepted")
+		placeRectsandAxes(domain[1]);
+
+	 };
+	 
+	 function placeRectsandAxes(max){
+			selection.selectAll(".binAccepted")
 			.attr("width", getEventWidth)
 			.attr("height", function(d){
 				return timelineGlobals.binHeight - yScaler((timelineGlobals.display.acceptedConn) ? d.acceptedConn : 0);})
@@ -427,13 +470,33 @@ function timeline(idx, range, domain, height, padding){
 			.attr("y", function(d){return yScaler(d.displayTotals - ((timelineGlobals.display.acceptedConn) ? d.acceptedConn : 0));});
 
 		selection.selectAll(".flags")
-			.attr("y", function(d){return yScaler(d.displayTotals)-2;});//-2 offset to float above bin by a small margin
-	 };
+			.attr("y", function(d){return yScaler(d.displayTotals)-2;})//-2 offset to float above bin by a small margin
+			.text(buildText);
+		
+		var xAxis = d3.svg.axis()
+		.scale(xScaler)
+		.orient("bottom");
+
+		var format = (max >= 1000) ? ".2s" : ",d";
+		var yAxis = d3.svg.axis()
+			.scale(yScaler)
+			.orient("left")
+			.ticks(4)
+			.tickFormat(yScaler.tickFormat(4, format));
+
+		selection.select("#xAxis")
+ 		.attr("transform", "translate(0, " + timelineGlobals.binHeight + ")")
+ 		.call(xAxis);
+
+		selection.select("#yAxis")
+		.attr("transform", "translate(" + timelineGlobals.padding.left + ", 0)")
+		.call(yAxis);
+	 }
 
 	 function updateDatum(d, i){
 		subElemSum(d);
 		if (timelineGlobals.maxima[idx] === undefined || d.displayTotals > timelineGlobals.maxima[idx]){
-			timelineGlobals.maxima[idx] = d.displayTotals;
+			timelineGlobals.maxima[idx] = [d.displayTotals];
 		}
 	 }
 
@@ -465,13 +528,7 @@ function timeline(idx, range, domain, height, padding){
 			.append("svg:rect")
 			.attr("class", "binFailed")
 			.attr("fill", timelineGlobals.colours.failed);
-		thisLine.selectAll(".binFailed")
-			.attr("width", getEventWidth)
-			.attr("height", function(d, i){
-				return timelineGlobals.binHeight - yScaler((timelineGlobals.display.failedConn) ? d.failedConn : 0);})
-			.attr("y", function(d, i){
-				return yScaler((timelineGlobals.display.failedConn) ? d.failedConn : 0);});
-
+	
 		thisLine.selectAll(".binAccepted")
 			.data(function(d){
 				return[d];
@@ -480,11 +537,6 @@ function timeline(idx, range, domain, height, padding){
 			.append("svg:rect")
 			.attr("class", "binAccepted")
 			.attr("fill", timelineGlobals.colours.accepted);
-		thisLine.selectAll(".binAccepted")
-			.attr("width", getEventWidth)
-			.attr("height", function(d){
-				return timelineGlobals.binHeight - yScaler((timelineGlobals.display.acceptedConn) ? d.acceptedConn : 0);})
-			.attr("y",	function(d){return yScaler(d.displayTotals);});
 
 		thisLine.selectAll(".binInvalid")
 			.data(function(d){
@@ -499,14 +551,7 @@ function timeline(idx, range, domain, height, padding){
 			.append("svg:rect")
 			.attr("class", "binInvalid")
 			.attr("fill", timelineGlobals.colours.invalid);
-		thisLine.selectAll(".binInvalid")
-			.attr("width", getEventWidth)
-			.attr("height", function(d){
-				return timelineGlobals.binHeight - yScaler((timelineGlobals.display.invalidAttempts) ? d.invalidAttempts : 0);
-			})
-			.attr("y", function(d){
-				return yScaler(((timelineGlobals.display.failedConn) ? d.failedConn : 0) + ((timelineGlobals.display.invalidAttempts) ? d.invalidAttempts : 0));
-			});
+
 
 		thisLine.selectAll(".binDivider")
 			.data(function(d){
@@ -516,11 +561,6 @@ function timeline(idx, range, domain, height, padding){
 			.append("svg:rect")
 			.attr("class", "binDivider")
 			.attr("fill", timelineGlobals.colours.divider);
-		thisLine.selectAll(".binDivider")
-			.attr("width", getEventWidth)
-			.attr("height", function(d){
-				return timelineGlobals.binHeight - yScaler((timelineGlobals.display.other) ? d.other : 0);})
-			.attr("y", function(d){return yScaler(d.displayTotals - ((timelineGlobals.display.acceptedConn) ? d.acceptedConn : 0));});
 
 		thisLine.selectAll(".flags")
 			.data(function(d){
@@ -529,48 +569,22 @@ function timeline(idx, range, domain, height, padding){
 			.enter()
 			.append("svg:text")
 			.attr("class", "flags");
-		thisLine.selectAll(".flags")
-			.attr("y", function(d){return yScaler(d.displayTotals)-2;})//-2 offset to float above bin by a small margin
-			.text(buildText)
-			.attr("textLength", function(d){
-				if (this.getComputedTextLength() > getEventWidth(d)){
-					return getEventWidth(d);
-				} else {
-					return this.getComputedTextLength();
-				}
-			})
-			.attr("lengthAdjust", "spacingAndGlyphs");
 
 		thisLine.exit().remove();
-
-		var xAxis = d3.svg.axis()
-    		.scale(xScaler)
-    		.orient("bottom");
-
-		var format = (max >= 1000) ? ".2s" : ",d";
-		var yAxis = d3.svg.axis()
-			.scale(yScaler)
-			.orient("left")
-			.ticks(4)
-			.tickFormat(yScaler.tickFormat(4, format));
 
 		if (selection.select("#xAxis").empty()){
 			selection.append("svg:g")
 			.attr("class", "axis")
 			.attr("id", "xAxis");
 		};
-		selection.select("#xAxis")
-	 		.attr("transform", "translate(0, " + timelineGlobals.binHeight + ")")
-	 		.call(xAxis);
 
 		if (selection.select("#yAxis").empty()){
 			selection.append("svg:g")
 			.attr("class", "axis")
 			.attr("id", "yAxis");
 		};
-		selection.select("#yAxis")
-			.attr("transform", "translate(" + timelineGlobals.padding.left + ", 0)")
-			.call(yAxis);
+		
+		placeRectsandAxes(max);
 	};
 
 	this.redrawBins = function(width, height){
@@ -579,60 +593,13 @@ function timeline(idx, range, domain, height, padding){
 		yScaler = yScaler.range([height-timelineGlobals.padding.vertical, timelineGlobals.padding.vertical]);
 
 		selection.attr("transform", "translate(0, " + rowY + ")");
-		var thisLine = selection.selectAll(".bin")
+		selection.selectAll(".bin")
 			.on("mouseover", timelineGlobals.showToolTip)
 			.on("mouseout", timelineGlobals.hideToolTip)
 			.on("dblclick", timelineGlobals.zoomElem)
 			.attr("transform", getEventCoords);
 
-		thisLine.selectAll(".binFailed")
-		.attr("width", getEventWidth)
-		.attr("height", function(d, i){
-			return timelineGlobals.binHeight - yScaler((timelineGlobals.display.failedConn) ? d.failedConn : 0);})
-		.attr("y", function(d, i){
-			return yScaler((timelineGlobals.display.failedConn) ? d.failedConn : 0);});
-
-		thisLine.selectAll(".binAccepted")
-		.attr("width", getEventWidth)
-		.attr("height", function(d){
-			return timelineGlobals.binHeight - yScaler((timelineGlobals.display.acceptedConn) ? d.acceptedConn : 0);})
-		.attr("y",	function(d){return yScaler(d.displayTotals);});
-
-		thisLine.selectAll(".binDivider")
-		.attr("width", getEventWidth)
-		.attr("height", function(d){
-			return timelineGlobals.binHeight - yScaler((timelineGlobals.display.other) ? d.other : 0);})
-		.attr("y", function(d){return yScaler(d.displayTotals - ((timelineGlobals.display.acceptedConn) ? d.acceptedConn : 0));});
-
-		thisLine.selectAll(".binInvalid")
-		.attr("width", getEventWidth)
-		.attr("height", function(d){
-			return timelineGlobals.binHeight - yScaler((timelineGlobals.display.invalidAttempts) ? d.invalidAttempts : 0);
-		})
-		.attr("y", function(d){
-			return yScaler(((timelineGlobals.display.failedConn) ? d.failedConn : 0) + ((timelineGlobals.display.invalidAttempts) ? d.invalidAttempts : 0));
-		});
-
-		thisLine.selectAll(".flags")
-		.attr("y", function(d){return yScaler(d.displayTotals)-2;}); //-2 offset to float above bin by a small margin
-
-		var xAxis = d3.svg.axis()
-		.scale(xScaler)
-		.orient("bottom");
-
-		var yAxis = d3.svg.axis()
-		.scale(yScaler)
-		.orient("left")
-		.ticks(4)
-		.tickFormat(yScaler.tickFormat(4, ",d"));
-
-		selection.select("#xAxis")
- 		.attr("transform", "translate(0, " + timelineGlobals.binHeight + ")")
- 		.call(xAxis);
-
-		selection.select("#yAxis")
-		.attr("transform", "translate(" + timelineGlobals.padding.left + ", 0)")
-		.call(yAxis);
+		placeRectsandAxes(timelineGlobals.maxima[idx][0]);
 	};
 
 	function buildText(d, i){

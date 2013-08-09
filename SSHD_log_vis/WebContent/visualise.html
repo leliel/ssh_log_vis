@@ -9,7 +9,7 @@
 <script type="text/javascript" src="/SSHD_log_vis/scripts/libs/jquery-1.10.2.js"></script>
 <script type="text/javascript" src="/SSHD_log_vis/scripts/libs/jquery-ui-1.10.3.custom.js"></script>
 <script type="text/javascript" src="/SSHD_log_vis/scripts/libs/jquery-ui-timepicker-addon.js"></script>
-<script type="text/javascript" src="/SSHD_log_vis/scripts/libs/jquery.history.js"></script>
+<!-- <script type="text/javascript" src="/SSHD_log_vis/scripts/libs/jquery.history.js"></script> -->
 <script type="text/javascript" src="/SSHD_log_vis/scripts/libs/jquery.ba-throttle-debounce.js"></script>
 <script type="text/javascript" src="/SSHD_log_vis/scripts/libs/dragslider.js"></script>
 <script type="text/javascript" src="/SSHD_log_vis/scripts/utils.js"></script>
@@ -31,10 +31,10 @@
 		Active server : <select name="servers" id="servers" class="inputLarge ui-widget-content select ui-corner-all"></select><br>
 		IP of Interest : <input id="IP" name="IP" type="text" value="" class="inputLarge ui-widget-content select ui-corner-all" /><br>
 		User of Interest : <input id="user" name="user" type="text" value="" class="inputLarge ui-widget-content select ui-corner-all" /><br>
-		<input type="checkbox" id="showAccepted" name="showAccepted" value="acceptedConn" checked="checked">Show Accepted Connections </input><br>
-		<input type="checkbox" id="showFailed" name="showFailed" value="failedConn" checked="checked">Show Failed Connections </input><br>
-		<input type="checkbox" id="showInvalid" name="showInvalid" value="invalidAttempts" checked="checked">Show Invalid Usernames </input><br>
-		<input type="checkbox" id="showOther" name="showOther" value="other" checked="checked">Show Other Events </input><br>
+		<input type="checkbox" id="acceptedConn" name="acceptedConn" value="acceptedConn" checked="checked">Show Accepted Connections </input><br>
+		<input type="checkbox" id="failedConn" name="failedConn" value="failedConn" checked="checked">Show Failed Connections </input><br>
+		<input type="checkbox" id="invalidAttempts" name="invalidAttempts" value="invalidAttempts" checked="checked">Show Invalid Usernames </input><br>
+		<input type="checkbox" id="other" name="other" value="other" checked="checked">Show Other Events </input><br>
 		<div id="legend" class="legend ui-widget ui-widget-content ui-corner-all">
 			<svg id="binColours" class="legendColors">
 				<rect class="binAccepted" x="0" y="0" width="20%" height="20%" />
