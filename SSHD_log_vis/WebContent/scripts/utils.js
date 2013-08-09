@@ -31,18 +31,18 @@ function setupOnLoad() {
 		timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(),
 				timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength);
 	}));
-	
+
 	$("input[type='checkbox']").on("change", function(event){
 		if (this.checked === true){
 			timelineGlobals.display[this.value] = true;
 		} else {
 			timelineGlobals.display[this.value] = false;
 		}
-		var width = $("#time").width();
-		var height = $("#time").height()/timelineGlobals.timelines.length;
+		timelineGlobals.maxima = new Array(4);
 		for (var i = 0; i < timelineGlobals.timelines.length; i++){
-			timelineGlobals.timelines[i].redrawBins(width, height);
+			timelineGlobals.timelines[i].updateDisplays();
 		}
+		timelineGlobals.renderIndicators();
 	});
 
 	function setServer(event){
@@ -360,4 +360,3 @@ function addComment(){
 	setID(parseInt(id));
 	$("#comment").dialog("open");
 }
-

@@ -379,7 +379,7 @@ function timeline(idx, range, domain, height, padding){
 	this.getEnd = function(){
 		return xScaler.domain()[1].getTime();
 	};
-	
+
 	 function subElemSum(d){
 		 var sum = 0;
 		 for (var prop in timelineGlobals.display){
@@ -388,6 +388,53 @@ function timeline(idx, range, domain, height, padding){
 			 }
 		 }
 		 d.displayTotals = sum;
+	 }
+
+	 this.updateDisplays = function(){
+		selection.selectAll(".bin")
+		 	.each(updateDatum);
+		var domain = [0, timelineGlobals.maxima[idx]];
+		yScaler.domain(domain);
+		selection.selectAll("rect")
+		 	.each(subElemSum);
+
+		selection.selectAll(".binAccepted")
+			.attr("width", getEventWidth)
+			.attr("height", function(d){
+				return timelineGlobals.binHeight - yScaler((timelineGlobals.display.acceptedConn) ? d.acceptedConn : 0);})
+			.attr("y",	function(d){return yScaler(d.displayTotals);});
+
+		selection.selectAll(".binFailed")
+			.attr("width", getEventWidth)
+			.attr("height", function(d, i){
+				return timelineGlobals.binHeight - yScaler((timelineGlobals.display.failedConn) ? d.failedConn : 0);})
+			.attr("y", function(d, i){
+				return yScaler((timelineGlobals.display.failedConn) ? d.failedConn : 0);});
+
+		selection.selectAll(".binInvalid")
+			.attr("width", getEventWidth)
+			.attr("height", function(d){
+				return timelineGlobals.binHeight - yScaler((timelineGlobals.display.invalidAttempts) ? d.invalidAttempts : 0);
+			})
+			.attr("y", function(d){
+				return yScaler(((timelineGlobals.display.failedConn) ? d.failedConn : 0) + ((timelineGlobals.display.invalidAttempts) ? d.invalidAttempts : 0));
+			});
+
+		selection.selectAll(".binDivider")
+			.attr("width", getEventWidth)
+			.attr("height", function(d){
+				return timelineGlobals.binHeight - yScaler((timelineGlobals.display.other) ? d.other : 0);})
+			.attr("y", function(d){return yScaler(d.displayTotals - ((timelineGlobals.display.acceptedConn) ? d.acceptedConn : 0));});
+
+		selection.selectAll(".flags")
+			.attr("y", function(d){return yScaler(d.displayTotals)-2;});//-2 offset to float above bin by a small margin
+	 };
+
+	 function updateDatum(d, i){
+		subElemSum(d);
+		if (timelineGlobals.maxima[idx] === undefined || d.displayTotals > timelineGlobals.maxima[idx]){
+			timelineGlobals.maxima[idx] = d.displayTotals;
+		}
 	 }
 
 	this.renderBins = function(element) {
@@ -412,9 +459,7 @@ function timeline(idx, range, domain, height, padding){
 
 		thisLine.selectAll(".binFailed")
 			.data(function(d){
-				return [{startTime : d.startTime,
-						endTime : d.endTime,
-						failedConn : d.failedConn}];
+				return [d];
 			})
 			.enter()
 			.append("svg:rect")
@@ -429,11 +474,7 @@ function timeline(idx, range, domain, height, padding){
 
 		thisLine.selectAll(".binAccepted")
 			.data(function(d){
-				return[{startTime : d.startTime,
-						endTime : d.endTime,
-						acceptedConn : d.acceptedConn,
-						subElemCount : d.subElemCount,
-						displayTotals : d.displayTotals}];
+				return[d];
 			})
 			.enter()
 			.append("svg:rect")
@@ -469,14 +510,7 @@ function timeline(idx, range, domain, height, padding){
 
 		thisLine.selectAll(".binDivider")
 			.data(function(d){
-				return [{
-					startTime : d.startTime,
-					endTime : d.endTime,
-					other : d.other,
-					subElemCount : d.subElemCount,
-					displayTotals : d.displayTotals,
-					acceptedConn : d.acceptedConn
-				}];
+				return [d];
 			})
 			.enter()
 			.append("svg:rect")
@@ -490,16 +524,13 @@ function timeline(idx, range, domain, height, padding){
 
 		thisLine.selectAll(".flags")
 			.data(function(d){
-				return [{flags : d.flags,
-						count : d.displayTotals,
-						startTime : d.startTime,
-						endTime : d.endTime}];
+				return [d];
 			})
 			.enter()
 			.append("svg:text")
 			.attr("class", "flags");
 		thisLine.selectAll(".flags")
-			.attr("y", function(d){return yScaler(d.count)-2;})//-2 offset to float above bin by a small margin
+			.attr("y", function(d){return yScaler(d.displayTotals)-2;})//-2 offset to float above bin by a small margin
 			.text(buildText)
 			.attr("textLength", function(d){
 				if (this.getComputedTextLength() > getEventWidth(d)){
@@ -566,7 +597,7 @@ function timeline(idx, range, domain, height, padding){
 		.attr("height", function(d){
 			return timelineGlobals.binHeight - yScaler((timelineGlobals.display.acceptedConn) ? d.acceptedConn : 0);})
 		.attr("y",	function(d){return yScaler(d.displayTotals);});
-		
+
 		thisLine.selectAll(".binDivider")
 		.attr("width", getEventWidth)
 		.attr("height", function(d){
@@ -583,7 +614,7 @@ function timeline(idx, range, domain, height, padding){
 		});
 
 		thisLine.selectAll(".flags")
-		.attr("y", function(d){return yScaler(d.count)-2;}); //-2 offset to float above bin by a small margin
+		.attr("y", function(d){return yScaler(d.displayTotals)-2;}); //-2 offset to float above bin by a small margin
 
 		var xAxis = d3.svg.axis()
 		.scale(xScaler)
@@ -628,4 +659,3 @@ function timeline(idx, range, domain, height, padding){
 		return xScaler(d.endTime) - xScaler(d.startTime);
 	}
 }
-
