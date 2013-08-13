@@ -255,16 +255,16 @@ function Globals(width, height){
 			}
 		}
 		if (types !== ""){
-			url += "&types=" + encodeURIComponent(types); 
+			url += "&types=" + encodeURIComponent(types);
 		}
 		//TODO generate bookmark metadata -set title argument to a string.
-		window.history.pushState(null, null, url);
+		History.pushState(null, null, url);
 	};
 
 	this.loadDataFromHistory = function(e){
-		var state = window.location.href;
-		var url = state.substring(state.lastIndexOf("?") + 1);
-		if (url != state){
+		var state = History.getState();
+		var url = state.url.substring(state.url.lastIndexOf("?") + 1);
+		if (url != state.url){
 			var data = getObjFromQueryString(url);
 			var start = parseInt(data.startTime);
 			var end = parseInt(data.endTime);
@@ -439,7 +439,7 @@ function timeline(idx, range, domain, height, padding){
 		placeRectsandAxes(domain[1]);
 
 	 };
-	 
+
 	 function placeRectsandAxes(max){
 			selection.selectAll(".binAccepted")
 			.attr("width", getEventWidth)
@@ -472,7 +472,7 @@ function timeline(idx, range, domain, height, padding){
 		selection.selectAll(".flags")
 			.attr("y", function(d){return yScaler(d.displayTotals)-2;})//-2 offset to float above bin by a small margin
 			.text(buildText);
-		
+
 		var xAxis = d3.svg.axis()
 		.scale(xScaler)
 		.orient("bottom");
@@ -528,7 +528,7 @@ function timeline(idx, range, domain, height, padding){
 			.append("svg:rect")
 			.attr("class", "binFailed")
 			.attr("fill", timelineGlobals.colours.failed);
-	
+
 		thisLine.selectAll(".binAccepted")
 			.data(function(d){
 				return[d];
@@ -583,7 +583,7 @@ function timeline(idx, range, domain, height, padding){
 			.attr("class", "axis")
 			.attr("id", "yAxis");
 		};
-		
+
 		placeRectsandAxes(max);
 	};
 

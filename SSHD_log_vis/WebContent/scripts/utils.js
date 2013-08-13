@@ -48,11 +48,11 @@ function setupOnLoad() {
 			insertFilter(this.name.substring(0, 1));
 		}
 	});
-	
+
 	function insertFilter(filterCode){
 		var url = window.location.href;
 		if (url.indexOf("&types=") != -1){
-			var working, base; 
+			var working, base;
 			working = base = url.substring(url.indexOf("&types="));
 			if (working.indexOf(filterCode) != -1){
 				working = working.replace(filterCode, '');
@@ -68,7 +68,7 @@ function setupOnLoad() {
 		} else {
 			url += "&types=" + filterCode;
 		}
-		window.history.replaceState(null, null, url);
+		History.replaceState(null, null, url);
 	}
 
 	function setServer(event){
@@ -182,8 +182,8 @@ function initPage(start, end) {
 	$("#time").width($(window).width()-$("#controls").width() - 20);
 
 	timelineGlobals = new Globals($("#time").width(), $("#time").height());
-	
-	window.onpopstate = timelineGlobals.loadDataFromHistory;
+
+	$(window).on("statechange", timelineGlobals.loadDataFromHistory);
 
 	$('#universe').dragslider({
 		animate : true, // Works with animation.
