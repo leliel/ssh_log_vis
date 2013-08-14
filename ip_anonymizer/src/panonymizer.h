@@ -21,7 +21,8 @@ class PAnonymizer { //Prefix-preserving anonymizer
     Rijndael m_rin;  //Rijndael cipher as pseudorandom function
 
  public:
-    UINT32 anonymize( const UINT32 orig_addr);   
+    UINT32 anonymize( const UINT32 orig_addr);
+    unsigned char* anonymizev6( const unsigned char* orig_addr);
 };
 
-#endif //_PANONYMIZER_H_ 
+#endif //_PANONYMIZER_H_

@@ -98,7 +98,6 @@ public class Mysql_Datasource implements LogDataSource {
 		try {
 			state = connection.prepareStatement(sql);
 
-			//FIXME iterate over bound variables, binding in prepared statement.
 			List<Object> vars = query.getBindValues();
 			for (int i = 0; i < vars.size(); i++){
 				state.setObject(i+1, vars.get(i));

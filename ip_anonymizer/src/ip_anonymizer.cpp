@@ -1,13 +1,15 @@
 //============================================================================
 // Name        : ip_anonymizer.cpp
-// Author      : 
+// Author      :
 // Version     :
 // Copyright   : Your copyright notice
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
-#include <iostream>
-#include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream.h>
+#include <fstream.h>
 #include <arpa/inet.h>
 #include <boost/regex.hpp>
 #include "panonymizer.h"
@@ -33,23 +35,32 @@ int main(int argc, char* argv[]) {
 
 	string str, res;
 	char rep[INET_ADDRSTRLEN];
+	char repv6[INET6_ADDRSTRLEN];
 	struct in_addr bits;
+	struct in6_addr bitsv6;
+	unsigned char* bitsv6ptr = bitsv6.s6_addr;
 	boost::smatch match;
 	try {
-		boost::regex addr("(?>[0-9]{1,3}\\.){3}[0-9]{1,3}",
+		boost::regex addr(
+				"\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b",
 				boost::regex_constants::ECMAScript);
-		boost::regex local_addr("^(10\\.*|172\\.16\\.*|192\\.168\\.*)",
-				boost::regex_constants::ECMAScript); //got to be a better way.
+		boost::regex addrv6("(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]).){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]).){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))"
+				, boost::regex_constants::perl);
 		while (getline(input, str)) {
 			if (boost::regex_search(str, match, addr)) {
 				res = string(match[0].first, match[0].second);
-				if (!boost::regex_match(res, local_addr)) {
-					inet_pton(AF_INET, res.c_str(), &bits);
-					bits.s_addr = anon.anonymize(bits.s_addr);
-					inet_ntop(AF_INET, &bits, rep, INET_ADDRSTRLEN);
-					res = std::string(rep);
-					str = boost::regex_replace(str, addr, res);
-				}
+				inet_pton(AF_INET, res.c_str(), &bits);
+				bits.s_addr = anon.anonymize(bits.s_addr);
+				inet_ntop(AF_INET, &bits, rep, INET_ADDRSTRLEN);
+				res = std::string(rep);
+				str = boost::regex_replace(str, addr, res);
+			} else if(boost::regex_search(str, match, addrv6)){
+				res = string(match[0].first, match[0].second);
+				inet_pton(AF_INET6, res.c_str(), &bitsv6);
+				bitsv6.s6_addr = *(anon.anonymizev6(bitsv6.s6_addr));
+				inet_ntop(AF_INET6, &bitsv6, repv6, INET6_ADDRSTRLEN);
+				res = std::string(repv6);
+				str = boost::regex_replace(str, addr, res);
 			}
 			output << str << endl;
 		}
