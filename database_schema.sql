@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.1.67, for unknown-linux-gnu (x86_64)
+-- MySQL dump 10.13 Distrib 5.1.67, for unknown-linux-gnu (x86_64)
 --
--- Host: depot    Database: leliel_engr489_2013
+-- Host: depot Database: leliel_engr489_2013
 -- ------------------------------------------------------
--- Server version	5.1.67
+-- Server version 5.1.67
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -26,7 +26,7 @@ USE `leliel_engr489_2013`;
 --
 
 DROP TABLE IF EXISTS `entry`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `entry` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -62,7 +62,7 @@ CREATE TABLE `entry` (
 --
 
 DROP TABLE IF EXISTS `freq_loc`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `freq_loc` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -81,7 +81,7 @@ CREATE TABLE `freq_loc` (
 --
 
 DROP TABLE IF EXISTS `freq_loc_links`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `freq_loc_links` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -99,7 +99,7 @@ CREATE TABLE `freq_loc_links` (
 --
 
 DROP TABLE IF EXISTS `freq_time`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `freq_time` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -117,7 +117,7 @@ CREATE TABLE `freq_time` (
 --
 
 DROP TABLE IF EXISTS `freq_time_links`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `freq_time_links` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -135,7 +135,7 @@ CREATE TABLE `freq_time_links` (
 --
 
 DROP TABLE IF EXISTS `geo`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `geo` (
   `locId` int(11) NOT NULL,
@@ -156,7 +156,7 @@ CREATE TABLE `geo` (
 --
 
 DROP TABLE IF EXISTS `ip`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ip` (
   `startIpNum` int(10) unsigned NOT NULL,
@@ -173,7 +173,7 @@ CREATE TABLE `ip` (
 --
 
 DROP TABLE IF EXISTS `links`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `links` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -192,7 +192,7 @@ CREATE TABLE `links` (
 --
 
 DROP TABLE IF EXISTS `server`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `server` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -209,7 +209,7 @@ CREATE TABLE `server` (
 --
 
 DROP TABLE IF EXISTS `user`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `user` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -225,14 +225,14 @@ CREATE TABLE `user` (
 -- Dumping routines for database 'leliel_engr489_2013'
 --
 /*!50003 DROP PROCEDURE IF EXISTS `freq_loc_add` */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_cs_client = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = latin1 */ ;
+/*!50003 SET character_set_client = latin1 */ ;
 /*!50003 SET character_set_results = latin1 */ ;
-/*!50003 SET collation_connection  = latin1_swedish_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = '' */ ;
+/*!50003 SET collation_connection = latin1_swedish_ci */ ;
+/*!50003 SET @saved_sql_mode = @@sql_mode */ ;
+/*!50003 SET sql_mode = '' */ ;
 DELIMITER ;;
 CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_loc_add`(in name int, in loc int, in ttl bigint, in timeHappened bigint, out num int, out ids int)
 begin
@@ -251,19 +251,19 @@ set ids = temp;
 end if;
 end;;
 DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET sql_mode = @saved_sql_mode */ ;
+/*!50003 SET character_set_client = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET collation_connection = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `freq_loc_check` */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_cs_client = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = latin1 */ ;
+/*!50003 SET character_set_client = latin1 */ ;
 /*!50003 SET character_set_results = latin1 */ ;
-/*!50003 SET collation_connection  = latin1_swedish_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = '' */ ;
+/*!50003 SET collation_connection = latin1_swedish_ci */ ;
+/*!50003 SET @saved_sql_mode = @@sql_mode */ ;
+/*!50003 SET sql_mode = '' */ ;
 DELIMITER ;;
 CREATE DEFINER=`leliel`@`%`PROCEDURE `freq_loc_check`(in name int, in loc int, out num int, out ids int)
 begin
@@ -279,19 +279,19 @@ set ids = temp;
 end if;
 end;;
 DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET sql_mode = @saved_sql_mode */ ;
+/*!50003 SET character_set_client = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET collation_connection = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `freq_time_add` */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_cs_client = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = latin1 */ ;
+/*!50003 SET character_set_client = latin1 */ ;
 /*!50003 SET character_set_results = latin1 */ ;
-/*!50003 SET collation_connection  = latin1_swedish_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = '' */ ;
+/*!50003 SET collation_connection = latin1_swedish_ci */ ;
+/*!50003 SET @saved_sql_mode = @@sql_mode */ ;
+/*!50003 SET sql_mode = '' */ ;
 DELIMITER ;;
 CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_time_add`(in name int, in timeHappened bigint, in allowance bigint, in ttl bigint, in datetimeHappened bigint, out num int, out ids int)
 begin
@@ -314,19 +314,19 @@ set ids = temp;
 end if;
 end;;
 DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET sql_mode = @saved_sql_mode */ ;
+/*!50003 SET character_set_client = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET collation_connection = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `freq_time_check` */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_cs_client = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = latin1 */ ;
+/*!50003 SET character_set_client = latin1 */ ;
 /*!50003 SET character_set_results = latin1 */ ;
-/*!50003 SET collation_connection  = latin1_swedish_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = '' */ ;
+/*!50003 SET collation_connection = latin1_swedish_ci */ ;
+/*!50003 SET @saved_sql_mode = @@sql_mode */ ;
+/*!50003 SET sql_mode = '' */ ;
 DELIMITER ;;
 CREATE DEFINER=`leliel`@`%` PROCEDURE `freq_time_check`(in name int, in loc int, out num int, out ids int)
 begin
@@ -342,36 +342,36 @@ set ids = temp;
 end if;
 end;;
 DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET sql_mode = @saved_sql_mode */ ;
+/*!50003 SET character_set_client = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET collation_connection = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `insert_server` */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_cs_client = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = latin1 */ ;
+/*!50003 SET character_set_client = latin1 */ ;
 /*!50003 SET character_set_results = latin1 */ ;
-/*!50003 SET collation_connection  = latin1_swedish_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = '' */ ;
+/*!50003 SET collation_connection = latin1_swedish_ci */ ;
+/*!50003 SET @saved_sql_mode = @@sql_mode */ ;
+/*!50003 SET sql_mode = '' */ ;
 DELIMITER ;;
 CREATE DEFINER=`leliel`@`%` PROCEDURE `insert_server`(IN n CHAR(50), OUT id INT UNSIGNED)
 BEGIN INSERT INTO server VALUES(DEFAULT, n, NULL); SET id = LAST_INSERT_ID(); END;;
 DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET sql_mode = @saved_sql_mode */ ;
+/*!50003 SET character_set_client = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET collation_connection = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `insert_user` */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_cs_client = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_client = utf8 */ ;
 /*!50003 SET character_set_results = utf8 */ ;
-/*!50003 SET collation_connection  = utf8_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = '' */ ;
+/*!50003 SET collation_connection = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode = @@sql_mode */ ;
+/*!50003 SET sql_mode = '' */ ;
 DELIMITER ;;
 CREATE DEFINER=`leliel`@`%` PROCEDURE `insert_user`(IN name CHAR(50), OUT id INT UNSIGNED)
 BEGIN
@@ -379,10 +379,10 @@ INSERT INTO user VALUES(DEFAULT, name);
 SET id = LAST_INSERT_ID();
 END;;
 DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET sql_mode = @saved_sql_mode */ ;
+/*!50003 SET character_set_client = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET collation_connection = @saved_col_connection */ ;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

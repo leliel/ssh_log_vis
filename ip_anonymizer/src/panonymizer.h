@@ -22,7 +22,7 @@ class PAnonymizer { //Prefix-preserving anonymizer
 
  public:
     UINT32 anonymize( const UINT32 orig_addr);
-    unsigned char* anonymizev6( const unsigned char* orig_addr);
+    int anonymizev6( in6_addr* ip);
 };
 
 #endif //_PANONYMIZER_H_
