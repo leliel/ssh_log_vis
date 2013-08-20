@@ -65,28 +65,15 @@ public class Mysql_Datasource implements LogDataSource {
 				.join(DSL.tableByName("user"), JoinType.LEFT_OUTER_JOIN)
 				.on(DSL.fieldByName("entry", "user").equal(DSL.fieldByName("user", "id")));
 
-		Condition cond = null;
+		Condition cond = DSL.fieldByName("entry", "timestamp").between(startTime, endTime);;
 		if (serverName != null){
-			cond = DSL.fieldByName("server", "name").equal(serverName);
+			cond = cond.and(DSL.fieldByName("server", "name").equal(serverName));
 		}
 		if (source != null) {
-			if (cond != null) {
-				cond.and(DSL.fieldByName("entry", "source").like(source));
-			} else {
-				cond = DSL.fieldByName("entry", "source").like(source);
-			}
+			cond = cond.and(DSL.fieldByName("entry", "source").like(source));
 		}
 		if (user != null) {
-			if (cond != null) {
-				cond.and(DSL.fieldByName("entry", "user").like(user));
-			} else {
-				cond = DSL.fieldByName("entry", "user").like(user);
-			}
-		}
-		if (cond != null) {
-			cond.and(DSL.fieldByName("entry", "timestamp").between(startTime, endTime));
-		} else {
-			cond = DSL.fieldByName("entry", "timestamp").between(startTime, endTime);
+			cond = cond.and(DSL.fieldByName("user", "name").like(user));
 		}
 
 		Query query = base.where(cond);
