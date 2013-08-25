@@ -333,6 +333,84 @@ public class Mysql_Datasource implements LogDataSource {
 		}
 		return result;
 	}
+	
+	public String getNextQuestion(int question_id) throws DataSourceException{
+		Select query = this.queryBuilder.select(DSL.fieldByName("quetions", "text"))
+				.from(DSL.tableByName("quesions"))
+				.where(DSL.fieldByName("questions", "id").equal(question_id));
+		
+		PreparedStatement state = null;
+		ResultSet res = null;
+		try {
+			state = connection.prepareStatement(query.getSQL());
+			List<Object> vars = query.getBindValues();
+			for (int i =0; i < vars.size(); i++){
+				state.setObject(i+1, vars.get(i));
+			}
+			 res = state.executeQuery();
+			 if (res.first()){
+				 String answer = res.getString("text");
+				 res.close();
+				 state.close();
+				 return answer;
+			 } else {
+				 throw new DataSourceException("Invalid queston number");
+			 }
+		} catch (SQLException e) {
+			throw new DataSourceException(e);
+		} finally {
+			try {
+				if (state != null) {
+					state.close();
+				}
+				if (res != null){
+					res.close();
+				}
+			} catch (SQLException e) {
+				throw new DataSourceException(e);
+			}
+		}
+	}
+	
+	public int getParticipantID(String session_id) throws DataSourceException{
+		Insert query = this.queryBuilder.insertInto(DSL.tableByName("participants"))
+				.values("session_id");
+		
+		String sql = query.getSQL();
+		PreparedStatement state = null;
+		ResultSet id = null;
+		try {
+			state = this.connection.prepareStatement(sql);
+			List<Object> vars = query.getBindValues();
+			for (int i = 0; i< vars.size(); i++){
+				state.setObject(i+1, vars.get(i));
+			}
+			int res = state.executeUpdate();
+			if (res == 1) {
+				id = state.executeQuery("SELECT LAST_INSERT_ID()");
+				if (id.first()){
+					return id.getInt(1);
+				}
+				
+			} else {
+				throw new DataSourceException("Insert participant failed");
+			}
+		} catch (SQLException e) {
+			throw new DataSourceException(e);
+		} finally {
+			try {
+				if (state != null) {
+					state.close();
+				}
+				if (id != null){
+					id.close();
+				}
+			} catch (SQLException e) {
+				throw new DataSourceException(e);
+			}
+		}
+		return -1; //should be unreachable in practice
+	}
 
 	@Override
 	public void destroy() throws DataSourceException {
