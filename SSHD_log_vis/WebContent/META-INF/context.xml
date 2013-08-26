@@ -3,4 +3,8 @@
 
 	<Resource auth="container" name="jdbc/sshd_vis_db" type="javax.sql.DataSource" driverClassName="com.mysql.jdbc.Driver"
 	    password="iBoo3Ang" maxActive="10" username="leliel"
-	    url="jdbc:mysql://depot:3306/leliel_engr489_2013"></Resource></Context>
+	    url="jdbc:mysql://depot:3306/leliel_engr489_2013"></Resource>
+	<Resource auth="container" name="jdbc/sshd_vis_db_2" type="javax.sql.DataSource" driverClassName="com.mysql.jdbc.Driver"
+	    password="iBoo3Ang" maxActive="10" username="leliel"
+	    url="jdbc:mysql://depot:3306/leliel_engr489_2013_2"></Resource>
+</Context>

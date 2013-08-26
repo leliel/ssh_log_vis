@@ -21,6 +21,7 @@ import org.jooq.Query;
 import org.jooq.SQLDialect;
 import org.jooq.Select;
 import org.jooq.SelectWhereStep;
+import org.jooq.Update;
 import org.jooq.impl.DSL;
 
 import JSONtypes.Connect;
@@ -333,22 +334,35 @@ public class Mysql_Datasource implements LogDataSource {
 		}
 		return result;
 	}
-	
-	public String getNextQuestion(int question_id) throws DataSourceException{
+
+	public String getNextQuestion(int question_id, int part_id) throws DataSourceException{
 		Select query = this.queryBuilder.select(DSL.fieldByName("quetions", "text"))
 				.from(DSL.tableByName("quesions"))
 				.where(DSL.fieldByName("questions", "id").equal(question_id));
-		
+
+		Insert log = this.queryBuilder.insertInto(DSL.tableByName("answers"), DSL.fieldByName("answers", "start")
+				, DSL.fieldByName("answers", "qNum"), DSL.fieldByName("answers", "part_id"))
+				.values("current_timestamp", question_id, part_id);
+
 		PreparedStatement state = null;
+		PreparedStatement insert = null;
 		ResultSet res = null;
 		try {
 			state = connection.prepareStatement(query.getSQL());
+			insert = connection.prepareStatement(log.getSQL());
 			List<Object> vars = query.getBindValues();
 			for (int i =0; i < vars.size(); i++){
 				state.setObject(i+1, vars.get(i));
 			}
+			List<Object> inputs = log.getBindValues();
+			for (int i =0; i < inputs.size(); i++){
+				insert.setObject(i+1, inputs.get(i));
+			}
 			 res = state.executeQuery();
 			 if (res.first()){
+				 if (insert.executeUpdate() != 1){
+					 throw new DataSourceException("cannot insert question");
+				 }
 				 String answer = res.getString("text");
 				 res.close();
 				 state.close();
@@ -371,11 +385,11 @@ public class Mysql_Datasource implements LogDataSource {
 			}
 		}
 	}
-	
+
 	public int getParticipantID(String session_id) throws DataSourceException{
 		Insert query = this.queryBuilder.insertInto(DSL.tableByName("participants"))
 				.values("session_id");
-		
+
 		String sql = query.getSQL();
 		PreparedStatement state = null;
 		ResultSet id = null;
@@ -391,7 +405,7 @@ public class Mysql_Datasource implements LogDataSource {
 				if (id.first()){
 					return id.getInt(1);
 				}
-				
+
 			} else {
 				throw new DataSourceException("Insert participant failed");
 			}
@@ -425,6 +439,38 @@ public class Mysql_Datasource implements LogDataSource {
 			throw new DataSourceException(e);
 		} catch (NamingException e) {
 			throw new DataSourceException(e);
+		}
+	}
+
+	@Override
+	public void writeAnswer(int part_id, int qNum, String answer)
+			throws DataSourceException {
+		Update query = this.queryBuilder.update(DSL.tableByName("answers"))
+				.set(DSL.fieldByName(String.class, "answer"), answer)
+				.where(DSL.fieldByName(Integer.class, "part_id").equal(part_id)
+						.and(DSL.fieldByName(Integer.class, "qNum").equal(qNum)));
+		String sql = query.getSQL();
+		PreparedStatement state = null;
+		try {
+			state = this.connection.prepareStatement(sql);
+			List<Object> vars = query.getBindValues();
+			for (int i = 0; i < vars.size(); i++){
+				state.setObject(i+1, vars.get(i));
+			}
+			if (state.executeUpdate() != 1){
+				throw new DataSourceException("Answer insert failed.");
+			}
+
+		} catch (SQLException e){
+			throw new DataSourceException(e);
+		} finally {
+			try {
+				if (state != null) {
+					state.close();
+				}
+			} catch (SQLException e) {
+				throw new DataSourceException(e);
+			}
 		}
 	}
 

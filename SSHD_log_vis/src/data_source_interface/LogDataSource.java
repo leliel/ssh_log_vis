@@ -56,8 +56,10 @@ public interface LogDataSource {
 	public void destroy() throws DataSourceException;
 
 
-	public String getNextQuestion(int question_ID) throws DataSourceException;
+	public String getNextQuestion(int question_ID, int part_id) throws DataSourceException;
 
 	public int getParticipantID(String session_id) throws DataSourceException;
+
+	public void writeAnswer(int part_id, int qNum, String answer) throws DataSourceException;
 }
 

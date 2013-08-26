@@ -19,7 +19,7 @@ public class Question_Page extends HttpServlet {
 
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 3153350496051606938L;
 	private LogDataSource datasource;
@@ -30,7 +30,7 @@ public class Question_Page extends HttpServlet {
     public Question_Page() {
         super();
     }
-    
+
 	public void init(ServletConfig context){
 		try {
 			super.init(context);
@@ -47,7 +47,7 @@ public class Question_Page extends HttpServlet {
 		}
 
 	}
-	
+
 	public void destroy(){
 		try {
 			this.datasource.destroy();
@@ -78,13 +78,12 @@ public class Question_Page extends HttpServlet {
 				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				return;
 			}
-		} else {
+		}
+		if (request.getParameter("getQuestion") != null){
 			int currentQ = ((Integer)session.getAttribute("currentQuestion")).intValue();
 			session.setAttribute("currentQuestion", ++currentQ);
 			boolean db = !((Boolean)session.getAttribute("database")).booleanValue();
 			session.setAttribute("database", db);
-		}
-		if (request.getParameter("getQuestion") != null){
 			getQuestion(request, response);
 			return;
 		} else if (request.getParameter("sendAnswer") != null) {
@@ -92,32 +91,39 @@ public class Question_Page extends HttpServlet {
 			return;
 		}
 	}
-	
+
 	private void sendAnswer(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HttpSession sess = request.getSession();
 		int part_id = ((Integer)sess.getAttribute("participant")).intValue();
+		int qNum = ((Integer)sess.getAttribute("currentQuestion")).intValue();
 		String answer = request.getParameter("ans");
 		if (answer == null || part_id == -1) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
 		}
-		//FIXME implement writing.
-		this.datasource.writeAnswer(part_id, answer);
-	}
-	
-	private void getQuestion(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		HttpSession session = request.getSession();
-		int q_ID = ((Integer)session.getAttribute("currentQuestion")).intValue();
-		String question;
 		try {
-			question = this.datasource.getNextQuestion(q_ID);
+			this.datasource.writeAnswer(part_id, qNum, answer);
 		} catch (DataSourceException e) {
 			this.getServletContext().log(e.getMessage(), e.getCause());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			return;
 		}
-		
+	}
+
+	private void getQuestion(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		HttpSession session = request.getSession();
+		int q_ID = ((Integer)session.getAttribute("currentQuestion")).intValue();
+		int part_id = ((Integer)session.getAttribute("participant")).intValue();
+		String question;
+		try {
+			question = this.datasource.getNextQuestion(q_ID, part_id);
+		} catch (DataSourceException e) {
+			this.getServletContext().log(e.getMessage(), e.getCause());
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			return;
+		}
+
 		response.setContentType("text");
 		response.getWriter().write(question);
 	}
-	
+
 }
