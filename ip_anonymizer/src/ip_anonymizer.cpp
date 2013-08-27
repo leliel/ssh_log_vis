@@ -50,17 +50,21 @@ int main(int argc, char* argv[]) {
 			if (boost::regex_search(str, match, addr)) {
 				res = string(match[0].first, match[0].second);
 				inet_pton(AF_INET, res.c_str(), &bits);
-				bits.s_addr = anon.anonymize(bits.s_addr);
-				inet_ntop(AF_INET, &bits, rep, INET_ADDRSTRLEN);
-				res = std::string(rep);
-				str = boost::regex_replace(str, addr, res);
+				if (bits.s_addr != INADDR_ANY){
+					bits.s_addr = anon.anonymize(bits.s_addr);
+					inet_ntop(AF_INET, &bits, rep, INET_ADDRSTRLEN);
+					res = std::string(rep);
+					str = boost::regex_replace(str, addr, res);
+				}
 			} else if(boost::regex_search(str, match, addrv6)){
 				res = string(match[0].first, match[0].second);
 				inet_pton(AF_INET6, res.c_str(), &bitsv6);
-				anon.anonymizev6(&bitsv6);
-				inet_ntop(AF_INET6, &bitsv6, repv6, INET6_ADDRSTRLEN);
-				res = std::string(repv6);
-				str = boost::regex_replace(str, addrv6, res);
+				if (!IN6_IS_ADDR_UNSPECIFIED(&bitsv6)){
+					anon.anonymizev6(&bitsv6);
+					inet_ntop(AF_INET6, &bitsv6, repv6, INET6_ADDRSTRLEN);
+					res = std::string(repv6);
+					str = boost::regex_replace(str, addrv6, res);
+				}
 			}
 			output << str << endl;
 		}

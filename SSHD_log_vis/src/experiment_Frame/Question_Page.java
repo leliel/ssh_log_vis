@@ -70,7 +70,7 @@ public class Question_Page extends HttpServlet {
 		HttpSession session = request.getSession(true);
 		if (session.isNew()){
 			session.setAttribute("database", true);
-			session.setAttribute("currentQuestion", 0);
+
 			try {
 				session.setAttribute("participant", this.datasource.getParticipantID(session.getId()));
 			} catch (DataSourceException e) {
@@ -78,10 +78,12 @@ public class Question_Page extends HttpServlet {
 				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				return;
 			}
+			int part_id = ((Integer)session.getAttribute("participant")).intValue();
+			session.setAttribute("currentQuestion", part_id%8); //will only be 8 questions, so modulo 8. not ideal, but easy.
 		}
 		if (request.getParameter("getQuestion") != null){
 			int currentQ = ((Integer)session.getAttribute("currentQuestion")).intValue();
-			session.setAttribute("currentQuestion", ++currentQ);
+			session.setAttribute("currentQuestion", ++currentQ%8);
 			boolean db = !((Boolean)session.getAttribute("database")).booleanValue();
 			session.setAttribute("database", db);
 			getQuestion(request, response);
