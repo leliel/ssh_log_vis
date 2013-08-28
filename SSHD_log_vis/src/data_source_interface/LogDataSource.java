@@ -21,7 +21,8 @@ public interface LogDataSource {
 	 * @return Empty List if no data found, or a List containing every log entry fetched.
 	 * @throws DataSourceException on any database error
 	 */
-	public List<Line> getEntriesFromDataSource(String serverName, String source, String user, String startTime, String endTime) throws DataSourceException;
+	public List<Line> getEntriesFromDataSource(String serverName, String source, String user,
+			String startTime, String endTime, boolean dataset) throws DataSourceException;
 
 	/**
 	 * Fetches earliest and latest entry timestamps in the database
@@ -30,14 +31,14 @@ public interface LogDataSource {
 	 * @return long[] containing start and end
 	 * @throws DataSourceException on any database error.
 	 */
-	public long[] getStartAndEndOfUniverse() throws DataSourceException;
+	public long[] getStartAndEndOfUniverse(boolean dataset) throws DataSourceException;
 
 	/**
 	 * Fetches list of servers from datastore.
 	 * @return List containing all servers known to the database.
 	 * @throws DataSourceException if no data returned(this indicates a *serious* data consistency problem, or on any database error)
 	 */
-	public List<Server> getAllServers() throws DataSourceException;
+	public List<Server> getAllServers(boolean dataset) throws DataSourceException;
 
 	/**
 	 *  Writes a client provided comment on an event into the database.
@@ -47,7 +48,7 @@ public interface LogDataSource {
 	 * @return true iff the comment is successfully stored
 	 * @throws DataSourceException on any error from underlying datasource.
 	 */
-	public boolean writeComment(long entry_id, String comment) throws DataSourceException;
+	public boolean writeComment(long entry_id, String comment, boolean dataset) throws DataSourceException;
 
 	/**
 	 * Called when containing servlet unloaded, used to ensure all resources closed appropriately.
@@ -55,11 +56,5 @@ public interface LogDataSource {
 	 */
 	public void destroy() throws DataSourceException;
 
-
-	public String getNextQuestion(int question_ID, int part_id) throws DataSourceException;
-
-	public int getParticipantID(String session_id) throws DataSourceException;
-
-	public void writeAnswer(int part_id, int qNum, String answer) throws DataSourceException;
 }
 

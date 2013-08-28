@@ -101,7 +101,8 @@ public class GetEntries extends HttpServlet {
 					request.getParameter("source"),
 					request.getParameter("user"),
 					request.getParameter("startTime"),
-					request.getParameter("endTime"));
+					request.getParameter("endTime"),
+					Boolean.parseBoolean(request.getParameter("dataset")));
 		} catch (DataSourceException e2) {
 			this.getServletContext().log(e2.getMessage(), e2.getCause());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

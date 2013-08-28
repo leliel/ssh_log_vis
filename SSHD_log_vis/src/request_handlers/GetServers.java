@@ -68,7 +68,7 @@ public class GetServers extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		List<Server> servers;
 		try {
-			servers = this.source.getAllServers();
+			servers = this.source.getAllServers(Boolean.parseBoolean(request.getParameter("dataset")));
 		} catch (DataSourceException e) {
 			this.getServletContext().log(e.getMessage(), e.getCause());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

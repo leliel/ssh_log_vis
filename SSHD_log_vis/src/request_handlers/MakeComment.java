@@ -72,7 +72,8 @@ public class MakeComment extends HttpServlet {
 		
 		try {
 			long id = Long.parseLong(request.getParameter("entry_id")); 
-			success = this.datasource.writeComment(id, request.getParameter("comment"));
+			success = this.datasource.writeComment(id, request.getParameter("comment"),
+					Boolean.parseBoolean(request.getParameter("dataset")));
 		} catch (DataSourceException e) {
 			this.getServletContext().log(e.getMessage(), e.getCause());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

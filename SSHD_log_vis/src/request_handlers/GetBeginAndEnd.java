@@ -67,7 +67,7 @@ public class GetBeginAndEnd extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		long[] answer;
 		try {
-			answer = this.datasource.getStartAndEndOfUniverse();
+			answer = this.datasource.getStartAndEndOfUniverse(Boolean.parseBoolean(request.getParameter("dataset")));
 		} catch (DataSourceException e) {
 			this.getServletContext().log(e.getMessage(), e.getCause());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

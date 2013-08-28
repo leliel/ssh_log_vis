@@ -38,23 +38,26 @@ import enums.SubSystem;
 public class Mysql_Datasource implements LogDataSource {
 	private Context context = null;
 	private Connection connection = null;
+	private Connection connection_2 = null;
 	private DSLContext queryBuilder = null;
 
 
 	public Mysql_Datasource() throws NamingException, SQLException{
 		this.context = new InitialContext();
 		this.connection = ((DataSource) context.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
+		this.connection_2 = ((DataSource) context.lookup("java:comp/env/jdbc/sshd_vis_db_2")).getConnection();
 		this.queryBuilder = DSL.using(SQLDialect.MYSQL);
 	}
 
 	public Mysql_Datasource(String dbName) throws NamingException, SQLException {
 		this.context = new InitialContext();
 		this.connection = ((DataSource) context.lookup("java:comp/env/jdbc/" + dbName)).getConnection();
+		this.connection_2 = ((DataSource) context.lookup("java:comp/env/jdbc/" + dbName + "_2")).getConnection();
 	}
 
 	@Override
 	public List<Line> getEntriesFromDataSource(String serverName, String source,
-			String user, String startTime, String endTime) throws DataSourceException {
+			String user, String startTime, String endTime, boolean dataset) throws DataSourceException {
 
 		SelectWhereStep base = this.queryBuilder.select(DSL.fieldByName("entry", "id"), DSL.fieldByName("entry", "timestamp"), DSL.fieldByName("server", "name").as("server")
 				, DSL.fieldByName("entry", "connid") , DSL.fieldByName("entry", "reqtype"), DSL.fieldByName("entry", "authtype"), DSL.fieldByName("entry", "status")
@@ -84,7 +87,11 @@ public class Mysql_Datasource implements LogDataSource {
 		PreparedStatement state = null;
 		ResultSet result = null;
 		try {
-			state = connection.prepareStatement(sql);
+			if (dataset) {
+				state = connection.prepareStatement(sql);
+			} else {
+				state = connection_2.prepareStatement(sql);
+			}
 
 			List<Object> vars = query.getBindValues();
 			for (int i = 0; i < vars.size(); i++){
@@ -231,7 +238,7 @@ public class Mysql_Datasource implements LogDataSource {
 	}
 
 	@Override
-	public long[] getStartAndEndOfUniverse() throws DataSourceException {
+	public long[] getStartAndEndOfUniverse(boolean dataset) throws DataSourceException {
 		Select query = this.queryBuilder.select(DSL.min(DSL.fieldByName("entry", "timestamp")).as("start"),
 												DSL.max(DSL.fieldByName("entry", "timestamp")).as("end"))
 												.from("entry");
@@ -240,7 +247,11 @@ public class Mysql_Datasource implements LogDataSource {
 		Statement state = null;
 		ResultSet result = null;
 		try {
-			state = connection.createStatement();
+			if (dataset) {
+				state = connection.createStatement();
+			} else {
+				state = connection_2.createStatement();
+			}
 			result = state.executeQuery(query.getSQL());
 			if (result.first()){
 				res[0] = result.getLong("start");
@@ -266,7 +277,7 @@ public class Mysql_Datasource implements LogDataSource {
 	}
 
 	@Override
-	public List<Server> getAllServers() throws DataSourceException {
+	public List<Server> getAllServers(boolean dataset) throws DataSourceException {
 		Select query = this.queryBuilder.select(DSL.fieldByName("server",  "id"), DSL.fieldByName("server", "name"), DSL.fieldByName("server", "block"))
 						.from(DSL.tableByName("server"));
 		List<Server> res = new ArrayList<Server>();
@@ -274,7 +285,11 @@ public class Mysql_Datasource implements LogDataSource {
 		Statement state = null;
 		ResultSet result = null;
 		try {
-			state = connection.createStatement();
+			if (dataset) {
+				state = connection.createStatement();
+			} else {
+				state = connection_2.createStatement();
+			}
 			result = state.executeQuery(query.getSQL());
 			while (result.next()) {
 				res.add(new Server(result.getInt("id"), result.getString("name"), result.getString("block")));
@@ -299,7 +314,7 @@ public class Mysql_Datasource implements LogDataSource {
 	}
 
 	@Override
-	public boolean writeComment(long entry_id, String comment)
+	public boolean writeComment(long entry_id, String comment, boolean dataset)
 			throws DataSourceException {
 		if (entry_id < 0 || comment == null || comment.equals("")){
 			throw new DataSourceException("invalid arguments");
@@ -310,7 +325,11 @@ public class Mysql_Datasource implements LogDataSource {
 		PreparedStatement state = null;
 		boolean result = false;
 		try {
-			state = connection.prepareStatement(query.getSQL());
+			if (dataset) {
+				state = connection.prepareStatement(query.getSQL());
+			} else {
+				state = connection_2.prepareStatement(query.getSQL());
+			}
 			List<Object> vars = query.getBindValues();
 			for (int i = 0; i < vars.size(); i++){
 				state.setObject(i+1, vars.get(i));
@@ -335,102 +354,14 @@ public class Mysql_Datasource implements LogDataSource {
 		return result;
 	}
 
-	public String getNextQuestion(int question_id, int part_id) throws DataSourceException{
-		Select query = this.queryBuilder.select(DSL.fieldByName("quetions", "text"))
-				.from(DSL.tableByName("quesions"))
-				.where(DSL.fieldByName("questions", "id").equal(question_id));
-
-		Insert log = this.queryBuilder.insertInto(DSL.tableByName("answers"), DSL.fieldByName("answers", "start")
-				, DSL.fieldByName("answers", "qNum"), DSL.fieldByName("answers", "part_id"))
-				.values("current_timestamp", question_id, part_id);
-
-		PreparedStatement state = null;
-		PreparedStatement insert = null;
-		ResultSet res = null;
-		try {
-			state = connection.prepareStatement(query.getSQL());
-			insert = connection.prepareStatement(log.getSQL());
-			List<Object> vars = query.getBindValues();
-			for (int i =0; i < vars.size(); i++){
-				state.setObject(i+1, vars.get(i));
-			}
-			List<Object> inputs = log.getBindValues();
-			for (int i =0; i < inputs.size(); i++){
-				insert.setObject(i+1, inputs.get(i));
-			}
-			 res = state.executeQuery();
-			 if (res.first()){
-				 if (insert.executeUpdate() != 1){
-					 throw new DataSourceException("cannot insert question");
-				 }
-				 String answer = res.getString("text");
-				 res.close();
-				 state.close();
-				 return answer;
-			 } else {
-				 throw new DataSourceException("Invalid queston number");
-			 }
-		} catch (SQLException e) {
-			throw new DataSourceException(e);
-		} finally {
-			try {
-				if (state != null) {
-					state.close();
-				}
-				if (res != null){
-					res.close();
-				}
-			} catch (SQLException e) {
-				throw new DataSourceException(e);
-			}
-		}
-	}
-
-	public int getParticipantID(String session_id) throws DataSourceException{
-		Insert query = this.queryBuilder.insertInto(DSL.tableByName("participants"))
-				.values("session_id");
-
-		String sql = query.getSQL();
-		PreparedStatement state = null;
-		ResultSet id = null;
-		try {
-			state = this.connection.prepareStatement(sql);
-			List<Object> vars = query.getBindValues();
-			for (int i = 0; i< vars.size(); i++){
-				state.setObject(i+1, vars.get(i));
-			}
-			int res = state.executeUpdate();
-			if (res == 1) {
-				id = state.executeQuery("SELECT LAST_INSERT_ID()");
-				if (id.first()){
-					return id.getInt(1);
-				}
-
-			} else {
-				throw new DataSourceException("Insert participant failed");
-			}
-		} catch (SQLException e) {
-			throw new DataSourceException(e);
-		} finally {
-			try {
-				if (state != null) {
-					state.close();
-				}
-				if (id != null){
-					id.close();
-				}
-			} catch (SQLException e) {
-				throw new DataSourceException(e);
-			}
-		}
-		return -1; //should be unreachable in practice
-	}
-
 	@Override
 	public void destroy() throws DataSourceException {
 		try {
 			if (this.connection != null){
 				connection.close();
+			}
+			if (this.connection_2 != null){
+				connection_2.close();
 			}
 			if (this.context != null){
 				context.close();
@@ -439,38 +370,6 @@ public class Mysql_Datasource implements LogDataSource {
 			throw new DataSourceException(e);
 		} catch (NamingException e) {
 			throw new DataSourceException(e);
-		}
-	}
-
-	@Override
-	public void writeAnswer(int part_id, int qNum, String answer)
-			throws DataSourceException {
-		Update query = this.queryBuilder.update(DSL.tableByName("answers"))
-				.set(DSL.fieldByName(String.class, "answer"), answer)
-				.where(DSL.fieldByName(Integer.class, "part_id").equal(part_id)
-						.and(DSL.fieldByName(Integer.class, "qNum").equal(qNum)));
-		String sql = query.getSQL();
-		PreparedStatement state = null;
-		try {
-			state = this.connection.prepareStatement(sql);
-			List<Object> vars = query.getBindValues();
-			for (int i = 0; i < vars.size(); i++){
-				state.setObject(i+1, vars.get(i));
-			}
-			if (state.executeUpdate() != 1){
-				throw new DataSourceException("Answer insert failed.");
-			}
-
-		} catch (SQLException e){
-			throw new DataSourceException(e);
-		} finally {
-			try {
-				if (state != null) {
-					state.close();
-				}
-			} catch (SQLException e) {
-				throw new DataSourceException(e);
-			}
 		}
 	}
 

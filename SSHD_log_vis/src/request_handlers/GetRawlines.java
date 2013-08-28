@@ -79,7 +79,8 @@ public class GetRawlines extends HttpServlet {
 					request.getParameter("source"),
 					request.getParameter("user"),
 					request.getParameter("startTime"),
-					request.getParameter("endTime"));
+					request.getParameter("endTime"),
+					Boolean.parseBoolean(request.getParameter("dataset")));
 		} catch(DataSourceException e) {
 			this.getServletContext().log(e.getMessage(), e.getCause());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
