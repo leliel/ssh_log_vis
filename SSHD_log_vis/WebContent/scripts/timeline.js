@@ -36,6 +36,7 @@ function Globals(width, height){
 			invalidAttempts : true,
 			other : true
 	};
+	this.dataset = 1;
 	this.maxBins = Math.floor((width-this.padding.left - this.padding.right)/this.minBinWidth);
 	this.binHeight = (height/4)-this.padding.vertical;
 
@@ -257,6 +258,9 @@ function Globals(width, height){
 		if (types !== ""){
 			url += "&types=" + encodeURIComponent(types);
 		}
+		if (timelineGlobals.dataset !== undefined){
+			url += "&dataset" + encodeURIComponent(timelineGlobals.dataset);
+		}
 		//TODO generate bookmark metadata -set title argument to a string.
 		History.pushState(null, null, url);
 	};
@@ -291,6 +295,9 @@ function Globals(width, height){
 				if (data.types.indexOf("o") != -1){
 					timelineGlobals.display.other = false;
 				}
+			}
+			if (data.dataset != undefined) {
+				timelineGlobals.dataset = data.dataset;
 			}
 			var times = timelineGlobals.updateUI(start, end, length);
 			timelineGlobals.zoom(times[0], times[1], length);

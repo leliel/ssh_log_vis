@@ -49,6 +49,42 @@ function setupOnLoad() {
 		}
 	});
 
+	$("input[type='radio']").on("change", function(event){
+		if(event.originalEvent !== undefined) {
+			if (this.checked === true){
+				timelineGlobals.dataset = this.value;
+				var url = window.location.href;
+				var params = getQueryParams(url);
+				params.dataset = timelineGlobals.dataset;
+				var str = jQuery.param(params);
+				url = url.split("?");
+				url = url[0] + "?" +  str;
+				History.replaceState(null, null, url);
+			}
+		}
+	});
+
+	function getQueryParams(url){
+	    var qparams = {},
+	        parts = (url||'').split('?'),
+	        qparts, qpart,
+	        i=0;
+
+	    if(parts.length <= 1 ){
+	        return qparams;
+	    }else{
+	        qparts = parts[1].split('&');
+	        for(i in qparts){
+
+	            qpart = qparts[i].split('=');
+	            qparams[decodeURIComponent(qpart[0])] =
+	                           decodeURIComponent(qpart[1] || '');
+	        }
+	    }
+
+	    return qparams;
+	};
+
 	function insertFilter(filterCode){
 		var url = window.location.href;
 		if (url.indexOf("&types=") != -1){

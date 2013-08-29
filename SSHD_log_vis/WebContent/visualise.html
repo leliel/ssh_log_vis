@@ -28,13 +28,22 @@
 			<select name="units" id="timelineUnits" class="inputLarge ui-widget-content select ui-corner-all"></select><br>
 			<button type="button" id="reBinButton" class="ui-widget-content ui-corner-all" value="reBinButton">Resize timebins</button><br>
 		</div>
-		Active server : <select name="servers" id="servers" class="inputLarge ui-widget-content select ui-corner-all"></select><br>
-		IP of Interest : <input id="IP" name="IP" type="text" value="" class="inputLarge ui-widget-content select ui-corner-all" /><br>
-		User of Interest : <input id="user" name="user" type="text" value="" class="inputLarge ui-widget-content select ui-corner-all" /><br>
-		<input type="checkbox" id="acceptedConn" name="acceptedConn" value="acceptedConn" checked="checked">Show Accepted Connections </input><br>
-		<input type="checkbox" id="failedConn" name="failedConn" value="failedConn" checked="checked">Show Failed Connections </input><br>
-		<input type="checkbox" id="invalidAttempts" name="invalidAttempts" value="invalidAttempts" checked="checked">Show Invalid Usernames </input><br>
-		<input type="checkbox" id="other" name="other" value="other" checked="checked">Show Other Events </input><br>
+		<p>
+			Active server : <select name="servers" id="servers" class="inputLarge ui-widget-content select ui-corner-all"></select><br>
+			IP of Interest : <input id="IP" name="IP" type="text" value="" class="inputLarge ui-widget-content select ui-corner-all" /><br>
+			User of Interest : <input id="user" name="user" type="text" value="" class="inputLarge ui-widget-content select ui-corner-all" /><br>
+			<input type="checkbox" id="acceptedConn" name="acceptedConn" value="acceptedConn" checked="checked">Show Accepted Connections </input><br>
+			<input type="checkbox" id="failedConn" name="failedConn" value="failedConn" checked="checked">Show Failed Connections </input><br>
+			<input type="checkbox" id="invalidAttempts" name="invalidAttempts" value="invalidAttempts" checked="checked">Show Invalid Usernames </input><br>
+			<input type="checkbox" id="other" name="other" value="other" checked="checked">Show Other Events </input><br>
+		</p>
+		<div style="width: 99%" class="ui-widget-content ui-corner-all">
+		<p>
+				<input type="radio" name="dataset" id="set1" value="1" checked="checked">HoneyNet dataset</input><br>
+				<input type="radio" name="dataset" id="set2" value="2" >ECS dataset</input><br>
+				<input type="radio" name="dataset" id="set3" value="3" >Practice dataset</input><br>
+		</p>
+		</div>
 		<div id="legend" class="legend ui-widget ui-widget-content ui-corner-all">
 			<svg id="binColours" class="legendColors">
 				<rect class="binAccepted" x="0" y="0" width="20%" height="20%" />
