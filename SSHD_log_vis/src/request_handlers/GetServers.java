@@ -23,14 +23,14 @@ import data_source_interface.LogDataSource;
 public class GetServers extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private LogDataSource source;
-       
+
     /**
      * @see HttpServlet#HttpServlet()
      */
     public GetServers() {
         super();
     }
-    
+
 	public void init(ServletConfig context){
 		try {
 			super.init(context);
@@ -46,7 +46,7 @@ public class GetServers extends HttpServlet {
 			return;
 		}
 	}
-	
+
 	public void destroy(){
 		try {
 			this.source.destroy();
@@ -68,7 +68,7 @@ public class GetServers extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		List<Server> servers;
 		try {
-			servers = this.source.getAllServers(Boolean.parseBoolean(request.getParameter("dataset")));
+			servers = this.source.getAllServers(Integer.parseInt(request.getParameter("dataset")));
 		} catch (DataSourceException e) {
 			this.getServletContext().log(e.getMessage(), e.getCause());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

@@ -4,7 +4,9 @@ var setID;
 
 function setupOnLoad() {
 
-	$.get("GetBeginAndEnd", "", function(data, textStatus, jqXHR) {
+	var params = getObjFromQueryString(window.location.search);
+	var data = (params.dataset === undefined) ? {dataset : 1} : {dataset : params.dataset};
+	$.get("GetBeginAndEnd", data, function(data, textStatus, jqXHR) {
 			initPage(parseInt(data.start), parseInt(data.end));
 		}, "json");
 
@@ -14,12 +16,9 @@ function setupOnLoad() {
 			timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(),
 					timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength);
 		} else {
-			var ipNum = dottedQuadToInt(this.value);
-			if (ipNum > 0 ) {
-				timelineGlobals.IP = this.value;
-				timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(),
-					timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength);
-			}
+			timelineGlobals.IP = this.value;
+			timelineGlobals.updateUIandZoom(timelineGlobals.timelines[0].getStart(),
+			timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength);
 		}
 	}));
 
@@ -53,37 +52,36 @@ function setupOnLoad() {
 		if(event.originalEvent !== undefined) {
 			if (this.checked === true){
 				timelineGlobals.dataset = this.value;
+				timelineGlobals.server = null;
+				timelineGlobals.user = null;
+				timelineGlobals.IP = null;
+				for (var p in timelineGlobals.display){
+					timelineGlobals.display[p] = true;
+				}
 				var url = window.location.href;
-				var params = getQueryParams(url);
-				params.dataset = timelineGlobals.dataset;
-				var str = jQuery.param(params);
+				var params = getObjFromQueryString(window.location.search);
+				$.ajax({
+					async : false,
+					type : "GET",
+					data : {dataset : timelineGlobals.dataset},
+					complete : function(data, textStatus, jqXHR) {
+						timelineGlobals.universeStart = parseInt(data.responseJSON.start);
+						timelineGlobals.universeEnd = parseInt(data.responseJSON.end);},
+					dataType : "json",
+					url : "GetBeginAndEnd"
+				});
+				var dat = {}
+				dat.dataset = timelineGlobals.dataset;
+				dat.startTime = timelineGlobals.universeStart;
+				dat.endTime = timelineGlobals.universeEnd;
+				dat.binLength = timelineGlobals.timeUnits.days;
+				var str = jQuery.param(dat);
 				url = url.split("?");
 				url = url[0] + "?" +  str;
 				History.replaceState(null, null, url);
 			}
 		}
 	});
-
-	function getQueryParams(url){
-	    var qparams = {},
-	        parts = (url||'').split('?'),
-	        qparts, qpart,
-	        i=0;
-
-	    if(parts.length <= 1 ){
-	        return qparams;
-	    }else{
-	        qparts = parts[1].split('&');
-	        for(i in qparts){
-
-	            qpart = qparts[i].split('=');
-	            qparams[decodeURIComponent(qpart[0])] =
-	                           decodeURIComponent(qpart[1] || '');
-	        }
-	    }
-
-	    return qparams;
-	};
 
 	function insertFilter(filterCode){
 		var url = window.location.href;
@@ -117,7 +115,7 @@ function setupOnLoad() {
 				timelineGlobals.timelines[timelineGlobals.timelines.length-1].getEnd(), timelineGlobals.binLength);
 	}
 
-	$.get("GetServers", "", function(data, textStatus, jqXHR){
+	$.get("GetServers", data, function(data, textStatus, jqXHR){
 		if (jqXHR.status == 200){
 			$("#servers").change(setServer);
 			$("#servers").append($("<option />").val("").text("All Servers"));

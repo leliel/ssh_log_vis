@@ -144,9 +144,10 @@ public class Connect implements dataTypes.Line {
 				}
 			}
 		} else {
-			System.out.println("Unknown location for ip: "
-					+ this.source.getHostAddress() + "user: "
-					+ this.user.getName());
+			//System.out.println("Unknown location for ip: "
+			//		+ this.source.getHostAddress() + " user: "
+			//		+ this.user.getName());
+			this.isFreqLoc = -1;
 		}
 	}
 

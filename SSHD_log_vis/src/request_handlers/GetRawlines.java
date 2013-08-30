@@ -31,7 +31,7 @@ public class GetRawlines extends HttpServlet {
     public GetRawlines() {
         super();
     }
-    
+
 	public void init(ServletConfig context){
 		try {
 			super.init(context);
@@ -47,7 +47,7 @@ public class GetRawlines extends HttpServlet {
 			return;
 		}
 	}
-	
+
 	public void destroy(){
 		try {
 			this.datasource.destroy();
@@ -80,7 +80,7 @@ public class GetRawlines extends HttpServlet {
 					request.getParameter("user"),
 					request.getParameter("startTime"),
 					request.getParameter("endTime"),
-					Boolean.parseBoolean(request.getParameter("dataset")));
+					Integer.parseInt(request.getParameter("dataset")));
 		} catch(DataSourceException e) {
 			this.getServletContext().log(e.getMessage(), e.getCause());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

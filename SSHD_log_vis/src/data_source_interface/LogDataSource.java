@@ -22,7 +22,7 @@ public interface LogDataSource {
 	 * @throws DataSourceException on any database error
 	 */
 	public List<Line> getEntriesFromDataSource(String serverName, String source, String user,
-			String startTime, String endTime, boolean dataset) throws DataSourceException;
+			String startTime, String endTime, int dataset) throws DataSourceException;
 
 	/**
 	 * Fetches earliest and latest entry timestamps in the database
@@ -31,14 +31,14 @@ public interface LogDataSource {
 	 * @return long[] containing start and end
 	 * @throws DataSourceException on any database error.
 	 */
-	public long[] getStartAndEndOfUniverse(boolean dataset) throws DataSourceException;
+	public long[] getStartAndEndOfUniverse(int dataset) throws DataSourceException;
 
 	/**
 	 * Fetches list of servers from datastore.
 	 * @return List containing all servers known to the database.
 	 * @throws DataSourceException if no data returned(this indicates a *serious* data consistency problem, or on any database error)
 	 */
-	public List<Server> getAllServers(boolean dataset) throws DataSourceException;
+	public List<Server> getAllServers(int dataset) throws DataSourceException;
 
 	/**
 	 *  Writes a client provided comment on an event into the database.
@@ -48,7 +48,7 @@ public interface LogDataSource {
 	 * @return true iff the comment is successfully stored
 	 * @throws DataSourceException on any error from underlying datasource.
 	 */
-	public boolean writeComment(long entry_id, String comment, boolean dataset) throws DataSourceException;
+	public boolean writeComment(long entry_id, String comment, int dataset) throws DataSourceException;
 
 	/**
 	 * Called when containing servlet unloaded, used to ensure all resources closed appropriately.

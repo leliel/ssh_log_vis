@@ -39,6 +39,7 @@ public class Mysql_Datasource implements LogDataSource {
 	private Context context = null;
 	private Connection connection = null;
 	private Connection connection_2 = null;
+	private Connection connection_3 = null;
 	private DSLContext queryBuilder = null;
 
 
@@ -46,6 +47,7 @@ public class Mysql_Datasource implements LogDataSource {
 		this.context = new InitialContext();
 		this.connection = ((DataSource) context.lookup("java:comp/env/jdbc/sshd_vis_db")).getConnection();
 		this.connection_2 = ((DataSource) context.lookup("java:comp/env/jdbc/sshd_vis_db_2")).getConnection();
+		//this.connection_3 = ((DataSource) context.lookup("java:comp/env/jdbc/sshd_vis_db_3")).getConnection();
 		this.queryBuilder = DSL.using(SQLDialect.MYSQL);
 	}
 
@@ -57,7 +59,7 @@ public class Mysql_Datasource implements LogDataSource {
 
 	@Override
 	public List<Line> getEntriesFromDataSource(String serverName, String source,
-			String user, String startTime, String endTime, boolean dataset) throws DataSourceException {
+			String user, String startTime, String endTime, int dataset) throws DataSourceException {
 
 		SelectWhereStep base = this.queryBuilder.select(DSL.fieldByName("entry", "id"), DSL.fieldByName("entry", "timestamp"), DSL.fieldByName("server", "name").as("server")
 				, DSL.fieldByName("entry", "connid") , DSL.fieldByName("entry", "reqtype"), DSL.fieldByName("entry", "authtype"), DSL.fieldByName("entry", "status")
@@ -87,11 +89,20 @@ public class Mysql_Datasource implements LogDataSource {
 		PreparedStatement state = null;
 		ResultSet result = null;
 		try {
-			if (dataset) {
-				state = connection.prepareStatement(sql);
-			} else {
-				state = connection_2.prepareStatement(sql);
+			switch (dataset){
+				case 1:
+					state = connection.prepareStatement(sql);
+					break;
+				case 2:
+					state = connection_2.prepareStatement(sql);
+					break;
+				case 3:
+					state = connection_3.prepareStatement(sql);
+					break;
+				default:
+					throw new DataSourceException("Unrecognised dataset");
 			}
+
 
 			List<Object> vars = query.getBindValues();
 			for (int i = 0; i < vars.size(); i++){
@@ -238,7 +249,7 @@ public class Mysql_Datasource implements LogDataSource {
 	}
 
 	@Override
-	public long[] getStartAndEndOfUniverse(boolean dataset) throws DataSourceException {
+	public long[] getStartAndEndOfUniverse(int dataset) throws DataSourceException {
 		Select query = this.queryBuilder.select(DSL.min(DSL.fieldByName("entry", "timestamp")).as("start"),
 												DSL.max(DSL.fieldByName("entry", "timestamp")).as("end"))
 												.from("entry");
@@ -247,11 +258,19 @@ public class Mysql_Datasource implements LogDataSource {
 		Statement state = null;
 		ResultSet result = null;
 		try {
-			if (dataset) {
+			switch (dataset){
+			case 1:
 				state = connection.createStatement();
-			} else {
+				break;
+			case 2:
 				state = connection_2.createStatement();
-			}
+				break;
+			case 3:
+				state = connection_3.createStatement();
+				break;
+			default:
+				throw new DataSourceException("Unrecognised dataset");
+		}
 			result = state.executeQuery(query.getSQL());
 			if (result.first()){
 				res[0] = result.getLong("start");
@@ -277,7 +296,7 @@ public class Mysql_Datasource implements LogDataSource {
 	}
 
 	@Override
-	public List<Server> getAllServers(boolean dataset) throws DataSourceException {
+	public List<Server> getAllServers(int dataset) throws DataSourceException {
 		Select query = this.queryBuilder.select(DSL.fieldByName("server",  "id"), DSL.fieldByName("server", "name"), DSL.fieldByName("server", "block"))
 						.from(DSL.tableByName("server"));
 		List<Server> res = new ArrayList<Server>();
@@ -285,11 +304,19 @@ public class Mysql_Datasource implements LogDataSource {
 		Statement state = null;
 		ResultSet result = null;
 		try {
-			if (dataset) {
+			switch (dataset){
+			case 1:
 				state = connection.createStatement();
-			} else {
+				break;
+			case 2:
 				state = connection_2.createStatement();
-			}
+				break;
+			case 3:
+				state = connection_3.createStatement();
+				break;
+			default:
+				throw new DataSourceException("Unrecognised dataset");
+		}
 			result = state.executeQuery(query.getSQL());
 			while (result.next()) {
 				res.add(new Server(result.getInt("id"), result.getString("name"), result.getString("block")));
@@ -314,7 +341,7 @@ public class Mysql_Datasource implements LogDataSource {
 	}
 
 	@Override
-	public boolean writeComment(long entry_id, String comment, boolean dataset)
+	public boolean writeComment(long entry_id, String comment, int dataset)
 			throws DataSourceException {
 		if (entry_id < 0 || comment == null || comment.equals("")){
 			throw new DataSourceException("invalid arguments");
@@ -325,11 +352,19 @@ public class Mysql_Datasource implements LogDataSource {
 		PreparedStatement state = null;
 		boolean result = false;
 		try {
-			if (dataset) {
+			switch (dataset){
+			case 1:
 				state = connection.prepareStatement(query.getSQL());
-			} else {
+				break;
+			case 2:
 				state = connection_2.prepareStatement(query.getSQL());
-			}
+				break;
+			case 3:
+				state = connection_3.prepareStatement(query.getSQL());
+				break;
+			default:
+				throw new DataSourceException("Unrecognised dataset");
+		}
 			List<Object> vars = query.getBindValues();
 			for (int i = 0; i < vars.size(); i++){
 				state.setObject(i+1, vars.get(i));
@@ -362,6 +397,9 @@ public class Mysql_Datasource implements LogDataSource {
 			}
 			if (this.connection_2 != null){
 				connection_2.close();
+			}
+			if (this.connection_3 != null){
+				connection_3.close();
 			}
 			if (this.context != null){
 				context.close();

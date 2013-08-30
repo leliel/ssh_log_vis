@@ -28,7 +28,7 @@ public class GetBeginAndEnd extends HttpServlet {
     public GetBeginAndEnd() {
         super();
     }
-    
+
 	public void init(ServletConfig context){
 		try {
 			super.init(context);
@@ -45,7 +45,7 @@ public class GetBeginAndEnd extends HttpServlet {
 		}
 
 	}
-	
+
 	public void destroy(){
 		try {
 			this.datasource.destroy();
@@ -67,7 +67,8 @@ public class GetBeginAndEnd extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		long[] answer;
 		try {
-			answer = this.datasource.getStartAndEndOfUniverse(Boolean.parseBoolean(request.getParameter("dataset")));
+			String data = request.getParameter("dataset");
+			answer = this.datasource.getStartAndEndOfUniverse(Integer.parseInt(data));
 		} catch (DataSourceException e) {
 			this.getServletContext().log(e.getMessage(), e.getCause());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

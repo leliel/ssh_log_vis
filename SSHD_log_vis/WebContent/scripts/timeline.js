@@ -93,6 +93,9 @@ function Globals(width, height){
 		if (timelineGlobals.user !== null){
 			dat.user = timelineGlobals.user;
 		}
+		if (timelineGlobals.dataset !== null){
+			dat.dataset = timelineGlobals.dataset;
+		}
 
 		$.get("getEntries", dat, function(data, textStatus, jqXHR){
 			if (jqXHR.status == 200) {
@@ -149,6 +152,9 @@ function Globals(width, height){
 			}
 			if (timelineGlobals.user !== null){
 				dat.user = timelineGlobals.user;
+			}
+			if (timelineGlobals.dataset !== null){
+				dat.dataset = timelineGlobals.dataset;
 			}
 			$.get("GetRawlines", dat, timelineGlobals.showRawlines, "json");
 			return;
@@ -232,6 +238,7 @@ function Globals(width, height){
 		if($("#other").prop("checked") !== timelineGlobals.display.other){
 			$("#other").prop("checked", timelineGlobals.display.other);
 		}
+		$("[name=dataset]").filter("[value='"+timelineGlobals.dataset +"']").prop("checked", true);
 		return realStarts;
 	};
 
@@ -259,7 +266,7 @@ function Globals(width, height){
 			url += "&types=" + encodeURIComponent(types);
 		}
 		if (timelineGlobals.dataset !== undefined){
-			url += "&dataset" + encodeURIComponent(timelineGlobals.dataset);
+			url += "&dataset=" + encodeURIComponent(timelineGlobals.dataset);
 		}
 		//TODO generate bookmark metadata -set title argument to a string.
 		History.pushState(null, null, url);
