@@ -134,11 +134,12 @@ public class Connect implements dataTypes.Line {
 			} else { // it's failed, don't record, just lookup
 				lookup.setInt(1, this.user.getId());
 				lookup.setInt(2, loc);
-				lookup.registerOutParameter(3, Types.INTEGER);
+				lookup.setLong(3, this.time);
 				lookup.registerOutParameter(4, Types.INTEGER);
+				lookup.registerOutParameter(5, Types.INTEGER);
 				lookup.execute();
-				if (lookup.getInt(3) >= Connect.frequency) {
-					this.isFreqLoc = lookup.getInt(4);
+				if (lookup.getInt(4) >= Connect.frequency) {
+					this.isFreqLoc = lookup.getInt(5);
 				} else {
 					this.isFreqLoc = -1;
 				}
@@ -156,7 +157,9 @@ public class Connect implements dataTypes.Line {
 			CallableStatement lookup) throws SQLException {
 		if (this.status == Status.ACCEPTED) {
 			freq_time_add.setInt(1, this.user.getId());
-			freq_time_add.setLong(2, this.time%TimeUnit.MILLISECONDS.convert(1l, TimeUnit.DAYS));
+			long days = TimeUnit.MILLISECONDS.convert(1l, TimeUnit.DAYS);
+			long tempTime = this.time%days;
+			freq_time_add.setLong(2, tempTime);
 			freq_time_add.setLong(3, Connect.timeAllowance);
 			freq_time_add.setLong(4, Connect.ttl);
 			freq_time_add.setLong(5, this.time);
@@ -168,14 +171,16 @@ public class Connect implements dataTypes.Line {
 			} else {
 				this.isFreqTime = -1;
 			}
+
 		} else {// failed login attempt, don't increment, just lookup
 			lookup.setInt(1, this.user.getId());
 			lookup.setLong(2, this.time%TimeUnit.MILLISECONDS.convert(1l, TimeUnit.DAYS));
-			lookup.registerOutParameter(3, Types.INTEGER);
+			lookup.setLong(3, this.time);
 			lookup.registerOutParameter(4, Types.INTEGER);
+			lookup.registerOutParameter(5, Types.INTEGER);
 			lookup.execute();
-			if (lookup.getInt(3) >= Connect.frequency){
-				this.isFreqTime = lookup.getLong(4);
+			if (lookup.getInt(4) >= Connect.frequency){
+				this.isFreqTime = lookup.getLong(5);
 			} else {
 				this.isFreqTime = -1;
 			}

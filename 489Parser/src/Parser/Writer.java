@@ -77,8 +77,8 @@ public class Writer {
 			PreparedStatement geoIp = conn.prepareStatement("SELECT geo.locId FROM geo LEFT JOIN " +
 					"ip ON geo.locId=ip.locId WHERE MBRCONTAINS(ip.ip_poly, POINTFROMWKB(POINT(INET_ATON(?), 0)))"); //where are we?
 
-			CallableStatement freq_loc_query = conn.prepareCall("{call freq_loc_check(?, ?, ?, ?)}");
-			CallableStatement freq_time_query = conn.prepareCall("{call freq_time_check(?, ?, ?, ?)}");;
+			CallableStatement freq_loc_query = conn.prepareCall("{call freq_loc_check(?, ?, ?, ?, ?)}");
+			CallableStatement freq_time_query = conn.prepareCall("{call freq_time_check(?, ?, ?, ?, ?)}");;
 			//updates freq_loc entries, incrementing count if exists, or creating new entry.
 			CallableStatement freq_loc_add = conn.prepareCall("{call freq_loc_add(?, ?, ?, ?, ?, ?)}"); //update freq_loc entry, increments if there's a matching one.
 
