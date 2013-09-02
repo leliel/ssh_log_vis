@@ -107,9 +107,16 @@ public class Parser {
 
 	private Line parseOther(String line) throws ParseException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split("\\s+"); //$NON-NLS-1$
+		String[] parts = line.split("\\s"); //$NON-NLS-1$
 
-		long time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
+		long time;
+		if (parts[1].equalsIgnoreCase("")) {
+			String month = parts[idx++];
+			idx++;
+			time = parseTimestamp(month,parts[idx++],parts[idx++]);
+		} else {
+			time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
+		}
 
 		Server s = getServer(parts[idx++]);
 
@@ -121,7 +128,7 @@ public class Parser {
 				parts[idx++].indexOf("]")); //$NON-NLS-1$
 		int connectID = Integer.parseInt(temp);
 
-		int offset = 5; // spaces
+		int offset = idx-4; // spaces
 		for (int i = 0; i <= idx; i++) {
 			offset += parts[i].length();
 		}
@@ -135,9 +142,16 @@ public class Parser {
 	private Line parseConn(String line) throws ParseException,
 			UnknownHostException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split("\\s+"); //$NON-NLS-1$
+		String[] parts = line.split("\\s"); //$NON-NLS-1$
 
-		long time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
+		long time;
+		if (parts[1].equalsIgnoreCase("")) {
+			String month = parts[idx++];
+			idx++;
+			time = parseTimestamp(month,parts[idx++],parts[idx++]);
+		} else {
+			time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
+		}
 
 		Server s = getServer(parts[idx++]);
 
@@ -166,6 +180,9 @@ public class Parser {
 		} else if (parts[idx].equalsIgnoreCase("host")) { //$NON-NLS-1$
 			auth = AuthType.HOST;
 			idx += 2;
+		} else if (parts[idx].equalsIgnoreCase("hostbased")) { //$NON-NLS-1$
+			auth = AuthType.HOST;
+			idx++;
 		} else if (parts[idx].equalsIgnoreCase("publickey")) { //$NON-NLS-1$
 			auth = AuthType.KEY;
 			idx++;
@@ -174,6 +191,9 @@ public class Parser {
 			idx++;
 		} else if (parts[idx].equalsIgnoreCase("none")) { //$NON-NLS-1$
 			auth = AuthType.NONE;
+			idx++;
+		} else if (parts[idx].equalsIgnoreCase("keyboard-interactive")) { //$NON-NLS-1$
+			auth = AuthType.KEYBOARD_INTERACTIVE;
 			idx++;
 		} else
 			throw new ParseException("Illegal authentication method string", 0); //$NON-NLS-1$
@@ -188,9 +208,16 @@ public class Parser {
 			user = getUser(parts[idx++]);
 		}
 
-		idx++; // constant word from
+		if (parts[idx++].equals("")){
+			idx++;
+		} // constant string with possible preceeding extra space, skip past it.
 
-		InetAddress address = InetAddress.getByName(parts[idx++]);
+		InetAddress address = null;
+		try{
+			address = InetAddress.getByName(parts[idx++]);
+		} catch (Exception e) {
+			System.out.println(line);
+		}
 
 		idx++; // constant word port;
 
@@ -205,9 +232,16 @@ public class Parser {
 	private Line parseInvalid(String line) throws ParseException,
 			UnknownHostException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split("\\s+"); //$NON-NLS-1$
+		String[] parts = line.split("\\s"); //$NON-NLS-1$
 
-		long time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
+		long time;
+		if (parts[1].equalsIgnoreCase("")) {
+			String month = parts[idx++];
+			idx++;
+			time = parseTimestamp(month,parts[idx++],parts[idx++]);
+		} else {
+			time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
+		}
 
 		Server s = getServer(parts[idx++]);
 
@@ -229,9 +263,16 @@ public class Parser {
 			throw new ParseException("user is not invalid", 0); //$NON-NLS-1$
 		}
 
-		idx++; // constant string, skip past it.
+		if (parts[idx++].equals("")){
+			idx++;
+		} // constant string with preceeding extra space, skip past it.
 
-		InetAddress addr = InetAddress.getByName(parts[idx]);
+		InetAddress addr = null;
+		try{
+			addr = InetAddress.getByName(parts[idx++]);
+		} catch (Exception e) {
+			System.out.println(line);
+		}
 
 		return new Invalid(time, s, connectID, user, addr, line);
 	}
@@ -239,9 +280,16 @@ public class Parser {
 	private Line parseDiscon(String line) throws ParseException,
 			UnknownHostException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split("\\s+"); //$NON-NLS-1$
+		String[] parts = line.split("\\s"); //$NON-NLS-1$
 
-		long time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
+		long time;
+		if (parts[1].equalsIgnoreCase("")) {
+			String month = parts[idx++];
+			idx++;
+			time = parseTimestamp(month,parts[idx++],parts[idx++]);
+		} else {
+			time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
+		}
 
 		Server s = getServer(parts[idx++]);
 
@@ -265,9 +313,16 @@ public class Parser {
 
 	private Line parseSubsystem(String line) throws ParseException {
 		int idx = 0; // use as a counter to traverse tokens produced by split.
-		String[] parts = line.split("\\s+"); //$NON-NLS-1$
+		String[] parts = line.split("\\s"); //$NON-NLS-1$
 
-		long time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
+		long time;
+		if (parts[1].equalsIgnoreCase("")) {
+			String month = parts[idx++];
+			idx++;
+			time = parseTimestamp(month,parts[idx++],parts[idx++]);
+		} else {
+			time = parseTimestamp(parts[idx++],parts[idx++],parts[idx++]);
+		}
 
 		Server s = getServer(parts[idx++]);
 

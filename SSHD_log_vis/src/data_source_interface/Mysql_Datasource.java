@@ -149,7 +149,9 @@ public class Mysql_Datasource implements LogDataSource {
 			} else {
 				res = loadOther(result);
 			}
-			lines.add(res);
+			if (res != null){
+				lines.add(res);
+			}
 		}
 		return lines;
 	}
@@ -164,6 +166,9 @@ public class Mysql_Datasource implements LogDataSource {
 		}
 		String msg = result.getString("rawline");
 		msg = msg.substring(msg.indexOf("]:") + 2);
+		if (msg.trim().startsWith("SSH:")){
+			return null;
+		}
 		return new Other(result.getInt("id"), time, s, result.getInt("connid"), msg,
 				result.getString("rawline"));
 	}
