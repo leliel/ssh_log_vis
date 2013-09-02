@@ -60,6 +60,16 @@ function setupOnLoad() {
 				}
 				var url = window.location.href;
 				var params = getObjFromQueryString(window.location.search);
+				$.get("GetServers", {dataset : timelineGlobals.dataset}, function(data, textStatus, jqXHR){
+					if (jqXHR.status == 200){
+						$('#servers').empty();
+						$("#servers").change(setServer);
+						$("#servers").append($("<option />").val("").text("All Servers"));
+						for (var d in data){
+							$("#servers").append($("<option />").val(data[d].name).text(data[d].name));
+						}
+					}
+				}, "json");
 				$.ajax({
 					async : false,
 					type : "GET",
@@ -117,6 +127,7 @@ function setupOnLoad() {
 
 	$.get("GetServers", data, function(data, textStatus, jqXHR){
 		if (jqXHR.status == 200){
+			$('#servers').empty();
 			$("#servers").change(setServer);
 			$("#servers").append($("<option />").val("").text("All Servers"));
 			for (var d in data){

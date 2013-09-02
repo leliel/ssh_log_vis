@@ -82,7 +82,7 @@ public class Mysql_Datasource implements LogDataSource {
 			cond = cond.and(DSL.fieldByName("user", "name").like(user));
 		}
 
-		Query query = base.where(cond);
+		Query query = base.where(cond).orderBy(DSL.fieldByName(Long.class, "entry", "timestamp"));
 		String sql = query.getSQL();
 
 		List<Line> lines = null;

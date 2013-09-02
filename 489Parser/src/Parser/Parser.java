@@ -9,11 +9,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.TimeZone;
 
 import dataTypes.Connect;
@@ -37,14 +37,14 @@ public class Parser {
 	private final SimpleDateFormat format = new SimpleDateFormat(Messages.getString("Parser.TimestampFormat"), Locale.ENGLISH); //$NON-NLS-1$
 	private Map<String, User> users;
 	private Map<String, Server> servers;
-	private PriorityQueue<Line> lines;
+	private List<Line> lines;
 
 	private Writer write;
 
 	public Parser() {
 		users = new HashMap<String, User>();
 		servers = new HashMap<String, Server>();
-		lines = new PriorityQueue<Line>();
+		lines = new ArrayList<Line>();
 		this.write = new Writer(url, dbName, userName, pass);
 		this.format.setTimeZone(TimeZone.getTimeZone("GMT" + Messages.getString("Parser.Timezone")));
 	}
@@ -77,7 +77,7 @@ public class Parser {
 	while ((line = read.readLine()) != null) {
 			Line res = parseLine(line);
 			if (res != null) {
-				lines.offer(res);
+				lines.add(res);
 			}
 		}
 	}

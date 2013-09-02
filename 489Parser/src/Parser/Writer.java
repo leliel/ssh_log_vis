@@ -6,8 +6,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.PriorityQueue;
-
+import java.util.Collections;
+import java.util.List;
 
 import dataTypes.Line;
 import dataTypes.Server;
@@ -21,7 +21,7 @@ public class Writer {
 
 	private Collection<User> users;
 	private Collection<Server> servers;
-	private PriorityQueue<Line> lines;
+	private List<Line> lines;
 
 
 
@@ -50,8 +50,9 @@ public class Writer {
 
 
 
-	public void setLines(PriorityQueue<Line> lines) {
+	public void setLines(List<Line> lines) {
 		this.lines = lines;
+		Collections.sort(this.lines);
 	}
 
 
@@ -82,12 +83,12 @@ public class Writer {
 			CallableStatement freq_loc_add = conn.prepareCall("{call freq_loc_add(?, ?, ?, ?, ?, ?)}"); //update freq_loc entry, increments if there's a matching one.
 
 			CallableStatement freq_time_add = conn.prepareCall("{call freq_time_add(?, ?, ?, ?, ?, ?, ?)}");
-			int i =0;
+
 			Line l;
-			while (!lines.isEmpty()) {
+			for (int i = 0; i < lines.size(); i++) {
 				//writing location/time also tests if entry prompting write counts as frequent.
-				l = lines.poll();
-				i++;
+				l = lines.get(i);
+				//i++;
 				l.writeLoc(freq_loc_add, geoIp, freq_loc_query); //must be written before entries are written to db.
 				l.writeTime(freq_time_add, freq_time_query);
 				l.writeToDB(insertLine);
