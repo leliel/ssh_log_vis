@@ -1,0 +1,108 @@
+\chapter{Progress}\label{C:progress}
+
+\section{Design}\label{design}
+
+Significant design work has been performed for this system at both the architectural level and user interface. Interface design is discussed in section \ref{screen_design}. 
+
+I have chosen to implement a client server model for the system architecture, as this offers a strong separation into multiple loosely coupled modules. Given a client server architecture, and a desire for centralised data storage between multiple users a browser based approach was chosen. Using existing browsers leverages significant work done on secure network communications between client and server, as well as significant effort in sand-boxing (isolating from the rest of the computer) in-browser applications. This saves significant time and effort on implementing communication protocols and security. 
+
+As there are relatively few programming languages available for use within the browser this significantly simplified the choice of languages and tool sets. See section \ref{langs}.
+
+\begin{figure}[tbh]
+\fbox{\parbox[b]{.99\linewidth}{
+\vskip 0.5cm
+\centering \includegraphics[scale=0.3]{blocks.png}
+\vskip 0.5cm}}
+\caption{\protect\label{spiral_plan}Block diagram showing proposed architecture of system. Note complete separation between server and browser. These may reside on separate machines.}
+\end{figure}
+
+Inside the browser there are three major components from an object oriented perspective. The view contains what is actually displayed on screen, this is implemented in HTML with SVG (Scalable Vector Graphics) for graphical components. The model stores the data and handles requests to the server as necessary. The controller is responsible for implementing user interaction with the system.
+
+Communication between the client and server is handled through standardised protocols. The set of requests permissible is still to be defined. The server software is responsible for serving data to the client, performing data aggregation, and limited data mining. In order to provide data, the server communicates with the data-store. This communication is likely to take place through SQL to a database, though a modular design could permit creation of other storage interface modules.
+
+Data aggregation is performed server side for two reasons. In larger networks, or over longer time periods, many megabytes of logs can be created, while text is highly compressible this still creates significant network overhead to transfer. Further, there are unanswered questions about how well the client will perform with potentially millions of events to manipulate. Slow data transfers or interaction due to processing time would be a significant usability hurdle. Performing data aggregation on the server bypasses both of these limitations. 
+
+\subsection{User interface design}\label{screen_design} 
+  
+I have chosen to adopt a time based approach for the visualisation elements, as access attempt logs have a very strong time component. Some forms of unusual behaviour are evidenced only by unusual times for access attempts, or unusual durations of access for example. Most existing visualisations do not give much emphasis to the time relation between access attempts, preferring to focus on the links between source and destination addresses.
+
+Two major approaches have been considered for displaying log entries.
+Spiral view is an approach for displaying time series data mapped to a spiral, see figure \ref{spiral} where a straight line drawn from the outer edge to the center shows the same time at each level of the spiral \cite{bertini2007spiralview, chin2009visual}
+These systems appear to be highly effective at displaying time series data in a fashion that supports easy detection of repeated patterns. 
+
+\begin{figure}[tbh]
+\fbox{\parbox[b]{.99\linewidth}{
+\vskip 0.5cm
+\centering \includegraphics[scale=0.75]{spiral_plan.png}
+\vskip 0.5cm}}
+\caption{\protect\label{spiral_plan}Drawing showing proposed layout using spiralview for main focus. Black shading shows selection of an event with highlighting of related events.}
+\end{figure}
+ 
+However serious flaws in the results(\cite{chin2009visual}) of usability tests presented have lead to the rejection of this method. The error in question shows a table of results that directly contradict claims made in the text about how well spiralview supports the detection of patterns. The claims contradicted in the work are those directly bearing on the uses I had intended for the spiral layout. As this is a 300 hour project, I will not be attempting to repeat their work to clarify their findings. I attempted to contact the authors of the paper, and have as yet received no response.
+
+This contradiction has lead to using a simpler and better understood layout for time series data. 
+
+\begin{figure}[tbh]
+\fbox{\parbox[b]{.99\linewidth}{
+\vskip 0.5cm
+\centering \includegraphics[scale=0.75]{lines.png}
+\vskip 0.5cm}}
+\caption{\protect\label{lines}Drawing showing proposed layout using multiple time lines for main focus. Black shading shows selection of an event, with highlighting related events.}
+\end{figure}
+
+Using block representation of data arranged linearly along a time axis.
+Initial designs called for using a stacked representation where each layer represented twice the time of the previous layer.
+This is proposed to show patterns as an element that repeats a growing number of times in each layer.
+Tufte's work on small multiples \cite{tufte1983visual} suggests keeping each level of the stack to represent the same amount of time, with differing start and end points. Ie: if the range is 6 hours, the top bar starts at 0600, and runs to 1200, the one below it from 0000 to 0600..  and so on. This would show patterns repeating with a period less than the time range by showing in multiple bars. See Figure \ref{lines}.
+
+I have been forced to consider data hiding techniques, as networks can become extremely busy, producing sufficient activity to overwhelm the user's ability to absorb information and detect meaningful patterns in the clutter. As I have chosen a time series based approach to displaying the data, I have chosen to use time binning to aggregate entities. This approach is extremely simple, with all entries in a short time period displayed as a single entity, with icons indicating some simple features of the hidden data. Such features include superuser accesses, abnormal numbers of failed access attempts, abnormally large numbers of access attempts, abnormal login locations for a user, abnormal login times for a user. Each time bin can be zoomed in on, allowing the user to see greater detail within the bin. For extremely busy systems and longer time periods there may be multiple levels of binning in play to aggregate sufficiently. This scheme reduces the visual complexity, while allowing easy access to detailed information about each incident. 
+
+These last are the most complicated flags, as they require creating a profile of each user's access times over repeated access attempts. This complexity can produce false positives while the system is learning a new user's habits. and may be tripped up by a legitimate change in user habits.
+
+\subsection{Tools and Languages}\label{langs}
+
+I have chosen to use javascript with the d3 visualisation library \cite{bostock2011d3} for the client portion of the system. This was chosen as d3 is a very well supported visualisation library offering excellent support for dynamic data, animations, graph layouts and highly customisable charting. D3 also offers convenience methods significantly simplifying data requests from the server. While this does require learning a new language, a head start has been afforded through using these tools for another project. Assistance with learning through documentation and peers is excellent for javascript and d3 as many fellow students have used these tools extensively.  Javascript has excellent support across all major browsers and platforms, and is the defacto standard for interactive webpages. Drawbacks of Javascript -> dynamic typing, and implicit declaration allows for easy introduction of subtle and hard to debug errors. Major -> lack of locale support in js limits time display to local timezone only, or GMT. issues with datetime picker addon combined with lack of locale support forced fallback to local timezone only.
+
+Java was another possible language for implementing the client. While this has the advantage of already knowing the language well, there were two significant drawbacks. Firstly, browser java plugins have a very long and poor security record, with many new vulnerabilities found each year. In an application where sensitive data is used, security is an important concern. Secondly, there is no library providing visualisation support comparable with d3, further to this, fewer students use java for visualisation projects, and graphics are significantly more difficult to write effectively in java.
+
+Other libraries used -> 
+JQuery -> extremely helpful for crossbrowser consistency, and simplification of DOM manipulation.
+JQuery UI -> JQuery extension offering css based theming and UI widgets. somewhat helpful, though let down by some widgets (slider inability to be dragged by fill in vanilla JQueryUI). Theming hugely helpful, as JQuery developers make available a theme creator tool(themeroller) allowing even a relatively unskilled person to create a customised theme.
+history.js -> unifies handling of HTML5 history api across browsers. some irritation as forces data reload on replaceState. this is insignificant due to amount of data transferred, and target usecase (on local network only).
+
+Java 6 and Tomcat used for server side code, interfacing with MySQL database.
+Used - jOOQ library for SQL query writing. this allows for cross database support, almost any RDBMS can be used with the existing server code, so long as the same schema is followed.
+
+Tomcat -> webserver from apache foundation created as a server for java servlets. This provides access control, multithreading, resource access and handles the core networking processes for serving. One layer for a defence in depth. Easily configured to require SSL for all communications with client, and limit addresses able to connect at all.
+Java servlets -> written in java 6 due to limitations of the tomcat version available at uni. Extremely easy to use and understand.
+
+logfile parser written in java6, fairly simple and straightforward.
+
+\subsubsection{Supporting tools}
+Git -> distributed version control system. used to track code changes, and share codebase between uni and home.
+GitHub -> site for sharing git repositories. Makes available an issue tracker which is integrated with git commit comments. Integration allows associating commits with issues, and closing issues from commits. this integration is extremely useful for debugging and tracking why changes were made.
+
+
+
+\section{Evaluation}\label{eval}
+
+Evaluation of the tool produced in this project will serve to determine if there is sufficient merit to the idea to justify further development work on the tool. If the evaluation determines that there is sufficient potential to justify the development work, future work can evaluate the effectiveness of the design in a more rigorous manner. I have chosen to perform an exploratory evaluation due to time limitations on this project \cite{Ellis:2006:EAU:1168149.1168152}. It's not possible to achieve a representative sample of sufficient size to have predictive power in the time available. This limitation strongly suggests against attempting to demonstrate conclusively the usefulness and usability of the system. 
+
+Ethics approval has been sought for this experimental design. As of writing the application has been approved by the head of school and is before the committee.
+\subsection{Evaluation Design}
+
+Evaluation will be performed by means of a qualitative user study, with ideally 10 to 15 participants. 
+Participants will be given a chance to familiarise themselves with the tool on a limited training dataset.
+After familiarisation time, participants will be asked to answer four questions about each of two datasets.
+For each of the 8 combinations a brief questionnaire will be completed, indicating opinions about the tool's performance in the task\cite{lewis1995ibm}. 
+\subsubsection{Users}
+
+As this tool targets domain experts in the security domain, I will be recruiting participants from the security industry, both on campus and off. I have pitched the experiment to students enrolled in NWEN405, which deals with computer security as a secondary source of participants. Students are less ideal, as their experience and domain knowledge are more limited than those that have been working in the industry for some time.
+
+\subsubsection{Datasets}
+
+Two datasets have been acquired for use in this experiment.
+\begin{enumerate}
+\item{Honeynet Forensic challenge 10 dataset \cite{forensic10}. This dataset is anonymised and public domain. The data presented here covers a single server, with low traffic (9MB covering mar 16 to may 2)}
+\item{Anonymised logs from the Engineering and Computer Science network at Victoria University. This dataset is significantly larger, covering 3 servers and 2 weeks of time on a high traffic network. Exact data size is not yet known, as the data collection process is ongoing at time of writing.}
+\end{enumerate}

@@ -1,0 +1,39 @@
+\chapter{Introduction}\label{C:intro}
+
+Maintaining access control and information security has been an ongoing problem since people first realised that information is valuable and can be controlled. This problem quickly became apparent in networked systems after their invention and adoption outside the lab.
+
+As networks have become ubiquitous and essential for modern life, threats to the integrity of networks and data have multiplied and diversified extensively. 
+This proliferation of threats has lead to the design and use of tools intended to secure systems, and monitor for intrusions \cite{zhang2012survey}. Intrusions are defined loosely here as access to systems resources for purposes contrary to the intended use of the system, or access to the system by an unauthorised person (often an unauthorised person is also misusing the system). This may be as innocuous as browsing facebook while at work, or much more severe. Ie: stealing secrets or using the systems to run a botnet. Security policies exist as a formal statement of the intended uses of the system, and examples of uses considered malicious. The formal statement of acceptable and unacceptable system uses is extremely useful as it allows for configuring systems to deny many forms of intrusion. ie: denying remote login with an administrator account. 
+
+There are two main forms of malicious user that should be considered. The outsider, these people do not have any legitimate access to the system. Obviously, their attempts should be denied. The second form is the insider attack. These may be significantly harder to detect as the attacker has legitimate access rights to the system, but is using them for purposes not authorised by the system owners.
+
+Insider attacks are by far more difficult to combat effectively by technical means, as the user in question requires access to some or all of the systems to perform their jobs. This prevents simple solutions such as blanket denial of access. Further, this complicates detection of unauthorised access by obscuring illegitimate uses of the system within legitimate uses which should not be interfered with.
+
+There are two main methods of operation for Intrusion Detection Systems(IDS).
+Rule based systems, which flag any attempt that matches defined rules as malicious. These systems are extremely effective at detecting and blocking known attack patterns, particularly for outsider access as rules are relatively simple to write once the signature patterns in the attack are known. Insider attacks are more difficult to control with rules based systems, as blanket access blocks are often not suitable. 
+
+Anomaly based detection systems use techniques from machine learning to automatically classify incoming events as normal or anomalous. Normal events are ignored, while anomalous events are flagged for operator attention. These systems have some obvious advantanges. Firstly they're able to recognise new intrusion methods, as they will appear as an anomaly, However, they're not able to provide much if any context for these events. Rule based systems at least identify which rule was matched. Anomaly detection systems are harder to disguise existing intrusions from, as their classification systems are flexible enough to recognise small changes in patterns. Rule based systems cannot do this as easily.
+
+Both approaches are used heavily in monitoring network traffic generally. While somewhat successful, both approaches potentially suffer from false positives (Anomaly based more frequently than rules based) and possibly more worrying, false negatives. 
+
+False negatives are quite obviously undesireable as each represents an intrusion that went undetected and potentially un-countered. Note that not all undetected intrusions will achieve their goals, however security administrators are not able to effectively ensure the vulnerabilities used are addressed, as they may remain unaware of the intrusion indefinitely, unless traces are left elsewhere in the system.
+
+Large numbers of false positives are a serious problem for security systems as the quickly undermine user's trust in the systems \cite{stanton1994human}. Many IDS offer very limited forms of alerting with email most used, and SMS messaging an option for critical alerts. The limited range of sensory urgency available to IDS alerting mechanisms is problematic, as it causes a mismatch between the apparent and actual import of a message \cite{stanton1994human}. 
+
+These factors leave a significant problem for security professionals. How do we ensure that actual intrusions are being detected, despite ever advancing intrusion techniques and rapidly growing size and complexity of networks to defend?. As I will show in Chapter \ref{C:back}, existing approaches fail to meet the goals laid out for this project. Many either do not scale well to large networks or easily cause information overload. Information overload creates an effect where the monitoring system looks a bit like a christmas tree. lots of pretty blinking lights, but no meaning. Many others fail to reveal important context about the events they flag. 
+
+This project takes a data visualisation approach to solving the issue of detecting intrusion attempts, attempting to use human ability to spot and interpret novel patterns in data, without stripping context from the existing attempts. 
+
+Due to time limitations, I will be restricting the focus of this tool from general network traffic, to remote access attempts through the SSH protocol. SSH is a commonly used protocol for server control and administration, as well as remote access and file sharing. ports used for SSH traffic are often the focus of intrusion attempts.
+
+The overall goal is to create a tool that allows security adminstrators to effectively monitor remote access attempts to their systems for intrusions. 
+In order to support this aim, several subidiary goals must be achieved.
+
+\begin{enumerate}
+\item{Clearly show patterns in login data.}
+\item{Avoid information overload (the "christmas tree" effect).}
+\item{Provide context for events.}
+\item{Scale to many machines and millions of events.}
+\end{enumerate}
+
+Chapter \ref{C:back} discusses related works and reqirements for the project. Progress to date is discussed in chapter \ref{C:progress}, this is broken down into two major areas, design and evaluation. In chapter \ref{C:future} I discuss plans for the remaining work in three sections, Design, Implementation, and a timeline.
