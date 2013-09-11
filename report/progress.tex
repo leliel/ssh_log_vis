@@ -61,9 +61,9 @@ These last are the most complicated flags, as they require creating a profile of
 
 \subsection{Tools and Languages}\label{langs}
 
-I have chosen to use javascript with the d3 visualisation library \cite{bostock2011d3} for the client portion of the system. This was chosen as d3 is a very well supported visualisation library offering excellent support for dynamic data, animations, graph layouts and highly customisable charting. D3 also offers convenience methods significantly simplifying data requests from the server. While this does require learning a new language, a head start has been afforded through using these tools for another project. Assistance with learning through documentation and peers is excellent for javascript and d3 as many fellow students have used these tools extensively.  Javascript has excellent support across all major browsers and platforms, and is the defacto standard for interactive webpages. Drawbacks of Javascript -> dynamic typing, and implicit declaration allows for easy introduction of subtle and hard to debug errors. Major -> lack of locale support in js limits time display to local timezone only, or GMT. issues with datetime picker addon combined with lack of locale support forced fallback to local timezone only.
+I have chosen to use javascript with the d3 visualisation library \cite{bostock2011d3} for the client portion of the system. This was chosen as d3 is a very well supported visualisation library offering excellent support for dynamic data, animations, graph layouts and highly customisable charting. D3 also offers convenience methods significantly simplifying data requests from the server. While this does require learning a new language, a head start has been afforded through using these tools for another project. Assistance with learning through documentation and peers is excellent for javascript and d3 as many fellow students have used these tools extensively.  Javascript has excellent support across all major browsers and platforms, and is the defacto standard for interactive webpages. Drawbacks of Javascript -> dynamic typing, and implicit declaration allows for easy introduction of subtle and hard to debug errors. Major -> lack of locale support in js limits time display to local timezone only, or GMT. issues with datetime picker addon combined with lack of locale support forced fallback to local timezone only. include some stuff about JQuery here. significantly better ajax support, including options for synchronous requests, where blocking behaviour is desired.
 
-Java was another possible language for implementing the client. While this has the advantage of already knowing the language well, there were two significant drawbacks. Firstly, browser java plugins have a very long and poor security record, with many new vulnerabilities found each year. In an application where sensitive data is used, security is an important concern. Secondly, there is no library providing visualisation support comparable with d3, further to this, fewer students use java for visualisation projects, and graphics are significantly more difficult to write effectively in java.
+Java was another possible language for implementing the client. While this has the advantage of already knowing the language well, there were two significant drawbacks. Firstly, browser java plugins have a very long and poor security record, with many new vulnerabilities found each year. In an application where sensitive data is used, security is an important concern. Secondly, there is no library providing visualisation support comparable with d3, further to this, fewer students use java for visualisation projects, and graphics are significantly more difficult to write effectively in java. 
 
 Other libraries used -> 
 JQuery -> extremely helpful for crossbrowser consistency, and simplification of DOM manipulation.
@@ -74,35 +74,12 @@ Java 6 and Tomcat used for server side code, interfacing with MySQL database.
 Used - jOOQ library for SQL query writing. this allows for cross database support, almost any RDBMS can be used with the existing server code, so long as the same schema is followed.
 
 Tomcat -> webserver from apache foundation created as a server for java servlets. This provides access control, multithreading, resource access and handles the core networking processes for serving. One layer for a defence in depth. Easily configured to require SSL for all communications with client, and limit addresses able to connect at all.
+provides options for logging of all connections. this can be used to provide an audit trail of usage due to state being contained in querystring.
 Java servlets -> written in java 6 due to limitations of the tomcat version available at uni. Extremely easy to use and understand.
 
 logfile parser written in java6, fairly simple and straightforward.
 
 \subsubsection{Supporting tools}
-Git -> distributed version control system. used to track code changes, and share codebase between uni and home.
-GitHub -> site for sharing git repositories. Makes available an issue tracker which is integrated with git commit comments. Integration allows associating commits with issues, and closing issues from commits. this integration is extremely useful for debugging and tracking why changes were made.
-
-
-
-\section{Evaluation}\label{eval}
-
-Evaluation of the tool produced in this project will serve to determine if there is sufficient merit to the idea to justify further development work on the tool. If the evaluation determines that there is sufficient potential to justify the development work, future work can evaluate the effectiveness of the design in a more rigorous manner. I have chosen to perform an exploratory evaluation due to time limitations on this project \cite{Ellis:2006:EAU:1168149.1168152}. It's not possible to achieve a representative sample of sufficient size to have predictive power in the time available. This limitation strongly suggests against attempting to demonstrate conclusively the usefulness and usability of the system. 
-
-Ethics approval has been sought for this experimental design. As of writing the application has been approved by the head of school and is before the committee.
-\subsection{Evaluation Design}
-
-Evaluation will be performed by means of a qualitative user study, with ideally 10 to 15 participants. 
-Participants will be given a chance to familiarise themselves with the tool on a limited training dataset.
-After familiarisation time, participants will be asked to answer four questions about each of two datasets.
-For each of the 8 combinations a brief questionnaire will be completed, indicating opinions about the tool's performance in the task\cite{lewis1995ibm}. 
-\subsubsection{Users}
-
-As this tool targets domain experts in the security domain, I will be recruiting participants from the security industry, both on campus and off. I have pitched the experiment to students enrolled in NWEN405, which deals with computer security as a secondary source of participants. Students are less ideal, as their experience and domain knowledge are more limited than those that have been working in the industry for some time.
-
-\subsubsection{Datasets}
-
-Two datasets have been acquired for use in this experiment.
-\begin{enumerate}
-\item{Honeynet Forensic challenge 10 dataset \cite{forensic10}. This dataset is anonymised and public domain. The data presented here covers a single server, with low traffic (9MB covering mar 16 to may 2)}
-\item{Anonymised logs from the Engineering and Computer Science network at Victoria University. This dataset is significantly larger, covering 3 servers and 2 weeks of time on a high traffic network. Exact data size is not yet known, as the data collection process is ongoing at time of writing.}
-\end{enumerate}
+Git -> distributed version control system. used to track code changes, and share codebase between uni and home. extremely useful as also provides multiple offsite backups (full codebase, with all revisions and comments are stored in each instance of the repository.)
+GitHub -> site for sharing git repositories. Makes available an issue tracker which is integrated with git commit comments. Integration allows associating commits with issues, and closing issues from commits. this integration is extremely useful for debugging and tracking why changes were made. Issue tracker used heavily in later part of coding phase to track issues as detected, and link commits to problems resolved by that commit.
+extremely helpful to keep thoughts organised and remember what issues exists. Also helpful for issue prioritisation.
