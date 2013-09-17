@@ -1,0 +1,30 @@
+\chapter{Tools and Languages}\label{langs}
+
+I have chosen to use javascript with the d3 visualisation library \cite{bostock2011d3} for the client portion of the system. This was chosen as d3 is a very well supported visualisation library offering excellent support for dynamic data, animations, graph layouts and highly customisable charting. Javascript, in addition to being required for D3, is the de-facto standard for interactive web applications. 
+In addition JQuery and JQuery ui were used, as these frameworks allow for consistent behaviour across many different browsers, by abstracting away the cross browser support code into the framework. Further, JQuery offers significant support for DOM manipulation in simple and powerful ways. JQueryUI provides implementations of many common desktop UI widgets in forms suitable for web browsers (Javascript, HTML and css). These widgets greatly simplified UI development, as they can simply be dropped in place and used. JQueryUI also provides CSS files and tools allowing easy tweaking or theming of the tool.
+While this required learning a new language, javascript is a relatively simple language, and this did not pose a significant difficulty. Learning javascript was made significantly easier by extensive documentation and familiar syntax and somewhat familiar semantics. 
+
+Particular issues with use of javascript included issues with timezone handling, and dynamic typing in combination with implicit variable declaration. In javascript, there are two usable timezones, system local time, and GMT. Other timezones are not exposed. This caused severe issues with the datetime picker controls as there is no way to ensure that the local computer time matches server time. There was no resolution to this issue found, other than to give up and let datetimes rendered by the browser exist in host time, rather than matching the timezone logs are recorded in. 
+Dynamic typing and implicit variable declaration, while sometimes useful, allow for far easier propagation of invalid values, often resulting in abnormal behaviour in areas widely seperated from the source. This proved to be a significant complication to debugging, for limited gain in my opinion. 
+
+\section{Java}
+Used for all server side code, and parser. 
+Java was another possible language for implementing the client. While this has the advantage of already knowing the language well, there were two significant drawbacks. Firstly, browser java plugins have a very long and poor security record, with many new vulnerabilities found each year. In an application where sensitive data is used, security is an important concern. Secondly, there is no library providing visualisation support comparable with d3, further to this, fewer students use java for visualisation projects, and graphics are significantly more difficult to write effectively in java. 
+
+Other libraries used -> 
+history.js -> unifies handling of HTML5 history api across browsers. some irritation as forces data reload on replaceState. this is insignificant due to amount of data transferred, and target usecase (on local network only).
+
+Java 6 and Tomcat used for server side code, interfacing with MySQL database.
+Used - jOOQ library for SQL query writing. this allows for cross database support, almost any RDBMS can be used with the existing server code, so long as the same schema is followed.
+
+Tomcat -> webserver from apache foundation created as a server for java servlets. This provides access control, multithreading, resource access and handles the core networking processes for serving. One layer for a defence in depth. Easily configured to require SSL for all communications with client, and limit addresses able to connect at all.
+provides options for logging of all connections. this can be used to provide an audit trail of usage due to state being contained in querystring.
+Java servlets -> written in java 6 due to limitations of the tomcat version available at uni. Extremely easy to use and understand.
+
+logfile parser written in java6, fairly simple and straightforward.
+
+\section{Supporting tools}
+Git -> distributed version control system. used to track code changes, and share codebase between uni and home. extremely useful as also provides multiple offsite backups (full codebase, with all revisions and comments are stored in each instance of the repository.)
+GitHub -> site for sharing git repositories. Makes available an issue tracker which is integrated with git commit comments. Integration allows associating commits with issues, and closing issues from commits. this integration is extremely useful for debugging and tracking why changes were made. Issue tracker used heavily in later part of coding phase to track issues as detected, and link commits to problems resolved by that commit.
+extremely helpful to keep thoughts organised and remember what issues exists. Also helpful for issue prioritisation.
+Stack overflow -> (stackoverflow.com) Q\&A format website for assistance with programming issues. Extremely useful for finding out how to do things in an unfamiliar language. never actually had to ask my own question, as questions already answered and easily searchable.
