@@ -1,17 +1,28 @@
 \chapter{Evaluation}\label{eval}
 
-Evaluation of the tool produced in this project will serve to determine if there is sufficient merit to the idea to justify further development work on the tool. If the evaluation determines that there is sufficient potential to justify the development work, future work can evaluate the effectiveness of the design in a more rigorous manner. I have chosen to perform an exploratory evaluation due to time limitations on this project \cite{Ellis:2006:EAU:1168149.1168152}. It's not possible to achieve a representative sample of sufficient size to have predictive power in the time available. This limitation strongly suggests against attempting to demonstrate conclusively the usefulness and usability of the system. 
+Evaluation of the tool produced in this project served to determine if there is sufficient merit to the idea to justify further development work on the tool. If the evaluation determines that there is sufficient potential to justify the development work, future work can evaluate the effectiveness of the design in a more rigorous manner. I have chosen to perform an exploratory evaluation due to time limitations on this project \cite{Ellis:2006:EAU:1168149.1168152}. It is not possible to achieve a representative sample of sufficient size to have predictive power in the time available. This limitation strongly suggests against attempting to demonstrate conclusively the usefulness and usability of the system. 
 
-Ethics approval has been sought for this experimental design. As of writing the application has been approved by the head of school and is before the committee.
+Ethics approval has been granted for this experimental design.
+
 \section{Evaluation Design}
 
 Evaluation will be performed by means of a qualitative user study, with ideally 10 to 15 participants. 
-Participants will be given a chance to familiarise themselves with the tool on a limited training dataset.
+Participants were given time to familiarise themselves with the tool.
 After familiarisation time, participants will be asked to answer four questions about each of two datasets.
-For each of the 8 combinations a brief questionnaire will be completed, indicating opinions about the tool's performance in the task\cite{lewis1995ibm}. 
+For each of the 8 combinations a brief questionnaire will be completed, indicating opinions about the tool's performance in the task\cite{lewis1995ibm}.
+Questions were presented to users in randomised order. This was done in order to avoid learning effects distorting results for the first question.
+\begin{enumerate}
+\item{Find an instance of a successful brute force attack on root.}
+\item{Find an instance of a successful scattergun attack.
+(an instance where the attacker attempts many common username/password pairs at random).}
+\item{Find an instance of a legitimate user logging in from an abnormal location.}
+\item{Find an instance of a legitimate user logging in at an abnormal time.}
+\end{enumerate}
+
 \subsection{Users}
 
 As this tool targets domain experts in the security domain, I will be recruiting participants from the security industry, both on campus and off. I have pitched the experiment to students enrolled in NWEN405, which deals with computer security as a secondary source of participants. Students are less ideal, as their experience and domain knowledge are more limited than those that have been working in the industry for some time.
+--Expand this section, leave full personae in appendix.
 
 \subsection{Datasets}
 
@@ -21,9 +32,17 @@ Two datasets have been acquired for use in this experiment.
 \item{Anonymised logs from the Engineering and Computer Science network at Victoria University. This dataset is significantly larger, covering 3 servers and 2 weeks of time on a high traffic network. Exact data size is not yet known, as the data collection process is ongoing at time of writing.}
 \end{enumerate}
 
+\subsection{Setup}
+Participants were provided with a Dell Optiplex 9010 with an i7-3770 CPU and 8Gb of ram running Arch linux 3.7.5.
+Browser used was google chrome 26.0.1410.63
+
+The experiment was conducted in a quiet lab, with only the experimenter and subject present. Each question was allocated an 8 minute maximum, based on test runs with a supervisor.
+
 \section{Results}
 
-intial results suggest several improvements to be made
+insert table of results here.. then do analysis after raw results shown and discussed.
+note why time for participant 4 was discarded on one question (experimenter error.)
+initial results suggest several improvements to be made
 \begin{enumerate}
 \item{Improved navigation through timeline. Users complain that it is easy to get lost when zooming. Animations may ease this transition. (possibly animate zooming in by expanding target bin to fill timeline, then chunking into new bins?)}
 \item{Improved filtering of results by IP. several extra features are requested here, with the ability to filter by subnet, as well as hiding IP's (inverse of IP of Interest filter.)}
