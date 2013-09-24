@@ -1,4 +1,4 @@
-\chapter{Plans}\label{C:future}
+\chapter{Implementation}\label{C:impl}
 
 \section{Design}
 As I'm building the tool as a web based system, I have been forced to use a client server model.
@@ -7,9 +7,48 @@ Use of web based systems leads to some security concerns regarding access contro
 Using web based technologies has the advantage of tapping into significant existing work in visualisation libraries 
 and remote database access, see Section \ref{tools} for details.
 
+\section{Database}
 Significant work remains to be done on the database schema for storing SSHD log entries, These entries are highly structured, which allows for a relatively simple parser to break down into usable form. As existing designs call for a raw text view to accompany the main visual components (see Section \ref{screen_design}) I propose to store the raw log entry as a text field  within the database. Some design work is required to describe a storage mechanism for information about individual users and network structure. The minimum information required would be typical access times and locations for users and server names, locations and uses for machines. I do not forsee significant difficulties in designing a storage layout for this data.
 
+\section{Parser}
+
+Very simpleminded parser. This would require a total rewrite to move datastores, as the parsed format is fundamentally tied to the way data is stored in the datastore. 
+
+Currently built for RDBMS system.
+
+Also handles location and time clustering, using a simple online algorithm in conjunction with the datastore. very primitive and simpleminded algorithms, but capable of processing an infinite stream of data (albeit in infinite time). This simple streaming approach was taken as it's not possible to determine in the general case how long a logfile may be. Use cases also call for ability to read data as written by the SSH demon. 
+\section{Server}
+
 Design of server side code and functions remains to be carried out, though I plan to perform the majority of data processing server side, due to concerns about javascript and browser performance when hundreds of thousands to millions of elements are being manipulated. 
+
+architecture. two layer model. data access layer, and client communication layer. 
+could be refactored into a three layer model, to allow expansion beyond web clients. 
+\begin{itemize}
+\item{Data access layer. Responsible for fetching data from the underlying datastore. easily replaced to communicate with different kind of datastore. Takes values from client communication layer, returns lists of matching log entries.}
+\item{Client Communication layer. Responsible for aggregating data returned by the data access layer, and building HTTP responses from the aggregated data. Including JSON translation.}
+\end{itemize}
+\<include description of tomcat + servlet architecture here.\>
+
+data access layer has a defined interface, with methods for fetching data to satisfy each type of request.
+\begin{itemize}
+\item{Fetch log lines - used to fetch all log lines between a given pair of timestamps, with optional filters on username, server, and source IP}
+\item{Fetch start and end times - used to fetch the timestamps of the first and last events in the datastore}
+\item{Fetch all server names - used to fetch a list of every server name known to the datastore}
+\end{itemize}
+
+The underlying implementation for these methods currently targets RDBMS systems, though so long as the interface is maintained, this could be replaced with any other datastore.
+
+4 types of request that may be made of the server
+\begin{itemize}
+\item{Request aggregated events between given timestamps, and optional filters on username, server, and source IP}
+\item{Request raw events between given timestamps, and optional filters on username, server, and source IP}
+\item{Request start and end timestamps}
+\item{Request list of all servernames}
+\end{itemize}
+
+All request types are implemented as independent servlets within the web application. Each servlet has no shared state, so parallelizes easily within the tomcat framework. Connection pooling is implemented to assist in performance where multiple users may be requesting data. Concurrent read/write issues are the responsibility of the underlying datasource.
+
+The first two request types use the same interface to the datasource, but have differing post processing applied. raw does not do any agreggation, simply converts the data into JSON format and embeds in the HTTP response. 
 
 \section{Security Concerns}
 As I'm building the tool as a client server model, accessed through the browser
