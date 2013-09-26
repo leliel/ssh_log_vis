@@ -57,6 +57,17 @@ I have been forced to consider data hiding techniques, as networks can become ex
 
 These last are the most complicated flags, as they require creating a profile of each user's access times over repeated access attempts. This complexity can produce false positives while the system is learning a new user's habits. and may be tripped up by a legitimate change in user habits.
 
+\subsection{Parser}
+why do clustering here?
+
+\subsection{Server}
+why two layer architecture - ease of shifting datastore, changes there are isolated from server and thus web app, may find more appropriate datastore for semistructured log data in future. - why not three?
+Only one servlet has any data processing outside of database, so third layer usually unneccessary, and overkill in the one case where some processing needed.
+
+\subsection{Database}
+RDBMS acceptable fit for log data, though relatively unstructured data leads to less than ideal schema. why use RDBMS? lack of knowlege of alternatives, already available through university. handles concurrent accesses well.. many alternates leave concurrency issues to client code.
+
+
 \section{Requirements}
 discuss here some thoughts as to what requirements were met, and which were abandoned for time limitations.
 requirements for log parsing limited to SSHD logs, not limited to one ssh demon.

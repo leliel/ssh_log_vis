@@ -1,0 +1,90 @@
+\chapter{Implementation}\label{C:impl}
+
+\section{Database}
+Significant work remains to be done on the database schema for storing SSHD log entries, These entries are highly structured, which allows for a relatively simple parser to break down into usable form. As existing designs call for a raw text view to accompany the main visual components (see Section \ref{screen_design}) I propose to store the raw log entry as a text field  within the database. Some design work is required to describe a storage mechanism for information about individual users and network structure. The minimum information required would be typical access times and locations for users and server names, locations and uses for machines. I do not forsee significant difficulties in designing a storage layout for this data.
+<describe database schema here. there's not really any good reason why I chose MySQL, discuss why actual RDBMS vendor is completely irrelevant (except sqlite, not suitable for multiuser environments.)>
+
+\section{Parser}
+
+Very simpleminded parser. This would require a total rewrite to move datastores, as the parsed format is fundamentally tied to the way data is stored in the datastore. 
+
+Currently built for RDBMS system.
+
+Also handles location and time clustering, using a simple online algorithm in conjunction with the datastore. very primitive and simpleminded algorithms, but capable of processing an infinite stream of data (albeit in infinite time). This simple streaming approach was taken as it's not possible to determine in the general case how long a logfile may be. Use cases also call for ability to read data as written by the SSH demon. 
+
+\section{Server}
+
+Design of server side code and functions remains to be carried out, though I plan to perform the majority of data processing server side, due to concerns about javascript and browser performance when hundreds of thousands to millions of elements are being manipulated. 
+
+architecture. two layer model. data access layer, and client communication layer. 
+could be refactored into a three layer model, to allow expansion beyond web clients. 
+\begin{itemize}
+\item{Data access layer. Responsible for fetching data from the underlying datastore. easily replaced to communicate with different kind of datastore. Takes values from client communication layer, returns lists of matching log entries.}
+\item{Client Communication layer. Responsible for aggregating data returned by the data access layer, and building HTTP responses from the aggregated data. Including JSON translation.}
+\end{itemize}
+<include description of tomcat + servlet architecture here.>
+
+data access layer has a defined interface, with methods for fetching data to satisfy each type of request.
+\begin{itemize}
+\item{Fetch log lines - used to fetch all log lines between a given pair of timestamps, with optional filters on username, server, and source IP}
+\item{Fetch start and end times - used to fetch the timestamps of the first and last events in the datastore}
+\item{Fetch all server names - used to fetch a list of every server name known to the datastore}
+\end{itemize}
+
+The underlying implementation for these methods currently targets RDBMS systems, though so long as the interface is maintained, this could be replaced with any other datastore.
+
+4 types of request that may be made of the server
+\begin{itemize}
+\item{Request aggregated events between given timestamps, and optional filters on username, server, and source IP}
+\item{Request raw events between given timestamps, and optional filters on username, server, and source IP}
+\item{Request start and end timestamps}
+\item{Request list of all servernames}
+\end{itemize}
+
+All request types are implemented as independent servlets within the web application. Each servlet has no shared state, so parallelizes easily within the tomcat framework. Connection pooling is implemented to assist in performance where multiple users may be requesting data. Concurrent read/write issues are the responsibility of the underlying datasource.
+
+The first two request types use the same interface to the datasource, but have differing post processing applied. raw does not do any agreggation, simply converts the data into JSON format and embeds in the HTTP response. aggregated collects statistics about all events which fall in that time period, statistics are transmitted in JSON format as payload of HTTP response.
+some room for refactoring, this could be split into two layers
+however the processing is quite simple, and only done for this one request type, so a data analysis layer was omitted.
+
+\section{Security Concerns}
+Rewrite to explain security model, including server choices that allow for defence in depth.
+As I'm building the tool as a client server model, accessed through the browser
+there are several security concerns to be considered in a deployment of the system.
+The database will contain a significant amount of privileged information about network security
+such as machine names and addresses, valid account names, and authentication methods used in the system.
+
+This data would be extremely useful to malicious users or outside intruders. 
+This leads to a need to ensure that access to this database is controlled through a robust authentication system.
+Ideally the web server hosting the tool should not be accessible to the outside world at all. Within the organisation's private network access should be restricted tightly to only those users with a definite need to have access. 
+Secured connections must be used for all communication between client and server to limit the opportunity for malicious individuals to snoop on the data in transit.
+
+Security of the serverside code will be considered from the beginning of the design and implementation process
+as this code must be able to resist any malicious access attempts. Through input sanitation and bounds checking should serve to close the majority of possible vulnerabilities.
+
+Client side code contains no data, and so is significantly less critical to secure, as the database systems should deny access without valid credentials. Ideally host based authentication could be used. However, implementing a robust access control scheme does not fit within the scope of this project, and will be left for future development.
+
+
+\subsection{Testing}
+Automated testing of user interfaces remains problematic, with many tools suffering from severe fragility where UI layout is modified. In most testing libraries, mous interaction is recorded at test design, then played back artificially on execution, This causes severe fragility as if a control or button moves the recorded mouse movements will miss the button, causing test failures. Further research is needed to find a testing library suitable for testing, however the test automation tool created by Dojo appears useful \cite{dojo2013test}. - automated testing not used. heavy use of in browser dev tools and debugger. manual testing. 
+
+\section{Timeline}
+
+I will be taking a couple of days as a complete break from university work following my exams on the 15th and 17th of June, with work on the project resuming on 19th June. Figure \ref{gantt} shows a Gantt chart breaking down my plans for the remainder of the work to be completed.  I expect to be done implementing the tool early in second trimester, with at least a month left after evaluation is complete to write up my final report before end of teaching trimester 2.
+  
+\begin{figure}[tbh]
+\fbox{\parbox[b]{.99\linewidth}{
+\vskip 0.5cm
+\centering \includegraphics[scale=0.75]{gantt.png}
+\vskip 0.5cm}}
+\caption{\protect\label{gantt}Gantt chart showing breakdown of future work into major sections. The design group is all sub day tasks.}
+\end{figure}
+
+\subsection{Risks}
+
+Several notable risks remain to this project.
+\begin{description}
+\item[Languages:] Learning a new programming language always carries risks of unexpected setbacks or difficulties in completing tasks due to lack of familiarity with language features and libraries. This can be mitigated through choosing languages appropriate to the tasks, ideally already well known languages. 
+\item[Experiment Participants:] User evaluations always carry an element of risk in recruiting a suitable number of participants in the time available to complete the study. This can be mitigated through an early start to the recruitment process, and well chosen incentives. 
+\item[Ethics approval:] User experiments carry an element of risk, as if ethics approval is delayed significantly, this will cause severe dislocation to the planned timeline, which may limit the evaluation after approval is gained. This is unlikely as approval has been sought already, and the application is before the committee.  
+\end{description}

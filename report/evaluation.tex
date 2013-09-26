@@ -60,7 +60,7 @@ include comparison with goals here.. how well did we meet them?
 \item{Provide strong filtering and highlighting options. weaker than required, more work needed}
 \item{Show surrounding context for anomalous accesses.}
 \item{GeoIP support to add context to login attempts. geoIP results used in clustering algorithm, but not directly displayed.}
-\item{Allow the user control over which machine is monitored at any given time.}
+\item{Allow the user control over which machine is monitored at any given time. -included as dropdown selector, may have some scale issues for networks with many machines to monitor. no ability to select multiple machines currently, though dropdown easily expanded to allow this.}
 \item{Show network context for currently monitored machine. dropped for lack of time}
 \item{Performance capable of handling millions of events without perceptible delays. - untested, but unlikely due in part to network latency and javascript performance issues. did not have sufficiently large dataset to test performance with more than $10^3$ magnitude.}
 \item{Extensible log parsing: don't prevent extension to other similar log types.}
