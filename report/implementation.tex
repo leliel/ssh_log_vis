@@ -1,5 +1,24 @@
 \chapter{Implementation}\label{C:impl}
 
+\section{Front End}  %this needs a better title, badly.
+
+web application, written using javascript, css and html5.
+
+Figure \ref{overview} shows an overview of the Honeynet dataset. In a column to the left, we have some controls for the visualisation. To the right, taking up the majority of space is a timeline visualisation of logged data.  
+<Explain basic interactions here>
+<explain why features were cut, here or design?>
+
+Both date boxes are linked to datepicker tools, which allow for chosing a date from a calendar, and setting time through sliders. These values may be freely edited without reloading data. The Jump to dates button will trigger a reload of data. 
+Binlength (Immediately below date controls) allows chosing the length of each timebin. the dropdown controls units (from seconds to years), while the textbox accepts a number of units.
+<Complete detailed description>
+\begin{figure}[h!]
+\fbox{\parbox[b]{.99\linewidth}{
+\centering \includegraphics[scale=0.43,  angle=270]{screenshots/overview.png}
+}}
+\caption{\protect\label{overview}Tool showing overview of the honeynet dataset (\ref{data})}
+\end{figure}
+
+
 \section{Database}
 Significant work remains to be done on the database schema for storing SSHD log entries, These entries are highly structured, which allows for a relatively simple parser to break down into usable form. As existing designs call for a raw text view to accompany the main visual components (see Section \ref{screen_design}) I propose to store the raw log entry as a text field  within the database. Some design work is required to describe a storage mechanism for information about individual users and network structure. The minimum information required would be typical access times and locations for users and server names, locations and uses for machines. I do not forsee significant difficulties in designing a storage layout for this data.
 <describe database schema here. there's not really any good reason why I chose MySQL, discuss why actual RDBMS vendor is completely irrelevant (except sqlite, not suitable for multiuser environments.)>
@@ -68,10 +87,6 @@ Client side code contains no data, and so is significantly less critical to secu
 \subsection{Testing}
 Automated testing of user interfaces remains problematic, with many tools suffering from severe fragility where UI layout is modified. In most testing libraries, mous interaction is recorded at test design, then played back artificially on execution, This causes severe fragility as if a control or button moves the recorded mouse movements will miss the button, causing test failures. Further research is needed to find a testing library suitable for testing, however the test automation tool created by Dojo appears useful \cite{dojo2013test}. - automated testing not used. heavy use of in browser dev tools and debugger. manual testing. 
 
-\section{Timeline}
-
-I will be taking a couple of days as a complete break from university work following my exams on the 15th and 17th of June, with work on the project resuming on 19th June. Figure \ref{gantt} shows a Gantt chart breaking down my plans for the remainder of the work to be completed.  I expect to be done implementing the tool early in second trimester, with at least a month left after evaluation is complete to write up my final report before end of teaching trimester 2.
-  
 \begin{figure}[tbh]
 \fbox{\parbox[b]{.99\linewidth}{
 \vskip 0.5cm

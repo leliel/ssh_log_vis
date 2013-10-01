@@ -20,7 +20,7 @@ Communication between the client and server is handled through standardised prot
 
 Data aggregation is performed server side for two reasons. In larger networks, or over longer time periods, many megabytes of logs can be created, while text is highly compressible this still creates significant network overhead to transfer. Further, there are unanswered questions about how well the client will perform with potentially millions of events to manipulate. Slow data transfers or interaction due to processing time would be a significant usability hurdle. Performing data aggregation on the server bypasses both of these limitations. 
 
-\subsection{User interface design}\label{screen_design} 
+\section{User interface design}\label{screen_design} 
   
 I have chosen to adopt a time based approach for the visualisation elements, as access attempt logs have a very strong time component. Some forms of unusual behaviour are evidenced only by unusual times for access attempts, or unusual durations of access for example. Most existing visualisations do not give much emphasis to the time relation between access attempts, preferring to focus on the links between source and destination addresses.
 
@@ -57,14 +57,14 @@ I have been forced to consider data hiding techniques, as networks can become ex
 
 These last are the most complicated flags, as they require creating a profile of each user's access times over repeated access attempts. This complexity can produce false positives while the system is learning a new user's habits. and may be tripped up by a legitimate change in user habits.
 
-\subsection{Parser}
+\section{Parser}
 why do clustering here?
 
-\subsection{Server}
+\section{Server}
 why two layer architecture - ease of shifting datastore, changes there are isolated from server and thus web app, may find more appropriate datastore for semistructured log data in future. - why not three?
 Only one servlet has any data processing outside of database, so third layer usually unneccessary, and overkill in the one case where some processing needed.
 
-\subsection{Database}
+\section{Database}
 RDBMS acceptable fit for log data, though relatively unstructured data leads to less than ideal schema. why use RDBMS? lack of knowlege of alternatives, already available through university. handles concurrent accesses well.. many alternates leave concurrency issues to client code.
 
 
