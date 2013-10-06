@@ -7,9 +7,9 @@ I have chosen to implement a client server model for the system architecture, as
 As there are relatively few programming languages available for use within the browser this significantly simplified the choice of languages and tool sets. See section \ref{langs}.
 
 \begin{figure}[tbh]
-\fbox{\parbox[b]{.99\linewidth}{
+\fbox{\parbox[b]{.98\linewidth}{
 \vskip 0.5cm
-\centering \includegraphics[scale=0.3]{blocks.png}
+\centering \includegraphics[scale=0.4]{blocks.png}
 \vskip 0.5cm}}
 \caption{\protect\label{spiral_plan}Block diagram showing proposed architecture of system. Note complete separation between server and browser. These may reside on separate machines.}
 \end{figure}
@@ -29,44 +29,78 @@ Spiral view is an approach for displaying time series data mapped to a spiral, s
 These systems appear to be highly effective at displaying time series data in a fashion that supports easy detection of repeated patterns. 
 
 \begin{figure}[tbh]
-\fbox{\parbox[b]{.99\linewidth}{
+\fbox{\parbox[b]{0.98\linewidth}{
 \vskip 0.5cm
-\centering \includegraphics[scale=0.75]{spiral_plan.png}
-\vskip 0.5cm}}
+\centering \includegraphics[scale=0.71]{spiral_plan.png}
+\vskip 0.5cm }}
 \caption{\protect\label{spiral_plan}Drawing showing proposed layout using spiralview for main focus. Black shading shows selection of an event with highlighting of related events.}
 \end{figure}
  
 However serious flaws in the results(\cite{chin2009visual}) of usability tests presented have lead to the rejection of this method. The error in question shows a table of results that directly contradict claims made in the text about how well spiralview supports the detection of patterns. The claims contradicted in the work are those directly bearing on the uses I had intended for the spiral layout. As this is a 300 hour project, I will not be attempting to repeat their work to clarify their findings. I attempted to contact the authors of the paper, and have as yet received no response.
 
-This contradiction has lead to using a simpler and better understood layout for time series data. 
+This contradiction casts doubt on the ability of the spiralview model to effectively support data hiding, navigation and manage potential for information overload. These aspects are key functional requirements for this project \ref{reqs}. Due to this doubt, and lack of response from the authors when clarification was requested, I have chosen not to use the spiral model. 
 
 \begin{figure}[tbh]
-\fbox{\parbox[b]{.99\linewidth}{
+\fbox{\parbox[b]{.98\linewidth}{
 \vskip 0.5cm
-\centering \includegraphics[scale=0.75]{lines.png}
+\centering \includegraphics[scale=0.71]{lines.png}
 \vskip 0.5cm}}
 \caption{\protect\label{lines}Drawing showing proposed layout using multiple time lines for main focus. Black shading shows selection of an event, with highlighting related events.}
 \end{figure}
 
 Using block representation of data arranged linearly along a time axis.
-Initial designs called for using a stacked representation where each layer represented twice the time of the previous layer.
-This is proposed to show patterns as an element that repeats a growing number of times in each layer.
-Tufte's work on small multiples \cite{tufte1983visual} suggests keeping each level of the stack to represent the same amount of time, with differing start and end points. Ie: if the range is 6 hours, the top bar starts at 0600, and runs to 1200, the one below it from 0000 to 0600..  and so on. This would show patterns repeating with a period less than the time range by showing in multiple bars. See Figure \ref{lines}.
+Initial designs called for using a stacked representation where each layer represented twice the time of the previous layer. This is proposed to show patterns as an element that repeats a growing number of times in each layer.
+Tufte's work on small multiples \cite{tufte1983visual} suggests keeping each level of the stack to represent the same amount of time, with differing start and end points. Ie: if the range is 6 hours, the top bar starts at 0600, and runs to 1200, the one below it from 0000 to 0600..  and so on. This would show patterns repeating with a period less than the time range by showing in multiple bars. See Figure \ref{lines}. The timeline visualisation chosen is familiar to most people due to wide useage. Familiarity with this model supports. 
 
 I have been forced to consider data hiding techniques, as networks can become extremely busy, producing sufficient activity to overwhelm the user's ability to absorb information and detect meaningful patterns in the clutter. As I have chosen a time series based approach to displaying the data, I have chosen to use time binning to aggregate entities. This approach is extremely simple, with all entries in a short time period displayed as a single entity, with icons indicating some simple features of the hidden data. Such features include superuser accesses, abnormal numbers of failed access attempts, abnormally large numbers of access attempts, abnormal login locations for a user, abnormal login times for a user. Each time bin can be zoomed in on, allowing the user to see greater detail within the bin. For extremely busy systems and longer time periods there may be multiple levels of binning in play to aggregate sufficiently. This scheme reduces the visual complexity, while allowing easy access to detailed information about each incident. 
 
 These last are the most complicated flags, as they require creating a profile of each user's access times over repeated access attempts. This complexity can produce false positives while the system is learning a new user's habits. and may be tripped up by a legitimate change in user habits.
 
-\section{Parser}
+\section{Parser}\label{parser}
 why do clustering here?
 
 \section{Server}
 why two layer architecture - ease of shifting datastore, changes there are isolated from server and thus web app, may find more appropriate datastore for semistructured log data in future. - why not three?
 Only one servlet has any data processing outside of database, so third layer usually unneccessary, and overkill in the one case where some processing needed.
 
-\section{Database}
-RDBMS acceptable fit for log data, though relatively unstructured data leads to less than ideal schema. why use RDBMS? lack of knowlege of alternatives, already available through university. handles concurrent accesses well.. many alternates leave concurrency issues to client code.
+\section{Database} 
 
+Why choose a RDBMS in the first place? maybe put this in the design overview section. Basically fell into RDBMS system because it's something I was somewhat familiar with in the beginning, and sufficiently appropriate.
+
+Advantages of RDBMS systems, handle concurrency issues natively so long as transaction semantics are used, efficient filtering on attribute values. NoSQL datastores frequently do not handle concurrent access issues. This would require a significant redesign of both server and parser to handle concurrent updates. Concurrent reads present no issue. 
+
+Schema for log events is represented in a single table \ref{entry_schema}. As there are several subtypes of log events, with differing metadata \ref{parser}, there are many nullable values in the event table.
+\begin{table}[tbh]
+\centering
+\begin{tabular}{l || l | l | p{0.5\textwidth}}
+Column & Datatype & Nullable & Conditions \\ \hline
+id & Int & No & Autoincremented primary key \\
+timestamp & Bigint & No & Timestamp stored as milliseconds since unix epoch. \\
+server & int & No & Foreign key, linking to server table. \\
+connid & int & No & Badly named, Process id for handling sshd process. \\
+reqtype & Enum & No & Tag field, used to identify which of the possible event types this row represents. (connect, disconnect, subystem request, invalid username, other) \\
+authtype & Enum & Yes & What authentication method was used. (password, hostbased, key, gssapi, or none) \\
+status & Enum & Yes & Did the connection attempt succeed? (accepted, failed) \\
+user & int & Yes & Foreign key to user table. \\
+source & char(45) & Yes & text representation of Ipv4 or IpV6 address the request originated from. \\
+port & smallint & Yes & Port the request was sent from. \\
+subsystem & Enum & Yes & Which subsystem was requested. (sftp, scp) \\
+code & int & Yes & disconnect code, not actually used. \\
+isfreqtime & int & Yes & Reference to information about time cluster this request belongs to, or null. \\
+isfreqloc & int & Yes & Reference to information about location cluster this request belongs to, or null. \\
+rawline & text & No & Unprocessed line, exactly as read from logfile. \\
+\end {tabular}
+\caption{Schema for entry table}
+\label{entry_schema}
+\end{table}
+
+Several considerations were involved in creating this table schema. As there are multiple types of log entry considered by the system, database design suggests three alternative approaches to table layout to handle this. A single unified table, with many nullable elements, A table storing all columns common to each entry type (Non nullable columns in \ref{entry_schema}) with additional tables for each subtype storing only information unique to that entry type. Or a table for each entry type with all attributes used in that subtype, including shared attributes.
+
+It is usually considered good design to avoid large numbers of nullable attributes, as this complicates integrity checking and in many cases forces checks to be carried out at the application level, or in complex stored procedures. However, performance considerations have forced the use of this schema design. In practice, there are very few queries to the database that do not involve a range select on timestamp (all rows with timestamp between x and y) for all subtypes of entry. In both multitable schema designs, this must be implemented with multiple joins (5 or 6). As this tool is intended to scale to many millions of events, and joins are the least efficient database operation, nonfunctional requirements strongly suggest avoiding joins where possible. This has lead directly to the table schema shown \ref{entry_schema}. Note that the server table stores some basic metadata about each server, this is currently not utilized, though may be in future extensions.
+
+The user table is a holdover from an older design<reword, it's actually necessary to link tables together.>, which proposed storing some metadata about users, such as validity, role, and login patterns. This would have eliminated the need for the invalid user request type, as this is just a failed connection, due to invalid user. This design was not pursued, due to issues with time. In the honeynet dataset, users are created and destroyed. This results in previously invalid usernames becoming valid. With this design, that would require multiple entries for each user, as an invalid user linked against an entry on date x, does not become valid when the user is created on date y (y after x).
+
+Users may also have several independent frequent login times and locations, ie: Some IT staff may frequently log in from home as well as in the office. This resulted in frequent time and location information being split into four separate tables. <include table schema here?>
 
 \section{Requirements}
 discuss here some thoughts as to what requirements were met, and which were abandoned for time limitations.
