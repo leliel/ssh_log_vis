@@ -5,7 +5,7 @@
 web application, written using javascript, css and html5.
 
 Figure \ref{overview} shows an overview of the Honeynet dataset. In a column to the left, we have some controls for the visualisation. To the right, taking up the majority of space is a timeline visualisation of logged data.  
-<Explain basic interactions here>
+<Explain basic interactions here, related back to functional and nonfunctional requirements. >
 <explain why features were cut, here or design?>
 
 Both date boxes are linked to datepicker tools, which allow for chosing a date from a calendar, and setting time through sliders. These values may be freely edited without reloading data. The Jump to dates button will trigger a reload of data. 
@@ -20,12 +20,12 @@ Binlength (Immediately below date controls) allows chosing the length of each ti
 
 
 \section{Database}
-Significant work remains to be done on the database schema for storing SSHD log entries, These entries are highly structured, which allows for a relatively simple parser to break down into usable form. As existing designs call for a raw text view to accompany the main visual components (see Section \ref{screen_design}) I propose to store the raw log entry as a text field  within the database. Some design work is required to describe a storage mechanism for information about individual users and network structure. The minimum information required would be typical access times and locations for users and server names, locations and uses for machines. I do not forsee significant difficulties in designing a storage layout for this data.
-<describe database schema here. there's not really any good reason why I chose MySQL, discuss why actual RDBMS vendor is completely irrelevant (except sqlite, not suitable for multiuser environments.)>
+Not a heck of a lot to discuss here, other than why RDBMS is kinda irrelevant to server thanks to jOOQ. (except sqlite, not suitable for multiuser environments.)
+also discuss performance issues with GeoIp data. (inability to use index for range queries of the form const between column A, and column B), Use of geospatial extensions to resolve this.
 
 \section{Parser}
 
-Very simpleminded parser. This would require a total rewrite to move datastores, as the parsed format is fundamentally tied to the way data is stored in the datastore. 
+Very simpleminded parser. This would require a significant rewrite to move datastores, as the database schema is encoded in the format of statements used to insert data. 
 
 Currently built for RDBMS system.
 
@@ -63,6 +63,7 @@ The underlying implementation for these methods currently targets RDBMS systems,
 All request types are implemented as independent servlets within the web application. Each servlet has no shared state, so parallelizes easily within the tomcat framework. Connection pooling is implemented to assist in performance where multiple users may be requesting data. Concurrent read/write issues are the responsibility of the underlying datasource.
 
 The first two request types use the same interface to the datasource, but have differing post processing applied. raw does not do any agreggation, simply converts the data into JSON format and embeds in the HTTP response. aggregated collects statistics about all events which fall in that time period, statistics are transmitted in JSON format as payload of HTTP response.
+Why have aggregated request? nonfunctional requirements - performance and data hiding. aggregation done serverside due to bandwidth and memory requirements, this operation could involve processing millions of nodes for larger logs. This is unreasonable to send across the network in raw form, due to size and space requirements. Server has resources to do aggregation. 
 some room for refactoring, this could be split into two layers
 however the processing is quite simple, and only done for this one request type, so a data analysis layer was omitted.
 
@@ -84,7 +85,7 @@ as this code must be able to resist any malicious access attempts. Through input
 Client side code contains no data, and so is significantly less critical to secure, as the database systems should deny access without valid credentials. Ideally host based authentication could be used. However, implementing a robust access control scheme does not fit within the scope of this project, and will be left for future development.
 
 
-\subsection{Testing}
+\section{Testing}
 Automated testing of user interfaces remains problematic, with many tools suffering from severe fragility where UI layout is modified. In most testing libraries, mous interaction is recorded at test design, then played back artificially on execution, This causes severe fragility as if a control or button moves the recorded mouse movements will miss the button, causing test failures. Further research is needed to find a testing library suitable for testing, however the test automation tool created by Dojo appears useful \cite{dojo2013test}. - automated testing not used. heavy use of in browser dev tools and debugger. manual testing. 
 
 \begin{figure}[tbh]
@@ -94,12 +95,3 @@ Automated testing of user interfaces remains problematic, with many tools suffer
 \vskip 0.5cm}}
 \caption{\protect\label{gantt}Gantt chart showing breakdown of future work into major sections. The design group is all sub day tasks.}
 \end{figure}
-
-\subsection{Risks}
-
-Several notable risks remain to this project.
-\begin{description}
-\item[Languages:] Learning a new programming language always carries risks of unexpected setbacks or difficulties in completing tasks due to lack of familiarity with language features and libraries. This can be mitigated through choosing languages appropriate to the tasks, ideally already well known languages. 
-\item[Experiment Participants:] User evaluations always carry an element of risk in recruiting a suitable number of participants in the time available to complete the study. This can be mitigated through an early start to the recruitment process, and well chosen incentives. 
-\item[Ethics approval:] User experiments carry an element of risk, as if ethics approval is delayed significantly, this will cause severe dislocation to the planned timeline, which may limit the evaluation after approval is gained. This is unlikely as approval has been sought already, and the application is before the committee.  
-\end{description}

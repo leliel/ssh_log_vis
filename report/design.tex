@@ -57,11 +57,24 @@ I have been forced to consider data hiding techniques, as networks can become ex
 These last are the most complicated flags, as they require creating a profile of each user's access times over repeated access attempts. This complexity can produce false positives while the system is learning a new user's habits. and may be tripped up by a legitimate change in user habits.
 
 \section{Parser}\label{parser}
-why do clustering here?
+Not really a lot to say about the parser design. it was largely dictated by the structure of log files.
+Discuss log file structure here? not really anywhere else to discuss it.
 
-\section{Server}
-why two layer architecture - ease of shifting datastore, changes there are isolated from server and thus web app, may find more appropriate datastore for semistructured log data in future. - why not three?
-Only one servlet has any data processing outside of database, so third layer usually unneccessary, and overkill in the one case where some processing needed.
+Mar 16 08:25:22 app-1 sshd[4884]: Server listening on :: port 22. \\
+Mar 16 08:25:22 app-1 sshd[4884]: error: Bind to port 22 on 0.0.0.0 failed: Address already in use. \\
+Apr 19 05:55:20 app-1 sshd[12996]: Accepted password for root from 219.150.161.20 port 55545 ssh2 \\
+Apr 19 05:55:20 app-1 sshd[12997]: Invalid user pauline from 219.150.161.20 \\
+Apr 19 05:55:21 app-1 sshd[12990]: Failed password for root from 219.150.161.20 port 54890 ssh2 \\
+Apr 20 00:00:51 app-1 sshd[24442]: subsystem request for sftp \\
+Jun 8 01:03:34 machine0 sshd[1796]: Received disconnect from 38.165.101.19: 11: Bye Bye \\
+
+Exemplars of different log entry types.
+
+
+All log entries contain a partial timestamp, server name, service name and process id. These fields are required by the syslog format used by openSSH. The remainder of the message is a free text field. Each has different metadata to break down. IE:  a connection attempt has information about authentication method, username, source address, and status. Whereas a disconnection message contains a code, and 
+source IP.
+
+why do clustering here? - not really anywhere else to do it. Clustering in the server could only include data in current selection. This would result in instability in results (ie: if select one set of dates, a login is normal, select a different set and it's classified as abnormal). 
 
 \section{Database} 
 
@@ -101,6 +114,12 @@ It is usually considered good design to avoid large numbers of nullable attribut
 The user table is a holdover from an older design<reword, it's actually necessary to link tables together.>, which proposed storing some metadata about users, such as validity, role, and login patterns. This would have eliminated the need for the invalid user request type, as this is just a failed connection, due to invalid user. This design was not pursued, due to issues with time. In the honeynet dataset, users are created and destroyed. This results in previously invalid usernames becoming valid. With this design, that would require multiple entries for each user, as an invalid user linked against an entry on date x, does not become valid when the user is created on date y (y after x).
 
 Users may also have several independent frequent login times and locations, ie: Some IT staff may frequently log in from home as well as in the office. This resulted in frequent time and location information being split into four separate tables. <include table schema here?>
+
+\section{Server}
+why two layer architecture - ease of shifting datastore, changes there are isolated from server and thus web app, may find more appropriate datastore for semistructured log data in future. - why not three?
+Only one servlet has any data processing outside of database, so third layer usually unneccessary, and overkill in the one case where some processing needed.
+
+servlet structure largely dictated by servlet API's and choice of tomcat as server.  not a lot of design work here. different request types should be handled by specialised servlets. Collection of servlets and static resources forms a web-app.
 
 \section{Requirements}
 discuss here some thoughts as to what requirements were met, and which were abandoned for time limitations.
