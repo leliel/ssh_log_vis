@@ -36,12 +36,66 @@ Two datasets have been acquired for use in this experiment.
 \end{enumerate}
 
 \subsection{Setup}
-Participants were provided with a Dell Optiplex 9010 with an i7-3770 CPU and 8Gb of ram running Arch linux 3.7.5.
-Browser used was google chrome 26.0.1410.63
+Participants were provided with one of two machines
+\begin{itemize}
+\item{Dell Optiplex 9010 with an i7-3770 CPU and 8Gb of ram running Arch linux 3.7.5.}
+\item{Dell Optiplex GX760 with a Core2 Duo CPU and 4GB ram, running Arch linux 3.7.5}
+\end{itemize}
+Both systems had chrome 26.0.1410.63 as the browser.
 
 The experiment was conducted in a quiet lab, with only the experimenter and subject present. Each question was allocated an 8 minute maximum, based on test runs with a supervisor.
 
 \section{Results}
+
+Each Task was graded for accuracy, and time taken to complete the task was measured.
+\begin{table}[tbh]
+\centering
+\begin{tabular}{l|*{6}{l|}}
+Task & Participant 1 & Participant  2 & Participant  3 & Participant  4 & Participant 5 & Participant 6 \\
+\hline
+Task 1 & 3:05 & 5:46 & Invalid & Unfinished & Unfinished & Unfinished \\
+Task 2 & Unfinished & Unfinished & 2:26 & 2:09 & 3:55 & 3:08 \\
+Task 3 & 5:10 & Unfinished & 4:18 & 4:51 & 8:00 & 2:20 \\
+Task 4 & Unfinished & Unfinished & 4:18 & 3:18 & Unfinished & Unfinished \\
+Task 5 & 1:09 & 1:22 & 1:07 & 0:39 & 1:04 & 1:10 \\
+Task 6 & 0:31 & 1:07 & 1:02 & 1:13 & 1:00 & 2:15 \\
+Task 7 & 0:45 & 1:59 & 0:42 & 0:44 & 2:06 & Unfinished \\
+Task 8 & 0:32 & 1:10 & 1:32 & 1:07 & 1:15 & 0:55 \\
+\end{tabular}
+\caption{Time taken to complete each tasks}
+\label{res_times}
+\end{table}
+
+\begin{table}[tbh]
+\centering
+\begin{tabular}{l|*{6}{l|}}
+Task & Participant 1 & Participant  2 & Participant  3 & Participant  4 & Participant 5 & Participant 6 \\
+\hline
+Task 1 & Correct & Incorrect & Incorrect & Incorrect & Incorrect & Incorrect\\
+Task 2 & Incorrect & Incorrect & Correct & Correct & Correct & Correct\\
+Task 3 & Correct & Incorrect & Correct & Correct & Correct & Incorrect\\
+Task 4 & Incorrect & Incorrect & Correct & Incorrect & Incorrect & Incorrect\\
+Task 5 & Correct & Correct & Correct & Correct & Correct & Correct\\
+Task 6 & Correct & Correct & Correct & Incorrect & Correct & Correct\\
+Task 7 & Correct & Correct & Incorrect & Correct & Correct & Incorrect\\
+Task 8 & Correct & Incorrect & Incorrect & Correct & Correct & Correct\\
+\end{tabular}
+\caption{Accuracy for each task}
+\label{res_acc}
+\end{table}
+
+Tasks 1 through 4 involved questions about finding brute force and scattergun attacks on both datasets. Observation of participants working on these tasks, and participant comments suggest that difficulty in navigating the timeline was a significant issue for carrying out these tasks.
+Task 1 involved finding a brute force attack which compromised root on the ECS dataset. There was no such attack present in the dataset. It's well known that demonstrating the absence of something can be significantly harder than the presence.<justify this>. I believe the combination of navigational difficulties with increased task difficulty is the cause of the very high failure rate for this task, with only one participant successful.
+
+Task 4 involved participants looking for a successful scattergun attack in the ECS dataset. why was this so hard? Poor navigation support caused problems, relatively small attack signature easily swamped in other data.
+
+Tasks 2 \& 3 were to find a brute force and scattergun attack respectively on the Honeynet dataset.
+There were multiple successful brute force attacks on the Honeynet dataset, and scattergun attacks with much larger attack signatures (higher number of attempts). These questions were quickly and reliably answered by all but one participant.
+
+Participant 2 had a great deal of difficulty in identifying brute force and scattergun attacks on both datasets. Feedback and observation of the participant in action suggest severe difficulties with navigation, combined with the lack of ability to hide all attempts from a specified set of IP addresses caused significant difficulties for this participant.
+
+Participant 2 commented that in the normal course of investigating such incidents using tools such as grep, he would build up a blacklist of IP's to hide from results as they were fully investigated and discarded.
+The tool as currently implemented does not support this. 
 
 insert table of results here.. then do analysis after raw results shown and discussed.
 note why time for participant 4 was discarded on one question (experimenter error.)
