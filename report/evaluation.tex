@@ -1,8 +1,8 @@
 \chapter{Evaluation}\label{eval}
 
-Evaluation of the tool produced in this project served to determine if there is sufficient merit to the idea to justify further development work on the tool. If the evaluation determines that there is sufficient potential to justify the development work, future work can evaluate the effectiveness of the design in a more rigorous manner. I have chosen to perform an exploratory evaluation due to time limitations on this project \cite{Ellis:2006:EAU:1168149.1168152}. It is not possible to achieve a representative sample of sufficient size to have predictive power in the time available. Two factors limit the ability to achieve a representative sample in the time available, taking part in the experiment requires between 1 and 1.5 hours. a further 1 to 1.5 hours is required to grade and analyse the data. Further, there is a relatively limited pool of potential participants as the tool is targeted at security experts. This limitation strongly suggests against attempting to demonstrate conclusively the usefulness and usability of the system. 
+Evaluation of the tool produced in this project served to determine if there is sufficient merit to the idea to justify further development work on the tool. If the evaluation determines that there is sufficient potential to justify the development work, future work can evaluate the effectiveness of the design in a more rigorous manner. I have chosen to perform an exploratory evaluation due to time limitations on this project \cite{Ellis:2006:EAU:1168149.1168152}. It is not possible to achieve a representative sample of sufficient size to have predictive power in the time available. Two factors limit the ability to achieve a representative sample in the time available, taking part in the experiment requires between 1 and 1.5 hours. a further 1 to 1.5 hours is required to grade and analyse the data. Further, there is a relatively limited pool of potential participants as the tool is targeted at security experts. This limitation strongly suggests against attempting to demonstrate conclusively the usefulness and usability of the system. Small, exploratory evaluations have advantages in cost and time required. With small numbers of participants, the evaluation can be carried out in a short time. These exploratory evaluations can also be useful to discard non-viable approaches before significant development effort has been spent. Care should be taken to avoid evaluating too early however, as the unfinished nature of the product can distort results. 
 
-Ethics approval has been granted for this experimental design.<ref appendix>
+Ethics approval has been granted for this experimental design.<ref appendix> 
 
 \section{Evaluation Design}
 
@@ -18,14 +18,17 @@ All four professional participants had security issues as at least a portion of 
 
 \subsection{Datasets}\label{data}
 
-Two datasets have been acquired for use in this experiment. Both datasets represent realistic systems exposed to the public internet. 
+Two datasets have been acquired for use in this experiment. Both datasets represent real systems exposed to the public internet. 
 \begin{enumerate}
-\item{Honeynet Forensic challenge 10 dataset \cite{forensic10}. This dataset is anonymised and public domain. The data presented here covers a single server, with low traffic (9MB covering mar 16 to may 2)}
-\item{Anonymised logs from the Engineering and Computer Science network at Victoria University. This dataset is significantly larger, covering 3 servers and 2 weeks of time on a high traffic network. }
+\item{Honeynet Forensic challenge 10 dataset \cite{forensic10}. This dataset is anonymised and public domain. The data presented here covers a single server, with 35K log entries covering March 16 to May 2}
+\item{Anonymised logs from the Engineering and Computer Science network at Victoria University. This dataset covers three servers, for two disjoint weeks and 74K log entries.}
 \end{enumerate}
 
-While both datasets were anonymized, anonymization procedures were different. The honeynet dataset is publically available \cite{forensic10} whereas the ECS dataset was recorded from internet facing servers in the ECS network. The latter dataset required anonymization of both usernames and IP addresses.
-IP addresses were anonymized with cryptoPAN <ref> a prefix preserving IP address anonymization tool, extended with support for IPv6 addresses. Usernames were anonymized through a very simple scheme, where each username was replaced with the string "user" + a unique number. ie: user4 is a different person to user5.
+While both datasets were anonymized, anonymization procedures were different. The honeynet dataset is publically available in an anonymized form \cite{forensic10} whereas the ECS dataset was recorded from internet facing servers in the ECS network. The latter dataset required anonymization of both usernames and IP addresses. IP addresses were anonymized with cryptoPAN <ref> a prefix preserving IP address anonymization tool extended with support for IPv6 addresses. Usernames were anonymized through a very simple scheme, where each username was replaced with the string "user" + a unique number. ie: user4 is a different person to user5.
+
+The ECS dataset was altered, to introduce a successful scattergun attack on one server. ThIs was introduced, as there were no naturally occuring successful attacks.  The introduced scattergun attack had a very small attack signature, with only 204 log entries involved, of 4.7K entries for that day.
+<check actual results, some successful root attacks on honeynet had similar sized signatures, some much larger, though with more noise for larger datasets.>
+this needs more analysis.
 
 \subsection{Setup}
 Participants were provided with one of two machines
@@ -54,7 +57,12 @@ Questions were presented to users in randomised order. This was done in order to
 \item{Find an instance of a legitimate user logging in at an abnormal time.}
 \end{enumerate}
 
-Tasks 1 through 4 involved questions about finding brute force and scattergun attacks on both datasets.
+Questions 1 \& 2 are based on the most commonly found attack signatures in SSH logs. with many botnets and automated systems carrying out brute force or scattergun attacks against any IP address responding to connection requests. As these attacks are very common and can lead to serious compromises, as shown in the Honeynet dataset, determining success or failure of such attacks is a core function of any log analysis tool. 
+
+Questions 3 \& 4 are based in finding anomalous behaviour by legitimate users. Anomalous behaviour by legitimate users can be an indication that their account has been compromised, or that they are attempting to carry out actions that would not be permitted in usual usage. <Badly worded. I mean they might be trying to compromise the system or data stored there.>. 
+
+Tasks 1 through 4 were based on questions 1 \& 2, with tasks 1 \& 4 using the ECS dataset, and tasks 2 \&3 using the Honeynet dataset.
+Tasks 5 through 8 were based on questions 3 \& 4, with tasks 5 \& 7 using the ECS dataset, and tasks 6 \& 8 using  the Honeynet dataset. 
 
 Timing and accuracy for each task was recorded. 
 Time was measured manually, by means of a stopwatch. While stopwatches are hard to use for subsecond accuracy, this is not required for a study of this type. Errors in timing on the order of 5 seconds are acceptable.
@@ -64,44 +72,33 @@ For each task a date, time, source IP and where applicable username involved wer
 \subsection{Threats to validity}
  Students are less ideal, as their experience and domain knowledge are more limited than those that have been working in the industry for some time.
 Dataset size - both in 10K order of magnitude, this limits our ability to speculate about how the tool will scale to 100K+ sizes. 
+Small number of participants - unable to control effectively for demographic variations, or ensure 
 
 \section{Results}
 
 Each Task was graded for accuracy, and time taken to complete the task was measured.
 \begin{table}[tbh]
 \centering
-\begin{tabular}{l|*{6}{l|}}
-Task & Participant 1 & Participant  2 & Participant  3 & Participant  4 & Participant 5 & Participant 6 \\
+\begin{tabular}{l|*{12}{l|}}
+Task & 
+\multicolumn{2}{|c|}{Participant 1} & 
+\multicolumn{2}{|c|}{Participant 2} & 
+\multicolumn{2}{|c|}{Participant 3} & 
+\multicolumn{2}{|c|}{Participant 4} & 
+\multicolumn{2}{|c|}{Participant 5} & 
+\multicolumn{2}{|c|}{Participant 6} \\
 \hline
-Task 1 & 3:05 & 5:46 & Invalid & Unfinished & Unfinished & Unfinished \\
-Task 2 & Unfinished & Unfinished & 2:26 & 2:09 & 3:55 & 3:08 \\
-Task 3 & 5:10 & Unfinished & 4:18 & 4:51 & 8:00 & 2:20 \\
-Task 4 & Unfinished & Unfinished & 4:18 & 3:18 & Unfinished & Unfinished \\
-Task 5 & 1:09 & 1:22 & 1:07 & 0:39 & 1:04 & 1:10 \\
-Task 6 & 0:31 & 1:07 & 1:02 & 1:13 & 1:00 & 2:15 \\
-Task 7 & 0:45 & 1:59 & 0:42 & 0:44 & 2:06 & Unfinished \\
-Task 8 & 0:32 & 1:10 & 1:32 & 1:07 & 1:15 & 0:55 \\
+Task 1 & 3:05 & \cmark & 5:46 & \xmark & Invalid & \xmark & - & \xmark & - & \xmark & - & \xmark \\
+Task 2 & - & \xmark & - & \xmark & 2:26 & \cmark & 2:09 & \cmark & 3:55 & \cmark & 3:08 & \cmark \\
+Task 3 & 5:10 & \cmark & - & \xmark & 4:18 & \cmark & 4:51 & \cmark & 8:00 & \cmark & 2:20 & \xmark \\
+Task 4 & - & \xmark & - & \xmark & 4:18 & \cmark & 3:18 & \xmark & - & \xmark & - & \xmark\\
+Task 5 & 1:09 & \cmark & 1:22 & \cmark & 1:07 & \cmark & 0:39 & \cmark & 1:04 & \cmark & 1:10 & \cmark \\
+Task 6 & 0:31 & \cmark & 1:07 & \cmark & 1:02 & \cmark & 1:13 & \xmark & 1:00 & \cmark & 2:15 & \cmark \\
+Task 7 & 0:45 & \cmark & 1:59 & \cmark & 0:42 & \xmark & 0:44 & \cmark & 2:06 & \cmark & - & \xmark \\
+Task 8 & 0:32 & \cmark & 1:10 & \xmark & 1:32 & \xmark & 1:07 & \cmark & 1:15 & \cmark & 0:55 & \cmark \\
 \end{tabular}
 \caption{Time taken to complete each tasks}
 \label{res_times}
-\end{table}
-
-\begin{table}[tbh]
-\centering
-\begin{tabular}{l|*{6}{l|}}
-Task & Participant 1 & Participant  2 & Participant  3 & Participant  4 & Participant 5 & Participant 6 \\
-\hline
-Task 1 & Correct & Incorrect & Incorrect & Incorrect & Incorrect & Incorrect\\
-Task 2 & Incorrect & Incorrect & Correct & Correct & Correct & Correct\\
-Task 3 & Correct & Incorrect & Correct & Correct & Correct & Incorrect\\
-Task 4 & Incorrect & Incorrect & Correct & Incorrect & Incorrect & Incorrect\\
-Task 5 & Correct & Correct & Correct & Correct & Correct & Correct\\
-Task 6 & Correct & Correct & Correct & Incorrect & Correct & Correct\\
-Task 7 & Correct & Correct & Incorrect & Correct & Correct & Incorrect\\
-Task 8 & Correct & Incorrect & Incorrect & Correct & Correct & Correct\\
-\end{tabular}
-\caption{Accuracy for each task}
-\label{res_acc}
 \end{table}
 
 Observation of participants working on tasks 1 through 4, and participant comments suggest that difficulty in navigating the timeline was a significant issue for carrying out these tasks.
@@ -117,9 +114,7 @@ Participant 2 had a great deal of difficulty in identifying brute force and scat
 Participant 2 commented that in the normal course of investigating such incidents using tools such as grep, he would build up a blacklist of IP's to hide from results as they were fully investigated and discarded.
 The tool as currently implemented does not support this. Participant 2 has significantly more experience in analysing sshd logs using traditional tools where stronger filtering tools are available, such as regular expressions. 
 
-insert table of results here.. then do analysis after raw results shown and discussed.
-note why time for participant 4 was discarded on one question (experimenter error.)
-initial results suggest several improvements to be made
+\section{Discussion} 
 \begin{enumerate}
 \item{Improved navigation through timeline. Users complain that it is easy to get lost when zooming. Animations may ease this transition. (possibly animate zooming in by expanding target bin to fill timeline, then chunking into new bins?)}
 \item{Improved filtering of results by IP. several extra features are requested here, with the ability to filter by subnet, as well as hiding IP's (inverse of IP of Interest filter.)}
