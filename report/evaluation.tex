@@ -26,9 +26,7 @@ Two datasets have been acquired for use in this experiment. Both datasets repres
 
 While both datasets were anonymized, anonymization procedures were different. The honeynet dataset is publically available in an anonymized form \cite{forensic10} whereas the ECS dataset was recorded from internet facing servers in the ECS network. The latter dataset required anonymization of both usernames and IP addresses. IP addresses were anonymized with cryptoPAN <ref> a prefix preserving IP address anonymization tool extended with support for IPv6 addresses. Usernames were anonymized through a very simple scheme, where each username was replaced with the string "user" + a unique number. ie: user4 is a different person to user5.
 
-The ECS dataset was altered, to introduce a successful scattergun attack on one server. ThIs was introduced, as there were no naturally occuring successful attacks.  The introduced scattergun attack had a very small attack signature, with only 204 log entries involved, of 4.7K entries for that day.
-<check actual results, some successful root attacks on honeynet had similar sized signatures, some much larger, though with more noise for larger datasets.>
-this needs more analysis.
+The ECS dataset was altered, to introduce a successful scattergun attack on one server. ThIs was introduced, as there were no naturally occuring successful attacks.  
 
 \subsection{Setup}
 Participants were provided with one of two machines
@@ -109,17 +107,38 @@ Task 4 involved participants looking for a successful scattergun attack in the E
 Tasks 2 \& 3 were to find a brute force and scattergun attack respectively on the Honeynet dataset.
 There were multiple successful brute force attacks on the Honeynet dataset, and scattergun attacks with much larger attack signatures (higher number of attempts). These questions were quickly and reliably answered by all but one participant. Poor accuracy, and significantly slower times with ECS data coupled with observations of participants attempting these tasks suggest that navigation difficulties and limited filtering options were a greater issue in the more complicated dataset, with smaller attack signatures, and greater noise. 
 
+The introduced scattergun attack in the ECS dataset had a relatively small attack signature, with only 204 log entries involved, of 4.7K entries for that day. Some successful attacks on honeynet had similar numbers of access attempts, though often a much higher proportion of invalid or failed attempts for a given day. 
+
+There were many more legitimate access attempts to the ECS network, and logging of disconnect messages introduced further noise to the system. 
+<check actual results, some successful root attacks on honeynet had similar sized signatures, some much larger, though with more noise for larger datasets.>
+this needs more analysis.
+
 Participant 2 had a great deal of difficulty in identifying brute force and scattergun attacks on both datasets. Feedback and observation of the participant in action suggest severe difficulties with navigation, combined with the lack of ability to hide all attempts from a specified set of IP addresses caused significant difficulties for this participant.
 
 Participant 2 commented that in the normal course of investigating such incidents using tools such as grep, he would build up a blacklist of IP's to hide from results as they were fully investigated and discarded.
 The tool as currently implemented does not support this. Participant 2 has significantly more experience in analysing sshd logs using traditional tools where stronger filtering tools are available, such as regular expressions. 
 
 \section{Discussion} 
+
+Analysis of the results of this user evaluation suggest that there are several obvious weaknesses in the tool as currently implemented. 
+
+These break down into three major areas, Navigation, Filtering, and information hiding.
+Navigation difficulties were experienced by a majority of users, where abrubt transitions between zoom levels lead to loss of context, and difficulty building up a mental map of the timeline. 
+Most users demonstrated improved navigation as they became more familiar with the tool. these issues could be addressed in two major ways. Showing a miniature zoomed out view as a context for the main view could assist users in maintaining context. 
+Animating transitions may also assist users to build up a mental map of the log. Improvements to navigation would support nonfunctional requirements 1 through 3 (\ref{reqs}). 
+
+Analysis of the difficulties experienced by participant 2, and suggestions from other participants suggest several new filtering options would significantly enhance ability to deal with potential information overload. 
+Implementing IP blacklisting would be extremely useful for some users, as it would support a n interaction model where one IP is fully investigated, then hidden, and the process repeated until all suspicious IP's have been investigated. 
+
+One participant suggested allowing filtering by authentication method. This is strongly supported by the difficulties users had in Task 1, as on multiple occasions, a successful root login would occur mixed in with many failed attempts. This successful login would be from a different IP address, using an authentication method not amenable to brute forcing, such as host-based authentication. Allowing filtering by authentication method, would assist users in avoiding this pitfall. <needs rewording to tie in functional and nonfunctional requierements.>
+
+
 \begin{enumerate}
 \item{Improved navigation through timeline. Users complain that it is easy to get lost when zooming. Animations may ease this transition. (possibly animate zooming in by expanding target bin to fill timeline, then chunking into new bins?)}
 \item{Improved filtering of results by IP. several extra features are requested here, with the ability to filter by subnet, as well as hiding IP's (inverse of IP of Interest filter.)}
 \item{Ability to filter connections by authtype, ie : excluding hostbased when looking for a successful brute force attack.}
 \item{Improve performance of abnormal time and location detection, reduce false positives and spurious results by suppressing alerting on invalid or failed attempts. This will significantly cut down the number of abnormalities reported, reducing the false positive rate significantly.}
+\item{seperate disconnection messages into their own group, and allow hiding as done for successful and failed connection attempts. (leave as one colour?)}
 \end{enumerate}
 
 include comparison with goals here.. how well did we meet them?
@@ -136,7 +155,8 @@ include comparison with goals here.. how well did we meet them?
 \end{enumerate}
 
 \section{Future work}
-what do we need to do from here?
+How do we go about addressing the weaknesses discussed above?.
+can they be addresssed?
 address known bugs.
 address discovered weaknesses
  - add more filter types
