@@ -19,8 +19,8 @@ Binlength (Immediately below date controls) allows chosing the length of each ti
 \end{figure}
 
 
-\section{Database}
-Not a heck of a lot to discuss here, other than why RDBMS is kinda irrelevant to server thanks to jOOQ. (except sqlite, not suitable for multiuser environments.)
+\section{Database}\label{imp_db}
+Few issues were encountered with the MySql RDBMS used for the project. Two major issues arose, both causing severe performance problems for the parsing tool. One issue was related to index use for range queries, the other represented a limitation of the default java database connection system. 
 
 GeoIp data presented a significant problem during the implementation phase of this project. I made use of the free GeoLite geoIp database, which is provided as a pair of CSV files. IP addresses in this database are represented as 32 bit unsigned integers, with a start and end column defining a range.
 
@@ -31,7 +31,7 @@ Some simple optimizations are possible, assuming that ranges are non overlapping
 
 However it's uncertain if the ranges in the dataset are both exhaustive and non overlapping. Checking this property would take significant time and effort, and would need to be repeated  every time the dataset is updated (Monthly). Due to these issues, an alternative approach was sought, and found in the spatial extensions.
 
-Using spatial extensions allows encoding the start and end numbers for IP ranges as a single shape, either line segment or square. Once so encoded, an IP can be range checked by creating a point from the address, and checking if the point is in any shapes. While this shape checking test is slower than a simple inequality test, the ability to use indexes improves performance significantly. Without spatial extensions, a range query may take many seconds, With spatial encoding this dropped to under 0.1 seconds (remotely accessing server, and querying a table with 4.04 Million rows<get better numbers from uni, seems too extreme>).  
+Using spatial extensions allows encoding the start and end numbers for IP ranges as a single shape, either line segment or square. Once so encoded, an IP can be range checked by creating a point from the address, and checking if the point is in any shapes. While this shape checking test is slower than a simple inequality test, the ability to use indexes improves performance significantly. Without spatial extensions, a range query may take many seconds, With spatial encoding this dropped to under 0.1 seconds.  
 
 One drawback to spatial extensions for MySql is that they are not supported in the innoDB storage engine, which is the only MySql storage engine to offer transaction support. This is not a significant issue for GeoIP data, where all accesses are reads, exept for a complete table reload each time that the dataset is updated. This reload can be performed in under 5 minutes using batch loading tools available with MySql. As GeoIp databases are often updated only monthly or less frequently, this is an acceptable limitation. 
 
@@ -39,47 +39,24 @@ Shifting to spatially encoded ranges for GeoIp lookups was responsible for a sig
  
 \section{Parser}
 
-Very simpleminded parser. This would require a significant rewrite to move datastores, as the database schema is encoded in the format of statements used to insert data. 
+The log parsing tool was implemented in two layers. A log reader, and database writer/analyser. 
+The reader layer is responsible for reading any number of log files into a sorted list of events.
+This list of events is then passed to the analyser/writer layer, which is responsible for checking connection attempts to see if the location and time are frequently used by the user and writing the analysed metadata to the datastore.
 
-Currently built for RDBMS system.
+The writer layer is tightly coupled to both the database schema, and RDBM systems specifically as it makes extensive use of the JDBC api for communicating with RDBMS's.
 
-Also handles location and time clustering, using a simple online algorithm in conjunction with the datastore. very primitive and simpleminded algorithms, but capable of processing an infinite stream of data (albeit in infinite time). This simple streaming approach was taken as it's not possible to determine in the general case how long a logfile may be. Use cases also call for ability to read data as written by the SSH demon. 
+Few significant issues were encountered in writing the parser. 
+The majority of trouble encountered with the parser was in analysing connection attempts. checking weather a location  is one that is well known is extremely simple, though had significant performance issues discussed in \ref{imp_db}
+Time clustering has proven to have ongoing issues, where overlaps in stored time ranges are not properly detected. <this goes in future work, as a known bug.> This causes a significant number of false positives for unusual times. I believe that this bug is caused by an error in my SQL queries. 
+<Describe algorithm here or in design?>
 
 \section{Server}
 
-Design of server side code and functions remains to be carried out, though I plan to perform the majority of data processing server side, due to concerns about javascript and browser performance when hundreds of thousands to millions of elements are being manipulated. 
+There were few issues with server implementation, as tomcat is well documented.
+Some trouble initially setting up tomcat within university systems due to outdated instructions. 
+Once this was resolved, servlet api is extremely well documented, with very good online tutorials. 
+There were some issues in debugging the binning code, though these were restricted to a single servlet. 
 
-architecture. two layer model. data access layer, and client communication layer. 
-could be refactored into a three layer model, to allow expansion beyond web clients. 
-\begin{itemize}
-\item{Data access layer. Responsible for fetching data from the underlying datastore. easily replaced to communicate with different kind of datastore. Takes values from client communication layer, returns lists of matching log entries.}
-\item{Client Communication layer. Responsible for aggregating data returned by the data access layer, and building HTTP responses from the aggregated data. Including JSON translation.}
-\end{itemize}
-<include description of tomcat + servlet architecture here.>
-
-data access layer has a defined interface, with methods for fetching data to satisfy each type of request.
-\begin{itemize}
-\item{Fetch log lines - used to fetch all log lines between a given pair of timestamps, with optional filters on username, server, and source IP}
-\item{Fetch start and end times - used to fetch the timestamps of the first and last events in the datastore}
-\item{Fetch all server names - used to fetch a list of every server name known to the datastore}
-\end{itemize}
-
-The underlying implementation for these methods currently targets RDBMS systems, though so long as the interface is maintained, this could be replaced with any other datastore.
-
-4 types of request that may be made of the server
-\begin{itemize}
-\item{Request aggregated events between given timestamps, and optional filters on username, server, and source IP}
-\item{Request raw events between given timestamps, and optional filters on username, server, and source IP}
-\item{Request start and end timestamps}
-\item{Request list of all servernames}
-\end{itemize}
-
-All request types are implemented as independent servlets within the web application. Each servlet has no shared state, so parallelizes easily within the tomcat framework. Connection pooling is implemented to assist in performance where multiple users may be requesting data. Concurrent read/write issues are the responsibility of the underlying datasource.
-
-The first two request types use the same interface to the datasource, but have differing post processing applied. raw does not do any agreggation, simply converts the data into JSON format and embeds in the HTTP response. aggregated collects statistics about all events which fall in that time period, statistics are transmitted in JSON format as payload of HTTP response.
-Why have aggregated request? nonfunctional requirements - performance and data hiding. aggregation done serverside due to bandwidth and memory requirements, this operation could involve processing millions of nodes for larger logs. This is unreasonable to send across the network in raw form, due to size and space requirements. Server has resources to do aggregation. 
-some room for refactoring, this could be split into two layers
-however the processing is quite simple, and only done for this one request type, so a data analysis layer was omitted.
 
 \section{Security Concerns}
 Rewrite to explain security model, including server choices that allow for defence in depth.

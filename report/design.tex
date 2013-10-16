@@ -116,10 +116,37 @@ The user table is a holdover from an older design<reword, it's actually necessar
 Users may also have several independent frequent login times and locations, ie: Some IT staff may frequently log in from home as well as in the office. This resulted in frequent time and location information being split into four separate tables. <include table schema here?>
 
 \section{Server}
-why two layer architecture - ease of shifting datastore, changes there are isolated from server and thus web app, may find more appropriate datastore for semistructured log data in future. - why not three?
-Only one servlet has any data processing outside of database, so third layer usually unneccessary, and overkill in the one case where some processing needed.
+Server implementation was very tightly constrained by choice of platforms. Web applications communicating through the HTTP protocol, with a Tomcat server provide limited opportunities for design choices.
+In order for the code to interface with Tomcat, it must be written as at least one class which implements HttpServlet from the java API. 
+This class serves to handle communication with the Tomcat server. Tomcat provides HTTP request parsing, session tracking and multithreading. Further classes may be used freely to implement servlet behaviour. As very simple behaviour is required from the server, I chose to use a two layer architechture for each Servlet. 
+\begin{itemize}
+\item{Data access layer. Responsible for fetching data from the underlying datastore. easily replaced to communicate with different kind of datastore. Takes values from client communication layer, returns lists of matching log entries.}
+\item{Client Communication layer. Responsible for aggregating data returned by the data access layer, and building HTTP responses from the aggregated data. Including JSON translation.}
+\end{itemize}
+The data access layer is common to all servlets, and has a defined interface, with methods for fetching data to satisfy each type of request. This design allows for substitution of a different data storage system with minimal changes to the system. Servlets would need to be modified only to instantiate the new data access layer when initialised. This could be easily modified to use a static factory method, which would further restrict the area requiring changes.
 
-servlet structure largely dictated by servlet API's and choice of tomcat as server.  not a lot of design work here. different request types should be handled by specialised servlets. Collection of servlets and static resources forms a web-app.
+There are exactly 4 types of request that may be made of the server, The majority of requests made in normal usage will be requests for aggregated events. 
+\begin{itemize}
+\item{Request aggregated events between given timestamps, and optional filters on username, server, and source IP}
+\item{Request raw events between given timestamps, and optional filters on username, server, and source IP}
+\item{Request start and end timestamps}
+\item{Request list of all servernames}
+\end{itemize}
+
+These four requests to the server, are implemented with three requests to the underlying datastore.
+
+\begin{itemize}
+\item{Fetch log lines - used to fetch all log lines between a given pair of timestamps, with optional filters on username, server, and source IP}
+\item{Fetch start and end times - used to fetch the timestamps of the first and last events in the datastore}
+\item{Fetch all server names - used to fetch a list of every server name known to the datastore}
+\end{itemize}
+
+All request types are independent servlets within the web application. Each servlet has no shared state, so parallelizes easily within the tomcat framework. Connection pooling is implemented to assist in performance where multiple users may be requesting data. Concurrent read/write issues are the responsibility of the underlying datasource.
+
+The first two request types use the same interface to the datasource, but have differing post processing applied. raw does not do any agreggation, simply converts the data into JSON format and embeds in the HTTP response. aggregated collects statistics about all events which fall in that time period, statistics are transmitted in JSON format as payload of HTTP response.
+Why have aggregated request? nonfunctional requirements - performance and data hiding. aggregation done serverside due to bandwidth and memory requirements, this operation could involve processing millions of nodes for larger logs. This is unreasonable to send across the network in raw form, due to size and space requirements. Server has resources to do aggregation. 
+some room for refactoring, this could be split into two layers
+however the processing is quite simple, and only done for this one request type, so a data analysis layer was omitted.
 
 \section{Requirements}
 discuss here some thoughts as to what requirements were met, and which were abandoned for time limitations.
