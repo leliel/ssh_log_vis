@@ -57,22 +57,34 @@ I have been forced to consider data hiding techniques, as networks can become ex
 These last are the most complicated flags, as they require creating a profile of each user's access times over repeated access attempts. This complexity can produce false positives while the system is learning a new user's habits. and may be tripped up by a legitimate change in user habits.
 
 \section{Parser}\label{parser}
-Not really a lot to say about the parser design. it was largely dictated by the structure of log files.
-Discuss log file structure here? not really anywhere else to discuss it.
 
-Mar 16 08:25:22 app-1 sshd[4884]: Server listening on :: port 22. \\
+As SSHD logs are highly structured, this structure largely dictated the structure of the parser. There are 5 major classes of event that can be logged. While there are many more kinds of events, and metadata about connections that can be logged, extended information is highly dependent on SSH demon configuration. The listed message types can be relied on to be present in all useful logging levels. 
+\begin{itemize}
+\item{Connection attempts}
+\item{Disconnection messages}
+\item{Subsystem requests}
+\item{Invalid usernames}
+\item{System messages}
+\end{itemize}
+
+All log entries contain a partial timestamp, server name, service name and process id. These fields are required by the syslog format used by openSSH. The remainder of the message is a free text field. Each has different metadata to break down. IE:  a connection attempt has information about authentication method, username, source address, and status. Whereas a disconnection message contains a code, and source IP \ref{log_examples}.
+
+The parser for SSH logs was initially conceived as a monolithic design, with a single class responsible for reading, analysing and writing data to the database. This design lasted into early implementation, where it was abandoned, as it leaves the parser too tightly coupled to the choice of underlying datastore. The parser was seperated into two layers, using a more abstract representation of each possible event type.
+
+\begin{figure}[tbh]
+\parbox{.99\textwidth}{
+{\small Mar 16 08:25:22 app-1 sshd[4884]: Server listening on :: port 22. \\
 Mar 16 08:25:22 app-1 sshd[4884]: error: Bind to port 22 on 0.0.0.0 failed: Address already in use. \\
 Apr 19 05:55:20 app-1 sshd[12996]: Accepted password for root from 219.150.161.20 port 55545 ssh2 \\
 Apr 19 05:55:20 app-1 sshd[12997]: Invalid user pauline from 219.150.161.20 \\
 Apr 19 05:55:21 app-1 sshd[12990]: Failed password for root from 219.150.161.20 port 54890 ssh2 \\
 Apr 20 00:00:51 app-1 sshd[24442]: subsystem request for sftp \\
-Jun 8 01:03:34 machine0 sshd[1796]: Received disconnect from 38.165.101.19: 11: Bye Bye \\
+Jun 8 01:03:34 machine0 sshd[1796]: Received disconnect from 38.165.101.19: 11: Bye Bye \\}}
+\caption{Examples of SSHD logs, showing each type of message}
+\label{log_examples}
+\end{figure}
 
-Exemplars of different log entry types.
 
-
-All log entries contain a partial timestamp, server name, service name and process id. These fields are required by the syslog format used by openSSH. The remainder of the message is a free text field. Each has different metadata to break down. IE:  a connection attempt has information about authentication method, username, source address, and status. Whereas a disconnection message contains a code, and 
-source IP.
 
 why do clustering here? - not really anywhere else to do it. Clustering in the server could only include data in current selection. This would result in instability in results (ie: if select one set of dates, a login is normal, select a different set and it's classified as abnormal). 
 
@@ -147,6 +159,21 @@ The first two request types use the same interface to the datasource, but have d
 Why have aggregated request? nonfunctional requirements - performance and data hiding. aggregation done serverside due to bandwidth and memory requirements, this operation could involve processing millions of nodes for larger logs. This is unreasonable to send across the network in raw form, due to size and space requirements. Server has resources to do aggregation. 
 some room for refactoring, this could be split into two layers
 however the processing is quite simple, and only done for this one request type, so a data analysis layer was omitted.
+
+\section{Security}
+Rewrite to explain security model, including server choices that allow for defence in depth.
+As I'm building the tool as a client server model, accessed through the browser
+there are several security concerns to be considered in a deployment of the system.
+The database will contain a significant amount of privileged information about network security such as machine names and addresses, valid account names, and authentication methods used in the system.
+
+This data would be extremely useful to malicious users or outside intruders. 
+This leads to a need to ensure that access to this database is controlled through a robust authentication system.
+Ideally the web server hosting the tool should not be accessible to the outside world at all. Within the organisation's private network access should be restricted tightly to only those users with a definite need to have access. 
+Secured connections must be used for all communication between client and server to limit the opportunity for malicious individuals to snoop on the data in transit.
+
+Security of the serverside code will be considered from the beginning of the design and implementation process as this code must be able to resist any malicious access attempts. Through input sanitation and bounds checking should serve to close the majority of possible vulnerabilities.
+
+Client side code contains no data, and so is significantly less critical to secure, as the database systems should deny access without valid credentials. Ideally host based authentication could be used. However, implementing a robust access control scheme does not fit within the scope of this project, and will be left for future development.
 
 \section{Requirements}
 discuss here some thoughts as to what requirements were met, and which were abandoned for time limitations.

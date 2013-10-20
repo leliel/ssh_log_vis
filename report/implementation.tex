@@ -5,7 +5,23 @@
 web application, written using javascript, css and html5.
 
 Figure \ref{overview} shows an overview of the Honeynet dataset. In a column to the left, we have some controls for the visualisation. To the right, taking up the majority of space is a timeline visualisation of logged data.  
-<Explain basic interactions here, related back to functional and nonfunctional requirements. >
+Basic interaction is carried out with the mouse primarily. Filtering and datetime controls are located in a panel to the left of the screen. The remainder of screen space is taken up by the timelines. 
+Each of the four stacked timelines covers a fixed period, with each line starting when the line above ends. The times displayed in the control panel show the start time of the first timeline, and end time of the last timeline.
+Doubleclicking on any timebin triggers a zoom action, replacing the contents of all timelines with a more detailed view of the chosen bin. 
+No functionality was included to go back up a zoom level, as the application does not currently know what times were in view before the current. Instead, the application has been integrated with the browser history. The browser back and foward buttons serve to step through states, including zoom levels. 
+
+Zooming can be performed until either there is only one event in the chosen bin, or each bin covers 1 second. The one second limit is a practical consideration of the structure of SSHD logs. These logs have a time resolution of 1 second, ie:  all events occuring between 10:59:59.000 and 11:00:00.999 are logged at 10:59:59. Where there is only one event to display, mousing over the bin will show the raw log line in a popup. This was implemented to reduce the number of zoom actions required to see details in low activity time blocks. 
+
+This approach provides an arbitrarily large number of zoom levels, with more detailed statistical summaries of each block presented by mouseover<insert link to screenshot>. This was implemented to support information hiding requirements. 
+
+Filtering functions are currently somewhat limited, with options to show only data for a given username, IP addres, and toggle the display of each class of event. These filters can be freely combined. IP and username filters support wildcards, \_ matches a single character, \% matches 1 or more characters. 
+
+This is a purely visual change, with no change in data, this can be seen as mousing over the bins shows the same summary information. These filters were implemented without altering the selected data to support exploration of potential attacks. ie: when looking for a brute force attack against root, I would hide failed attacks, as there are vastly fewer successful root logins, Then use the mouseover breakdown to check which (if any) bins had a suspiciously high failure rate. This would not be possible were the data to be filtered on the server side, as currently implemented the statistical summary would lose details.
+
+  
+
+(discuss why data is currently reloaded due to issues in history api.) 
+<Explain basic interactions here, related back to functional and nonfunctional requirements.>
 <explain why features were cut, here or design?>
 
 Both date boxes are linked to datepicker tools, which allow for chosing a date from a calendar, and setting time through sliders. These values may be freely edited without reloading data. The Jump to dates button will trigger a reload of data. 
@@ -44,45 +60,25 @@ The reader layer is responsible for reading any number of log files into a sorte
 This list of events is then passed to the analyser/writer layer, which is responsible for checking connection attempts to see if the location and time are frequently used by the user and writing the analysed metadata to the datastore.
 
 The writer layer is tightly coupled to both the database schema, and RDBM systems specifically as it makes extensive use of the JDBC api for communicating with RDBMS's.
+Internal representation of log entries is somewhat coupled to the JDBC API, as each entry is responsible for binding its data to the prepared statements used by the writer.
+This could be worked around with minimal changes so long as the new datasource implemented the same API.
 
 Few significant issues were encountered in writing the parser. 
 The majority of trouble encountered with the parser was in analysing connection attempts. checking weather a location  is one that is well known is extremely simple, though had significant performance issues discussed in \ref{imp_db}
-Time clustering has proven to have ongoing issues, where overlaps in stored time ranges are not properly detected. <this goes in future work, as a known bug.> This causes a significant number of false positives for unusual times. I believe that this bug is caused by an error in my SQL queries. 
-<Describe algorithm here or in design?>
+Time clustering has proven to have ongoing issues, where overlaps in stored time ranges are not properly detected. This error arises where the number of successful login attempts is not correctly aggregated across all time sections which overlap the login attempt. This causes a significant number of false positives for unusual times. I believe that this bug is caused by an error in my SQL queries, though at time of writing this remains unresolved. 
 
 \section{Server}
 
 There were few issues with server implementation, as tomcat is well documented.
 Some trouble initially setting up tomcat within university systems due to outdated instructions. 
 Once this was resolved, servlet api is extremely well documented, with very good online tutorials. 
-There were some issues in debugging the binning code, though these were restricted to a single servlet. 
+Biggest issues with server implementation occured in attempting to get responses to use compression to reduce the size of the resulting packets. Compression isn't really important, and all issues were caused by outdated tutorials. Once up to date documentation was found, enabling compression was trivial.
+This can be done by server configuration files.
+Remove this section? There really isn't a lot to say about server implementation. 
 
 
-\section{Security Concerns}
-Rewrite to explain security model, including server choices that allow for defence in depth.
-As I'm building the tool as a client server model, accessed through the browser
-there are several security concerns to be considered in a deployment of the system.
-The database will contain a significant amount of privileged information about network security
-such as machine names and addresses, valid account names, and authentication methods used in the system.
-
-This data would be extremely useful to malicious users or outside intruders. 
-This leads to a need to ensure that access to this database is controlled through a robust authentication system.
-Ideally the web server hosting the tool should not be accessible to the outside world at all. Within the organisation's private network access should be restricted tightly to only those users with a definite need to have access. 
-Secured connections must be used for all communication between client and server to limit the opportunity for malicious individuals to snoop on the data in transit.
-
-Security of the serverside code will be considered from the beginning of the design and implementation process
-as this code must be able to resist any malicious access attempts. Through input sanitation and bounds checking should serve to close the majority of possible vulnerabilities.
-
-Client side code contains no data, and so is significantly less critical to secure, as the database systems should deny access without valid credentials. Ideally host based authentication could be used. However, implementing a robust access control scheme does not fit within the scope of this project, and will be left for future development.
-
+\subsection{Security Concerns}
+The server is constrained to use a very old version of java, as the system was developed against an older version of tomcat. Exposing this version of the server to the internet is not advised, as it may contain unpached vulnerabilities. However, porting to a later version of tomcat should not involve any great difficulty.  Configuration files would need to be rebuilt, however there should not be any significant compatibility issues.
 
 \section{Testing}
 Automated testing of user interfaces remains problematic, with many tools suffering from severe fragility where UI layout is modified. In most testing libraries, mous interaction is recorded at test design, then played back artificially on execution, This causes severe fragility as if a control or button moves the recorded mouse movements will miss the button, causing test failures. Further research is needed to find a testing library suitable for testing, however the test automation tool created by Dojo appears useful \cite{dojo2013test}. - automated testing not used. heavy use of in browser dev tools and debugger. manual testing. 
-
-\begin{figure}[tbh]
-\fbox{\parbox[b]{.99\linewidth}{
-\vskip 0.5cm
-\centering \includegraphics[scale=0.75]{gantt.png}
-\vskip 0.5cm}}
-\caption{\protect\label{gantt}Gantt chart showing breakdown of future work into major sections. The design group is all sub day tasks.}
-\end{figure}
