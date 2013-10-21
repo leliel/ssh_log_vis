@@ -1,0 +1,43 @@
+\chapter{Project}\label{proj}
+
+\section{Ethical Considerations}
+Ethical issues arise solely around user evaluation.
+As datasets are taken from real systems, these can contain real username, and possibly passwords (if mistakenly entered as username.)
+\subsection{Datasets}
+Honeynet dataset publically available. No futher anonymization is required for this dataset due to public availablity. if it's not properly anonymized, no further harm will be done. 
+
+\subsection{Evaluation procedures}
+Fairly standard for user evaluations. Privacy concerns, can't reveal identity of participants. 
+Use numbers to refer to participants. destroy data after report completed. 
+
+\section{User Personae}
+
+\section{Requirements}\label{reqs}
+
+In order to meet the goals laid out in Chapter \ref{C:intro} concrete requirements have been laid out for the tool.
+These requirements are divided into functional and non-functional requirements. Requirements 1 through 3 and 6 support goals 1 and 2. Requirements 3 through 7 support goal 3. Scaling goals are supported by all requirements, as goals 1 and 2 strongly support scaling to millions of events.  
+
+\begin{enumerate}
+\item{Strong filtering and highlighting options.}
+\item{Show surrounding context for anomalous accesses.}
+\item{GeoIP support to add context to login attempts.}
+\item{Allow the user control over which machine is monitored at any given time.}
+\item{Show network context for currently monitored machine.}
+\item{Extensible log parsing: don't prevent extension to other similar log types.}
+\end{enumerate}
+
+Non functional requirements deal with issues of performance, scalability and usability.
+\begin{enumerate}
+\item{Use information hiding to prevent information overload.}
+\item{Prevent masking of important data.}
+\item{Navigation: tool needs to support easy navigation of the timeline.}
+\item{Performance capable of handling millions of events.}
+\end{enumerate}
+
+\section{Supporting tools}
+Git -> distributed version control system. used to track code changes, and share codebase between uni and home. extremely useful as also provides multiple offsite backups (full codebase, with all revisions and comments are stored in each instance of the repository.)
+
+GitHub -> site for sharing git repositories. Makes available an issue tracker which is integrated with git commit comments. Integration allows associating commits with issues, and closing issues from commits. this integration is extremely useful for debugging and tracking why changes were made. Issue tracker used heavily in later part of coding phase to track issues as detected, and link commits to problems resolved by that commit.
+extremely helpful to keep thoughts organised and remember what issues exists. Also helpful for issue prioritisation.
+
+Stack overflow -> (stackoverflow.com) Q\&A format website for assistance with programming issues. Extensive searchable database of questions with community feedback on answers has created an excellent practical reference for many languages, frameworks and libraries.  Extremely useful for finding out how to do things in an unfamiliar language. never actually had to ask my own question, as questions already answered and easily searchable.
