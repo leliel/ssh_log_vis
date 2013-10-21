@@ -2,7 +2,9 @@
 
 \section{Front End}  %this needs a better title, badly.
 
-web application, written using javascript, css and html5.
+I have chosen to use javascript with the d3 visualisation library \cite{bostock2011d3} for the client portion of the system. This was chosen as d3 is a very well supported visualisation library offering excellent support for dynamic data, animations, graph layouts and highly customisable charting. Javascript, in addition to being required for D3, is the de-facto standard for interactive web applications. 
+In addition JQuery and JQuery ui were used, as these frameworks allow for consistent behaviour across many different browsers, by abstracting away the cross browser support code into the framework. Further, JQuery offers significant support for DOM manipulation in simple and powerful ways. JQueryUI provides implementations of many common desktop UI widgets in forms suitable for web browsers (Javascript, HTML and css). These widgets greatly simplified UI development, as they can simply be dropped in place and used. JQueryUI also provides CSS files and tools allowing easy tweaking or theming of the tool.
+While this required learning a new language, javascript is a relatively simple language, and this did not pose a significant difficulty. Learning javascript was made significantly easier by extensive documentation and familiar syntax and somewhat familiar semantics. 
 
 Figure \ref{overview} shows an overview of the Honeynet dataset. In a column to the left, we have some controls for the visualisation. To the right, taking up the majority of space is a timeline visualisation of logged data.  
 Basic interaction is carried out with the mouse primarily. Filtering and datetime controls are located in a panel to the left of the screen. The remainder of screen space is taken up by the timelines. 
@@ -18,8 +20,6 @@ Filtering functions are currently somewhat limited, with options to show only da
 
 This is a purely visual change, with no change in data, this can be seen as mousing over the bins shows the same summary information. These filters were implemented without altering the selected data to support exploration of potential attacks. ie: when looking for a brute force attack against root, I would hide failed attacks, as there are vastly fewer successful root logins, Then use the mouseover breakdown to check which (if any) bins had a suspiciously high failure rate. This would not be possible were the data to be filtered on the server side, as currently implemented the statistical summary would lose details.
 
-  
-
 (discuss why data is currently reloaded due to issues in history api.) 
 <Explain basic interactions here, related back to functional and nonfunctional requirements.>
 <explain why features were cut, here or design?>
@@ -34,6 +34,12 @@ Binlength (Immediately below date controls) allows chosing the length of each ti
 \caption{\protect\label{overview}Tool showing overview of the honeynet dataset (\ref{data})}
 \end{figure}
 
+Particular issues with use of javascript included issues with timezone handling, and dynamic typing in combination with implicit variable declaration. In javascript, there are two usable timezones, system local time, and GMT. Other timezones are not exposed. This caused severe issues with the datetime picker controls as there is no way to ensure that the local computer time matches server time. There was no resolution to this issue found, other than to give up and let datetimes rendered by the browser exist in host time, rather than matching the timezone logs are recorded in. 
+Dynamic typing and implicit variable declaration, while sometimes useful, allow for far easier propagation of invalid values, often resulting in abnormal behaviour in areas widely seperated from the source. This proved to be a significant complication to debugging, for limited gain in my opinion. 
+
+As cross browser implementation of the HTML5 history api has significant implementation specific quirks, I have chosen to use a javascript library to work around these issues. History.js. This library has some peculiarities in its handling of history which diverge from the HTML5 spec, cross browser consistency overwhelms these issues however.  The largest issues with history.js is that this library forces a popstate event for every state change. The popstate event is used to notify the page of changes to the history which should be handled. The HTML5 spec calls for this to occur only when history navigation actions are triggered by the user.
+
+This behaviour causes an unneccessary data reload when visibility of event types are changed. however, as the data required for even the largest datasets tested is measured in the 10's of kilobytes, this is not a significant issue. 
 
 \section{Database}\label{imp_db}
 Few issues were encountered with the MySql RDBMS used for the project. Two major issues arose, both causing severe performance problems for the parsing tool. One issue was related to index use for range queries, the other represented a limitation of the default java database connection system. 
@@ -69,12 +75,10 @@ Time clustering has proven to have ongoing issues, where overlaps in stored time
 
 \section{Server}
 
-There were few issues with server implementation, as tomcat is well documented.
-Some trouble initially setting up tomcat within university systems due to outdated instructions. 
-Once this was resolved, servlet api is extremely well documented, with very good online tutorials. 
-Biggest issues with server implementation occured in attempting to get responses to use compression to reduce the size of the resulting packets. Compression isn't really important, and all issues were caused by outdated tutorials. Once up to date documentation was found, enabling compression was trivial.
-This can be done by server configuration files.
-Remove this section? There really isn't a lot to say about server implementation. 
+The server code was implemented as designed. The well documented servlet API, and clear tomcat documentation were very helpful here. Tomcat proved to be an excellent tool for the task.
+
+Due to addition of new filtering options later in the implementation of the servers, it was found neccessary to move away from hardcoding strings directly into JDBC structures
+as there were many optional components to some queries. This was resolved by use of jOOQ. A library which supports generating SQL(amongst several other features). I have used the sql generation features of jOOQ heavily in the servlets comprising the server side implementation, as the abstract syntax tree structure allows for easy addition and removal of filtering conditions without having to deal directly with a combinatorial explosion as more optional filters are added. This allows significant flexibility in filtering options, and easy extensibility. jOOQ also offers significant cross DBMS support, allowing the servlet code to work from a different database system with minimal effort.
 
 
 \subsection{Security Concerns}

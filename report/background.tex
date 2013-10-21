@@ -1,6 +1,5 @@
-\chapter{Background}\label{C:back}
+\chapter{Related Work}\label{C:back}
 
-\section{Related work}
 Much related work has been done in two major areas. Data mining focused techniques with visualisations used to explore the results of data mining, and visualisation driven techniques. Most visualisation driven techniques still contain significant datamining tools. Relatively little work has been done directly on access or system log visualisation, with research preferring to focus on network intrusion detetection logs. For the purposes of this section Intrusion Detection Systems(IDS) are treated as datamining systems. For anomaly based IDS this is straightforward, as they use traditional machine learning and datamining techniques to create classification systems for events. In rule based IDS, this is not so clear, as they apply pre-created rules. However, these rules are often created using data-mining techniques and serve to offer the same black box classification system as other data-mining software. I will be considering how each system discussed below meets the goals set out in Chapter \ref{C:intro}.
 
 \subsection{Data Mining with Visualisation}
@@ -67,24 +66,3 @@ This system relies colour to distinguish ports on the timeline frame, which is e
 
 This system appears interesting as an attempt to correlate attack information with machine location through geoip systems. Where the number of events is "low enough" lines are drawn from IP plane to physical location on the lower plane. The exact number of lines drawn is not clear. 
 
-\section{Requirements}\label{reqs}
-
-In order to meet the goals laid out in Chapter \ref{C:intro} concrete requirements have been laid out for the tool.
-These requirements are divided into functional and non-functional requirements. Requirements 1 through 3 and 6 support goals 1 and 2. Requirements 3 through 7 support goal 3. Scaling goals are supported by all requirements, as goals 1 and 2 strongly support scaling to millions of events.  
-
-\begin{enumerate}
-\item{Strong filtering and highlighting options.}
-\item{Show surrounding context for anomalous accesses.}
-\item{GeoIP support to add context to login attempts.}
-\item{Allow the user control over which machine is monitored at any given time.}
-\item{Show network context for currently monitored machine.}
-\item{Extensible log parsing: don't prevent extension to other similar log types.}
-\end{enumerate}
-
-Non functional requirements deal with issues of performance, scalability and usability.
-\begin{enumerate}
-\item{Use information hiding to prevent information overload.}
-\item{Prevent masking of important data.}
-\item{Navigation: tool needs to support easy navigation of the timeline.}
-\item{Performance capable of handling millions of events.}
-\end{enumerate}

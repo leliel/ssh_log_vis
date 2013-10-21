@@ -1,29 +1,16 @@
-\chapter{Tools and Languages}\label{langs}
+\chapter{Project}\label{proj}
 
-I have chosen to use javascript with the d3 visualisation library \cite{bostock2011d3} for the client portion of the system. This was chosen as d3 is a very well supported visualisation library offering excellent support for dynamic data, animations, graph layouts and highly customisable charting. Javascript, in addition to being required for D3, is the de-facto standard for interactive web applications. 
-In addition JQuery and JQuery ui were used, as these frameworks allow for consistent behaviour across many different browsers, by abstracting away the cross browser support code into the framework. Further, JQuery offers significant support for DOM manipulation in simple and powerful ways. JQueryUI provides implementations of many common desktop UI widgets in forms suitable for web browsers (Javascript, HTML and css). These widgets greatly simplified UI development, as they can simply be dropped in place and used. JQueryUI also provides CSS files and tools allowing easy tweaking or theming of the tool.
-While this required learning a new language, javascript is a relatively simple language, and this did not pose a significant difficulty. Learning javascript was made significantly easier by extensive documentation and familiar syntax and somewhat familiar semantics. 
+\section{Ethical Considerations}
+Ethical issues arise solely around user evaluation.
+As datasets are taken from real systems, these can contain real username, and possibly passwords (if mistakenly entered as username.)
+\subsection{Datasets}
+Honeynet dataset publically available. No futher anonymization is required for this dataset due to public availablity. if it's not properly anonymized, no further harm will be done. 
 
-Particular issues with use of javascript included issues with timezone handling, and dynamic typing in combination with implicit variable declaration. In javascript, there are two usable timezones, system local time, and GMT. Other timezones are not exposed. This caused severe issues with the datetime picker controls as there is no way to ensure that the local computer time matches server time. There was no resolution to this issue found, other than to give up and let datetimes rendered by the browser exist in host time, rather than matching the timezone logs are recorded in. 
-Dynamic typing and implicit variable declaration, while sometimes useful, allow for far easier propagation of invalid values, often resulting in abnormal behaviour in areas widely seperated from the source. This proved to be a significant complication to debugging, for limited gain in my opinion. 
+\subsection{Evaluation procedures}
+Fairly standard for user evaluations. Privacy concerns, can't reveal identity of participants. 
+Use numbers to refer to participants. destroy data after report completed. 
 
-Other libraries used -> 
-history.js -> unifies handling of HTML5 history api across browsers. some irritation as forces data reload on replaceState. this is insignificant due to amount of data transferred, and target usecase (on local network only).
-
-\section{Java}
-
-Java was another possible language for implementing the client. While this has the advantage of already knowing the language well, there were two significant drawbacks. Firstly, browser java plugins have a very long and poor security record, with many new vulnerabilities found each year. In an application where sensitive data is used, security is an important concern. Secondly, there is no library providing visualisation support comparable with d3, further to this, fewer students use java for visualisation projects, and graphics are significantly more difficult to write effectively in java. 
-
-Serverside Java has a much better security record than browser plugins, and offers very good support for dynamic data serving through Apache Tomcat. (refer to website?) Tomcat is a web server designed to support dynamic web pages and webapps through Java servlets. It provides strong access controls, with built in support for SSL and IP black and white listing. This built in support allows for configuration as one layer of a defence in depth. Further to defense in depth, Tomcat can be configured with detailed logging options, combined with the state being carried in the url, this allows a full audit trail to be constructed from Tomcat logs. Session tracking could easily be added through the session interface that Tomcat exposes, though this was not used for the prototype.
-Tomcat handles threading of the servlets to serve multiple concurrent requests. In a system where no data is shared between requests, this allows concurrency issues to be largely ignored. The version of tomcat installed on university machines limited me to java 6, however, this code would be easily ported to a later version of tomcat and java. 
-
-jOOQ is a library which supports generating SQL(amongst several other features). I have used the sql generation features of jOOQ heavily in the servlets comprising the server side implementation, as the abstract syntax tree structure allows for easy addition and removal of filtering conditions without having to deal directly with a combinatorial explosion as more optional filters are added. This allows significant flexibility in filtering options, and easy extensibility. jOOQ also offers significant cross DBMS support, allowing the servlet code to work from a different database system with minimal effort.
-jOOQ has not been used for the log parser, as this is a much simpler use case, adequately supported by the JDBC api.
-
-\section{MySQL}
-
-don't really have a lot to say here. for what I'm doing with it one RDBMS is as good as any other, provided it supports multiple concurrent users (pretty much only SQLite doesn't).
-MySQL just happened to be what the university uses. Postgres might be a little better, but since geoip tables rarely written, lack of transaction semantics not really an issue. takes about 5 minutes to load new data. not exactly an extensive downtime, and can simply lock writes while replacing geoip data, as this is never used outside of the log parser.
+\section{User Personae}
 
 \section{Supporting tools}
 Git -> distributed version control system. used to track code changes, and share codebase between uni and home. extremely useful as also provides multiple offsite backups (full codebase, with all revisions and comments are stored in each instance of the repository.)
