@@ -1,25 +1,18 @@
 \chapter{Project Methodology}\label{proj}
 
-Explain why no formal approach used
-made use of user centered design
-distributed version control system with issue tracker.
-ethical consideration (datasets and eval). why are there no ethical concerns with information made available through tool - tool does not make any new information available to users, simply presents in a form that aids understanding. 
-\section{Ethical Considerations}
-Ethical issues arise solely around user evaluation.
-As datasets are taken from real systems, these can contain real username, and possibly passwords (if mistakenly entered as username.)
-\subsection{Datasets}
-Honeynet dataset publically available. No futher anonymization is required for this dataset due to public availablity. if it's not properly anonymized, no further harm will be done. 
+As formal project management methodologies are designed to control projects with many workers, they have an unacceptable time overhead in producing required documentation and tracking progress. Agile methodologies are all designed to apply to projects with multiple workers, and do not apply well to a single person project. As such, no formalised project management technique was used in this project.  
+Weekly meetings were held with my supervisors, to track progress of the project, and User centered design was applied throughout the project. 
 
-\subsection{Evaluation procedures}
-Fairly standard for user evaluations. Privacy concerns, can't reveal identity of participants. 
-Use numbers to refer to participants. destroy data after report completed. 
+The project took shape in 4 major sections, which this report is structured to reflect. Background reading was done first, to develop a deeper understanding of the problem. This was followed by design work. The design and implementation phases were not distinctly seperated, with many design decision deferred until implementation. <why?> After implementation was frozen, a small scale, exploratory user evaluation was carried out.
+
+
+Several supporting tools were used extensively to support the implementation of the tool, these will be discussed later in this chapter. 
 
 \section{User Personae}
 
 \section{Requirements}\label{reqs}
 
-In order to meet the goals laid out in Chapter \ref{C:intro} concrete requirements have been laid out for the tool.
-These requirements are divided into functional and non-functional requirements. Requirements 1 through 3 and 6 support goals 1 and 2. Requirements 3 through 7 support goal 3. Scaling goals are supported by all requirements, as goals 1 and 2 strongly support scaling to millions of events.  
+In order to meet the goals laid out in Chapter \ref{C:intro}, several concrete requirements have been laid out for the tool. These requirements are divided into functional and non-functional requirements. Requirements 1 through 3 and 6 support goals 1 and 2. Requirements 3 through 7 support goal 3. Scaling goals are supported by all requirements, as goals 1 and 2 strongly support scaling to millions of events.  
 
 \begin{enumerate}
 \item{Strong filtering and highlighting options.}
@@ -38,10 +31,29 @@ Non functional requirements deal with issues of performance, scalability and usa
 \item{Performance capable of handling millions of events.}
 \end{enumerate}
 
+\section{Ethical Considerations}
+
+This project is not entirely without ethical concerns, As while the tool serves to aid understanding of information already available to network security personell. The user evaluation carries some ethical risks, which must be handled.
+There are two groups of ethical concern arising from the user evaluation. The first is caused by the nature of the datasets used.  The second set of ethical concerns arise from the user study itself.
+
+\subsection{Datasets}
+The ECS dataset (see \ref{data}) is recorded from a live network in normal operation. The log produced contains IP addresses and usernames of everyone to use the system during the recording period.
+As this information could easily be used to identify people, it requires anonymization to be ethically used without each user's consent.
+
+This was achieved through the use of a modified version of the cryptoPAN<ref> library, and a custom script to replace usernames with unique codes.
+
+The Honeynet dataset publically available. No futher anonymization is required for this dataset due to public availablity. if it's not properly anonymized, no further harm will be done. 
+
+\subsection{Evaluation procedures}
+Fairly standard for user evaluations. Privacy concerns, can't reveal identity of participants. 
+Use numbers to refer to participants. destroy data after report completed. 
+
 \section{Supporting tools}
-Git -> distributed version control system. used to track code changes, and share codebase between uni and home. extremely useful as also provides multiple offsite backups (full codebase, with all revisions and comments are stored in each instance of the repository.)
+Several supporting tools were used during the implementation and later stages of the project for source code management and version control; Issue tracking software was used in the later half of the implementation stage to track bugs and new features.
 
-GitHub -> site for sharing git repositories. Makes available an issue tracker which is integrated with git commit comments. Integration allows associating commits with issues, and closing issues from commits. this integration is extremely useful for debugging and tracking why changes were made. Issue tracker used heavily in later part of coding phase to track issues as detected, and link commits to problems resolved by that commit.
-extremely helpful to keep thoughts organised and remember what issues exists. Also helpful for issue prioritisation.
+I chose to use a distributed version control system for source control, as this serves a dual purpose. As each instance of a distributed repository contains the whole history, and all of the data, the repository also serves as a distributed backup system. 
+I chose to use git as the distributed version control system, as it is one that I was already familiar with from earlier projects. The distributed nature of git saved me several times, as I managed to accidentally corrupt the local copy of the repository. This could be resolved very easily by simply deleting the local copy, and replacing with a clone from either remote repository. In the worst case, I lost one day's progress, through user error.
 
-Stack overflow -> (stackoverflow.com) Q\&A format website for assistance with programming issues. Extensive searchable database of questions with community feedback on answers has created an excellent practical reference for many languages, frameworks and libraries.  Extremely useful for finding out how to do things in an unfamiliar language. never actually had to ask my own question, as questions already answered and easily searchable.
+GitHub <make reference> is a website which offers public and private git repositories. public repositories are free, and come with integrated issue tracking software capable of linking commits to each issue, and closing issues from a commit message. (Git does not automatically update the local repository every time a file is changed. This must be done manually and is called a commit. git requires that a message be attached to all commits, usually used to explain the purpose of the code changes). The issue tracking software made available through github proved invaluable for keeping track of bugs that were discovered, and new features that were added. The issue tracker also allowed linking of commits against issues, this was useful for tracking what changes were involved in each bugfix.
+
+As several new technologies had to be learned in the process of implementing the tool, I made extensive use of online documentation. of partictular note for this is Stack overflow; a  Q\&A format forum for developers. Stack overflow has grown to be an excellent reference for practical advice on development problems across a wide range of languages and technologies, with some excellent and well researched answers. However, as with any forum, a good <bullshit detector> is required, as there are also many misleading or wrong answers. However the feedback tools available to users quickly seperate the good answers from the rest. As stack overflow is searchable, I was easily able to find answers for several perplexing issues on this site. 

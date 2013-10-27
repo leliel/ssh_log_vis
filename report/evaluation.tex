@@ -151,31 +151,61 @@ Most users demonstrated improved navigation as they became more familiar with th
 Animating transitions may also assist users to build up a mental map of the log. Improvements to navigation would support nonfunctional requirements 1 through 3 (\ref{reqs}). 
 
 Analysis of the difficulties experienced by participant 2, and suggestions from other participants suggest several new filtering options would significantly enhance ability to deal with potential information overload. 
-Implementing IP blacklisting would be extremely useful for some users, as it would support a n interaction model where one IP is fully investigated, then hidden, and the process repeated until all suspicious IP's have been investigated. 
+Implementing IP blacklisting would be extremely useful for some users, as it would support an interaction model where one IP is fully investigated, then hidden, and the process repeated until all suspicious IP's have been investigated. 
 
-One participant suggested allowing filtering by authentication method. This is strongly supported by the difficulties users had in Task 1, as on multiple occasions, a successful root login would occur mixed in with many failed attempts. This successful login would be from a different IP address, using an authentication method not amenable to brute forcing, such as host-based authentication. Allowing filtering by authentication method, would assist users in avoiding this pitfall. <needs rewording to tie in functional and nonfunctional requierements.>
+One participant suggested allowing filtering by authentication method. This is strongly supported by the difficulties users had in Task 1, as on multiple occasions, a successful root login would occur mixed in with many failed attempts. This successful login would be from a different IP address, using an authentication method not amenable to brute forcing, such as host-based authentication. Allowing filtering by authentication method, would assist users in avoiding this pitfall. by hiding a class of logins which cannot be involved in such an attack. This would better support both functional and nonfunctional requirements (\ref{reqs}).
 
+Results suggest the following concrete improvements could be made to the tool, to better meet functional and nonfunctional requirements. 
 
 \begin{enumerate}
-\item{Improved navigation through timeline. Users complain that it is easy to get lost when zooming. Animations may ease this transition. (possibly animate zooming in by expanding target bin to fill timeline, then chunking into new bins?)}
-\item{Improved filtering of results by IP. several extra features are requested here, with the ability to filter by subnet, as well as hiding IP's (inverse of IP of Interest filter.)}
-\item{Ability to filter connections by authtype, ie : excluding hostbased when looking for a successful brute force attack.}
-\item{Improve performance of abnormal time and location detection, reduce false positives and spurious results by suppressing alerting on invalid or failed attempts. This will significantly cut down the number of abnormalities reported, reducing the false positive rate significantly.}
-\item{seperate disconnection messages into their own group, and allow hiding as done for successful and failed connection attempts. (leave as one colour?)}
+\item{Animated zooming. Users complain that it is easy to get lost when zooming. A common tool used to smooth out such transitions and ease navigation is animation of the zoom.}
+\item{Filtering by subnet. This would allow more flexible filtering by IP address. Currently filters are restricted to matching against dotted quad forms of address.}
+\item{IP Hiding. the inverse of the IP of interest filter, showing all addresses except those selected. This would allow support of another interaction model, as used by participant 2}
+\item{Filter events by authentication type. This will help reduce false detection rates for brute force and similar attacks, as some authentication methods are not vulnerable to these attacks.}
+\item{Suppress abnormal time and place warnings for invalid and failed attempts. This will significantly cut down the number of abnormalities reported, reducing the false positive rate significantly. This will also help reduce information overload from this flag.}
+\item{Seperate disconnection messages into their own type. This would allow hiding of disconnection messages in the same way failed and successful connections can be hidden, reducing noise in the dataset.}
 \end{enumerate}
 
-include comparison with goals here.. how well did we meet them?
+Several requirements were laid out for this tool, both functional and nonfunctional.
+How well have these requirements been met by the tool?
+
 \begin{enumerate}
-\item{Effective use of information hiding to prevent information overload.}
-\item{Prevent masking of important data in noise or hiding. failed, more work required on filtering and clustering}
-\item{Provide strong filtering and highlighting options. weaker than ideal, more work needed, performance dependent on exploration style and ability to maintain mental map of data.}
+\item{Strong filtering and highlighting options.}
 \item{Show surrounding context for anomalous accesses.}
-\item{GeoIP support to add context to login attempts. geoIP results used in clustering algorithm, but not directly displayed.}
-\item{Allow the user control over which machine is monitored at any given time. -included as dropdown selector, may have some scale issues for networks with many machines to monitor. no ability to select multiple machines currently, though dropdown easily expanded to allow this.}
-\item{Show network context for currently monitored machine. dropped for lack of time}
-\item{Performance capable of handling millions of events without perceptible delays. - untested, but unlikely due in part to network latency and javascript performance issues. did not have sufficiently large dataset to test performance with more than $10^3$ magnitude.}
+\item{GeoIP support to add context to login attempts.}
+\item{Allow the user control over which machine is monitored at any given time.}
+\item{Show network context for currently monitored machine.}
 \item{Extensible log parsing: don't prevent extension to other similar log types.}
 \end{enumerate}
+
+Results suggest that filtering options require some extension to meet the needs of users, However, most users were able to successfully answer questions about both datasets with existing tools.
+
+The timeline display always shows surrounding time, with each level of zoom reducing the surrounding time that is visible. This provides context to users, but requires improvement due to navigational difficulties bought on by rapid transitions.
+
+GeoIp data is currently used for abnormal location detection, but is not currently made available to the user directly.
+
+Users have direct control over which machine's log data is shown at any time through the server dropdown, which is automatically populated with a full list of all servers known to the database. 
+
+Network context is not shown in the tool currently. While this was part of the design, there was not sufficient time to implement this feature.
+
+Log parsing is currently limited to SSHD logs, though could easily be extended to cope with any log using the syslog format. The database as currently structured is only suitable for SSHD logs. Any SSHD log containing the appropriate metadata could be parsed into a form suitable for storage in the database, Though this would require a customized parser implemtation. <Should this even really be a requirement? it's a bit out of place> 
+
+Several non-functional requirements were developed for this tool, to deal with issues of scaling and information overload.
+
+\begin{enumerate}
+\item{Use information hiding to prevent information overload.}
+\item{Prevent masking of important data.}
+\item{Navigation: tool needs to support easy navigation of the timeline.}
+\item{Performance capable of handling millions of events.}
+\end{enumerate}
+
+Results suggest that information hiding techniques were well enough implemented to allow users to quickly identify features of the dataset in simpler cases. This needs further work to be considered met.
+
+Prevent masking of important data. <Hmm.. not sure what I want to say here. was an ambitious goal given the nature of the data>.
+
+Navigation with the current incarnation of the tool has some significant challenges, though most users improved over time. 
+
+Performace scaling was not tested for more than 75K log entries. Extrapolation from ECS and Honeynet datasets is difficult, as the ECS dataset was both larger, and significantly more complex. 
 
 \section{Future work}
 How do we go about addressing the weaknesses discussed above?.
