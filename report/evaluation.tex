@@ -1,20 +1,33 @@
 \chapter{Evaluation}\label{eval}
 
-Evaluation of the tool produced in this project served to determine if there is sufficient merit to the idea to justify further development work on the tool. If the evaluation determines that there is sufficient potential to justify the development work, future work can evaluate the effectiveness of the design in a more rigorous manner. I have chosen to perform an exploratory evaluation due to time limitations on this project \cite{Ellis:2006:EAU:1168149.1168152}. It is not possible to achieve a representative sample of sufficient size to have predictive power in the time available. Two factors limit the ability to achieve a representative sample in the time available, taking part in the experiment requires between 1 and 1.5 hours. a further 1 to 1.5 hours is required to grade and analyse the data. Further, there is a relatively limited pool of potential participants as the tool is targeted at security experts. This limitation strongly suggests against attempting to demonstrate conclusively the usefulness and usability of the system. Small, exploratory evaluations have advantages in cost and time required. With small numbers of participants, the evaluation can be carried out in a short time. These exploratory evaluations can also be useful to discard non-viable approaches before significant development effort has been spent. Care should be taken to avoid evaluating too early however, as the unfinished nature of the product can distort results. 
+Evaluation of the tool produced in this project served to determine if there is merit to the idea justifying further development work on the tool. If the evaluation determines that there is potential to justify the development work, future work can evaluate the effectiveness of the design in a more detailed manner. I have chosen to perform an exploratory evaluation due to time limitations on this project \cite{Ellis:2006:EAU:1168149.1168152}. The exploratory evaluation takes the form of a small user study with two complimentary datasets. Results suggest that the approach taken with the tool is useful. 
 
+Section \ref{res_study} discusses experimental methodology. Section \ref{res_res} discusses the results. 
+
+\section{User Study}\label{res_study}
+
+We performed a qualitative user study, with 6 expert participants. Two datasets were used, representing different sizes and complexities of system. Each participant was presented with 4 tasks to complete for each dataset. Time taken and accuracy was recorded for each task, along with a 3 question usability survey <ref appendix>. 
 Ethics approval has been granted for this experimental design.<ref appendix> 
 
-\section{Evaluation Design}
-
-Evaluation was performed by means of a qualitative user study, with 6 expert participants. Two datasets were used, representing different sizes and complexities of system. Each participant was presented with 4 tasks to complete for each dataset. Time taken and accuracy was recorded for each task, along with a 3 question usability survey. 
+\subsection{Justification}
+It is not possible to achieve a representative sample of sufficient size to have predictive power in the time available. Two factors limit the ability to achieve a representative sample in the time available, taking part in the experiment requires between 1 and 1.5 hours. a further 1 to 1.5 hours is required to grade and analyse the data. Further, there is a relatively limited pool of potential participants as the tool is targeted at security experts. This limitation strongly suggests against attempting to demonstrate conclusively the usefulness and usability of the system. Small, exploratory evaluations have advantages in cost and time required. With small numbers of participants, the evaluation can be carried out in a short time. These exploratory evaluations can also be useful to discard non-viable approaches before significant development effort has been spent. Care should be taken to avoid detailed, large scale evaluation too early however, as the unfinished nature of the product can distort results. 
 
 \subsection{Users}
 
-As this tool targets domain experts in the security domain, I have recruited participants from the security industry, both on campus and off. I have pitched the experiment to students enrolled in NWEN405, which deals with computer security as a secondary source of participants.
---Expand this section, leave full personae in appendix.
-4 participants from industry, 3 at VUW
-All four professional participants had security issues as at least a portion of their day jobs, and could be expected to be involved in log analysis tasks on a regular basis.
-2 students.  Both students had strong security and networking backgrounds.
+As this tool targets domain experts in the security domain, I have recruited participants from the security industry, both on campus and off. I have also recruited students who have passed NWEN405, which deals with computer security as an alternate source of participants. Students are a second preference for participants as they have significantly less experience in dealing with security threats in the real world. This tool is targeted for use by security professionals working in industry. <ref personae (appendix)> However this lack of experience can be an advantage, as students are not yet so accustomed to a particular approach to log analysis. 
+All four professional participants had security issues as at least a portion of their day jobs, and could be expected to be involved in log analysis tasks on a regular basis. 3 of the professional participants are employed by the Victoria University School of Engineering. 2 students. 
+
+\begin{table}[tbh]
+\centering
+\begin{tabular}{l|*{6}{l|}}
+& \multicolumn{6}{|c|}{Participant} \\
+& 1 & 2 & 3 & 4 & 5 & 6 \\
+Professional & \cmark & \cmark & & & \cmark & \cmark \\
+Student & & & \cmark & \cmark & & \\ 
+\end{tabular}
+\caption{Participant number and role}
+\label{res_parts}
+\end{table}
 
 \subsection{Datasets}\label{data}
 
@@ -24,9 +37,16 @@ Two datasets have been acquired for use in this experiment. Both datasets repres
 \item{Anonymised logs from the Engineering and Computer Science network at Victoria University. This dataset covers three servers, for two disjoint weeks and 74K log entries.}
 \end{enumerate}
 
-While both datasets were anonymized, anonymization procedures were different. The honeynet dataset is publically available in an anonymized form \cite{forensic10} whereas the ECS dataset was recorded from internet facing servers in the ECS network. The latter dataset required anonymization of both usernames and IP addresses. IP addresses were anonymized with cryptoPAN <ref> a prefix preserving IP address anonymization tool extended with support for IPv6 addresses. Usernames were anonymized through a very simple scheme, where each username was replaced with the string "user" + a unique number. ie: user4 is a different person to user5.
+The Honeynet dataset has been extensively analysed, over the course of two forensic challenges. Multiple successful brute force and scattergun attacks have been identified in this dataset. There were few usernames which showed a pattern of usage in the log data gathered. 
 
-The ECS dataset was altered, to introduce a successful scattergun attack on one server. ThIs was introduced, as there were no naturally occuring successful attacks.  
+The ECS dataset is significantly more complex than the Honeynet dataset. This data covers three seperate servers, with significantly more active users. The ECS dataset contains disconnection messages absent from the Honeynet dataset. These messages add a significant amount of noise. This dataset was extensively analysed before the experiment to search for existing attacks. Several attempted brute force and scattergun attacks were found, though all were determined to be unsuccessful.  
+
+The difference in attack success rates between datasets reflects differences in the purposes of the networks. The ECS network is provided for use by staff and students at the school of engineering and computer science at victoria university. This network can reasonably be expected to have significant amounts of sensitive information stored. Therefore the school expends significant effort in protecting these systems. In contrast, the Honeynet system is deliberately exposed to lure in attackers, and as such has significantly less effort expended on securing it.
+
+While both datasets were anonymized, anonymization procedures were different. The Honeynet dataset is publically available in an anonymized form \cite{forensic10} whereas the ECS dataset was recorded from internet facing servers in the ECS network. The latter dataset required anonymization of both usernames and IP addresses. IP addresses were anonymized with cryptoPAN <ref> a prefix preserving IP address anonymization tool extended with support for IPv6 addresses. Usernames were anonymized through a very simple scheme, where each username was replaced with the string "user" + a unique number. ie: user4 is different from user5.
+
+The ECS dataset was altered, to introduce a successful scattergun attack on one server. ThIs was introduced, as there were no naturally occuring successful attacks discovered after thorough analysis with both the tool, and direct exploration through the database.  
+The introduced scattergun attack in the ECS dataset had a relatively small attack signature, with only 204 log entries involved, of 4.7K entries for that day. Some successful attacks on honeynet had similar numbers of access attempts, though often a much higher proportion of invalid or failed attempts for a given day. 
 
 \subsection{Setup}
 Participants were provided with one of two machines
@@ -44,8 +64,7 @@ More significant is the consistent OS and browser versions, as javascript behavi
 The experiment was conducted in a quiet lab, with only the experimenter and subject present. Each question was allocated an 8 minute maximum, based on test runs with a supervisor. Audio recordings were made as a record of events during the experiment as an addition to handwritten notes. 
 
 \subsection{Procedure}
-Participants were given up to ten minutes to familiarise themselves with the tool, and how it behaves. After familiarisation, participants were asked to answer four questions about each of two datasets. For each of the 8 combinations a brief questionnaire was completed indicating opinions about the tool's performance in the task\cite{lewis1995ibm}.
-Questions were presented to users in randomised order. This was done in order to avoid learning effects distorting results for the first question.
+Participants were given up to ten minutes to familiarise themselves with the tool, and how it behaves. After familiarisation, participants were asked to answer four questions about each  dataset for a total of 8 tasks. Tasks were presented to users in randomised order. This was done in order to avoid learning effects distorting results. For each of the 8 tasks a brief questionnaire was completed indicating opinions about the tool's performance in the task\cite{lewis1995ibm}. As users are not given the opportunity to read questions before the experiment begins there is limited opportunity to learn the answers to later questions while performing a task. 
 
 \begin{enumerate}
 \item{Find an instance of a successful brute force attack on root.}
@@ -57,7 +76,7 @@ Questions were presented to users in randomised order. This was done in order to
 
 Questions 1 \& 2 are based on the most commonly found attack signatures in SSH logs. with many botnets and automated systems carrying out brute force or scattergun attacks against any IP address responding to connection requests. As these attacks are very common and can lead to serious compromises, as shown in the Honeynet dataset, determining success or failure of such attacks is a core function of any log analysis tool. 
 
-Questions 3 \& 4 are based in finding anomalous behaviour by legitimate users. Anomalous behaviour by legitimate users can be an indication that their account has been compromised, or that they are attempting to carry out actions that would not be permitted in usual usage. <Badly worded. I mean they might be trying to compromise the system or data stored there.>. 
+Questions 3 \& 4 are based in finding anomalous behaviour by legitimate accounts. Anomalous behaviour by legitimate accounts can be an indication that their account has been compromised, or that the account owner has become malicious. <Badly worded. I mean they might be trying to compromise the system or data stored there.>. 
 
 Tasks 1 through 4 were based on questions 1 \& 2, with tasks 1 \& 4 using the ECS dataset, and tasks 2 \&3 using the Honeynet dataset.
 Tasks 5 through 8 were based on questions 3 \& 4, with tasks 5 \& 7 using the ECS dataset, and tasks 6 \& 8 using  the Honeynet dataset. 
@@ -69,12 +88,16 @@ For each task a date, time, source IP and where applicable username involved wer
 
 \subsection{Threats to validity}
  Students are less ideal, as their experience and domain knowledge are more limited than those that have been working in the industry for some time.
-Dataset size - both in 10K order of magnitude, this limits our ability to speculate about how the tool will scale to 100K+ sizes. 
-Small number of participants - unable to control effectively for demographic variations, or ensure 
+ 
+Both datasets are in the 10's of thousands of entries, This has prevented any investigation of how the tool scales to much larger networks with 100K+ log entries in a similar time period. However, the ECS dataset covers a much shorter time period, with many more entries. This provides some indication of how performance scales with log density.
+ 
+The extremely small number of participants means that the sample cannot be known to be representative. This greatly limits our ability to extrapolate to users outside of the sample. <work in a green grids reference here. Not quite sure how to word it yet.> 
 
-\section{Results}
+The addition of a successful scattergun attack to the ECS dataset represents a potential weakness of this study, however great care was taken to ensure that the inserted log entries matched the patterns found in other scattergun attacks on both datasets. 
 
-Each Task was graded for accuracy, and time taken to complete the task was measured.
+\section{Results}\label{res_res}
+
+Each Task was given a pass/fail grade based on accuracy. Time taken to complete the task was also measured. Results are shown in Table \ref{res_times} A dash indicates the task was not completed in time, and is an automatic fail. Invalid marks a task where experimenter error spoiled results.
 \begin{table}[tbh]
 \centering
 \begin{tabular}{l|*{12}{l|}}
@@ -95,7 +118,7 @@ Task 6 & 0:31 & \cmark & 1:07 & \cmark & 1:02 & \cmark & 1:13 & \xmark & 1:00 & 
 Task 7 & 0:45 & \cmark & 1:59 & \cmark & 0:42 & \xmark & 0:44 & \cmark & 2:06 & \cmark & - & \xmark \\
 Task 8 & 0:32 & \cmark & 1:10 & \xmark & 1:32 & \xmark & 1:07 & \cmark & 1:15 & \cmark & 0:55 & \cmark \\
 \end{tabular}
-\caption{Time taken to complete each tasks}
+\caption{Time and accuracy results for each task.}
 \label{res_times}
 \end{table}
 
@@ -113,7 +136,7 @@ There were many more legitimate access attempts to the ECS network, and logging 
 <check actual results, some successful root attacks on honeynet had similar sized signatures, some much larger, though with more noise for larger datasets.>
 this needs more analysis.
 
-Participant 2 had a great deal of difficulty in identifying brute force and scattergun attacks on both datasets. Feedback and observation of the participant in action suggest severe difficulties with navigation, combined with the lack of ability to hide all attempts from a specified set of IP addresses caused significant difficulties for this participant.
+Participant 2(Professional, see Table \ref{res_parts}) had a great deal of difficulty in identifying brute force and scattergun attacks on both datasets. Feedback and observation of the participant in action suggest severe difficulties with navigation, combined with the lack of ability to hide all attempts from a specified set of IP addresses caused significant difficulties for this participant.
 
 Participant 2 commented that in the normal course of investigating such incidents using tools such as grep, he would build up a blacklist of IP's to hide from results as they were fully investigated and discarded.
 The tool as currently implemented does not support this. Participant 2 has significantly more experience in analysing sshd logs using traditional tools where stronger filtering tools are available, such as regular expressions. 
@@ -122,7 +145,7 @@ The tool as currently implemented does not support this. Participant 2 has signi
 
 Analysis of the results of this user evaluation suggest that there are several obvious weaknesses in the tool as currently implemented. 
 
-These break down into three major areas, Navigation, Filtering, and information hiding.
+These break down into three major areas; Navigation; Filtering; and Information hiding.
 Navigation difficulties were experienced by a majority of users, where abrubt transitions between zoom levels lead to loss of context, and difficulty building up a mental map of the timeline. 
 Most users demonstrated improved navigation as they became more familiar with the tool. these issues could be addressed in two major ways. Showing a miniature zoomed out view as a context for the main view could assist users in maintaining context. 
 Animating transitions may also assist users to build up a mental map of the log. Improvements to navigation would support nonfunctional requirements 1 through 3 (\ref{reqs}). 
