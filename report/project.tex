@@ -33,14 +33,13 @@ Non functional requirements deal with issues of performance, scalability and usa
 
 \section{Ethical Considerations}
 
-This project is not entirely without ethical concerns, As while the tool serves to aid understanding of information already available to network security personell. The user evaluation carries some ethical risks, which must be handled.
+This project is not entirely without ethical concerns, as while the tool serves to aid understanding of information already available to network security personel. The user evaluation carries some ethical risks, which must be handled.
 There are two groups of ethical concern arising from the user evaluation. The first is caused by the nature of the datasets used.  The second set of ethical concerns arise from the user study itself.
 
 \subsection{Datasets}
-The ECS dataset (see \ref{data}) is recorded from a live network in normal operation. The log produced contains IP addresses and usernames of everyone to use the system during the recording period.
-As this information could easily be used to identify people, it requires anonymization to be ethically used without each user's consent.
+The ECS dataset (see \ref{data}) is recorded from a live network in normal operation. The log produced contains IP addresses and usernames of everyone to use the system during the recording period. As this information could easily be used to identify people, it requires anonymization to be ethically used without each user's consent. SSHD logs contain usernames and raw IP addresses. Both usernames and IP addresses can be useful to malicious persons. IP addresses allow for approximate location of a user's home through GeoIp databases, as well as direct attacks on the security of their computers. Usernames do not carry as significant a risk to the owner, though these could be useful to mount an attack on the ECS system directly. 
 
-This was achieved through the use of a modified version of the cryptoPAN<ref> library, and a custom script to replace usernames with unique codes.
+Anonymization was achieved through the use of a modified version of the cryptoPAN<ref> library, and a custom script to replace usernames with unique codes. CryptoPAN uses strong encryption to generate codes which are combined with the IP address to produce a new valid IP address. This cannot be reversed without knowlege of the key, or an efficient means of cracking AES encryption. Username de-anonymization would require knowlege of the order users logged in on each server throughout the logged period. This knowlege is impractical to obtain. 
 
 The Honeynet dataset publically available. No futher anonymization is required for this dataset due to public availablity. if it's not properly anonymized, no further harm will be done. 
 
@@ -51,9 +50,12 @@ Use numbers to refer to participants. destroy data after report completed.
 \section{Supporting tools}
 Several supporting tools were used during the implementation and later stages of the project for source code management and version control; Issue tracking software was used in the later half of the implementation stage to track bugs and new features.
 
+\subsection{Version Control}
 I chose to use a distributed version control system for source control, as this serves a dual purpose. As each instance of a distributed repository contains the whole history, and all of the data, the repository also serves as a distributed backup system. 
 I chose to use git as the distributed version control system, as it is one that I was already familiar with from earlier projects. The distributed nature of git saved me several times, as I managed to accidentally corrupt the local copy of the repository. This could be resolved very easily by simply deleting the local copy, and replacing with a clone from either remote repository. In the worst case, I lost one day's progress, through user error.
 
+\subsection{GitHub}
 GitHub <make reference> is a website which offers public and private git repositories. public repositories are free, and come with integrated issue tracking software capable of linking commits to each issue, and closing issues from a commit message. (Git does not automatically update the local repository every time a file is changed. This must be done manually and is called a commit. git requires that a message be attached to all commits, usually used to explain the purpose of the code changes). The issue tracking software made available through github proved invaluable for keeping track of bugs that were discovered, and new features that were added. The issue tracker also allowed linking of commits against issues, this was useful for tracking what changes were involved in each bugfix.
 
-As several new technologies had to be learned in the process of implementing the tool, I made extensive use of online documentation. of partictular note for this is Stack overflow; a  Q\&A format forum for developers. Stack overflow has grown to be an excellent reference for practical advice on development problems across a wide range of languages and technologies, with some excellent and well researched answers. However, as with any forum, a good <bullshit detector> is required, as there are also many misleading or wrong answers. However the feedback tools available to users quickly seperate the good answers from the rest. As stack overflow is searchable, I was easily able to find answers for several perplexing issues on this site. 
+\subsection{Stack Overflow}
+As several new technologies had to be learned in the process of implementing the tool, I made extensive use of online documentation. of partictular note for this is Stack overflow; a  Q\&A format forum for developers. Stack overflow has grown to be an excellent reference for practical advice on development problems across a wide range of languages and technologies, with some excellent and well researched answers. However, as with any forum, a good ability to judge plausibility is required, as there are also many misleading or wrong answers. However the feedback tools available to users quickly seperate the good answers from the rest. As stack overflow is searchable, I was easily able to find answers for several perplexing issues on this site. 
