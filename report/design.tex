@@ -1,28 +1,26 @@
 \chapter{Design}\label{design}
 
-Significant design work has been performed for this system at both the architectural level and user interface. Interface design is discussed in section \ref{screen_design}. 
+I have chosen to implement a client server model for the system architecture, as this offers a strong separation into multiple loosely coupled modules. Given a client server architecture, and a desire for centralised data storage between multiple users a browser based approach was chosen. Using existing browsers leverages significant work done on secure network communications between client and server, as well as significant effort in sandboxing (isolating from the rest of the computer) in-browser applications. This saves significant time and effort on implementing communication protocols and security.  The client server model was chosen as typical users for the system are expected to be security professionals who can be expected to be required to document and report any abnormal behaviour. The client server model supports sharing the application amongst multiple users. 
 
-I have chosen to implement a client server model for the system architecture, as this offers a strong separation into multiple loosely coupled modules. Given a client server architecture, and a desire for centralised data storage between multiple users a browser based approach was chosen. Using existing browsers leverages significant work done on secure network communications between client and server, as well as significant effort in sand-boxing (isolating from the rest of the computer) in-browser applications. This saves significant time and effort on implementing communication protocols and security. 
-
-As there are relatively few programming languages available for use within the browser this significantly simplified the choice of languages and tool sets. See section \ref{langs}.
+As there are relatively few programming languages available for use within the browser this significantly simplified the choice of languages and tool sets. See section \ref{C:impl}.
 
 \begin{figure}[tbh]
 \fbox{\parbox[b]{.98\linewidth}{
 \vskip 0.5cm
-\centering \includegraphics[scale=0.4]{blocks.png}
+\centering \includegraphics[scale=0.3]{blocks.png}
 \vskip 0.5cm}}
-\caption{\protect\label{spiral_plan}Block diagram showing proposed architecture of system. Note complete separation between server and browser. These may reside on separate machines.}
+\caption{\protect\label{spiral_plan}Block diagram showing proposed architecture of system. Note complete separation between server, browser and datastore. These may reside on separate machines.}
 \end{figure}
 
 Inside the browser there are three major components from an object oriented perspective. The view contains what is actually displayed on screen, this is implemented in HTML with SVG (Scalable Vector Graphics) for graphical components. The model stores the data and handles requests to the server as necessary. The controller is responsible for implementing user interaction with the system.
 
-Communication between the client and server is handled through standardised protocols. The set of requests permissible is still to be defined. The server software is responsible for serving data to the client, performing data aggregation, and limited data mining. In order to provide data, the server communicates with the data-store. This communication is likely to take place through SQL to a database, though a modular design could permit creation of other storage interface modules.
+Communication between the client and server is handled through the HTTP protocol, using ajax requests.  The server software is responsible for serving data to the client, performing data aggregation, and limited data mining. In order to provide data, the server communicates with the data-store. This communication uses SQL and the JDBC api to interface with a database. Modular design permits creation of other storage interface modules. 
 
-Data aggregation is performed server side for two reasons. In larger networks, or over longer time periods, many megabytes of logs can be created, while text is highly compressible this still creates significant network overhead to transfer. Further, there are unanswered questions about how well the client will perform with potentially millions of events to manipulate. Slow data transfers or interaction due to processing time would be a significant usability hurdle. Performing data aggregation on the server bypasses both of these limitations. 
+Data aggregation is performed server side for two reasons. In larger networks or over longer time periods many megabytes of logs can be created. While text is highly compressible this still creates significant network overhead to transfer. Further, there are unanswered questions about how well the client will perform with potentially millions of events to manipulate. Slow data transfers or interaction due to processing time would be a significant usability hurdle. Performing data aggregation on the server bypasses both of these limitations. 
 
 \section{User interface design}\label{screen_design} 
   
-I have chosen to adopt a time based approach for the visualisation elements, as access attempt logs have a very strong time component. Some forms of unusual behaviour are evidenced only by unusual times for access attempts, or unusual durations of access for example. Most existing visualisations do not give much emphasis to the time relation between access attempts, preferring to focus on the links between source and destination addresses.
+I have chosen to adopt a time based approach for the visualisation elements, as access attempt logs have a very strong time component. Some forms of unusual behaviour are evidenced only by unusual times for access attempts, or unusual durations of access for example. Most existing visualisations do not give much emphasis to the time relation between access attempts, preferring to focus on the links between source and destination addresses. 
 
 Two major approaches have been considered for displaying log entries.
 Spiral view is an approach for displaying time series data mapped to a spiral, see figure \ref{spiral} where a straight line drawn from the outer edge to the center shows the same time at each level of the spiral \cite{bertini2007spiralview, chin2009visual}
@@ -31,7 +29,7 @@ These systems appear to be highly effective at displaying time series data in a 
 \begin{figure}[tbh]
 \fbox{\parbox[b]{0.98\linewidth}{
 \vskip 0.5cm
-\centering \includegraphics[scale=0.71]{spiral_plan.png}
+\centering \includegraphics[scale=0.6]{spiral_plan.png}
 \vskip 0.5cm }}
 \caption{\protect\label{spiral_plan}Drawing showing proposed layout using spiralview for main focus. Black shading shows selection of an event with highlighting of related events.}
 \end{figure}
@@ -43,18 +41,73 @@ This contradiction casts doubt on the ability of the spiralview model to effecti
 \begin{figure}[tbh]
 \fbox{\parbox[b]{.98\linewidth}{
 \vskip 0.5cm
-\centering \includegraphics[scale=0.71]{lines.png}
+\centering \includegraphics[scale=0.6]{lines.png}
 \vskip 0.5cm}}
 \caption{\protect\label{lines}Drawing showing proposed layout using multiple time lines for main focus. Black shading shows selection of an event, with highlighting related events.}
 \end{figure}
 
 Using block representation of data arranged linearly along a time axis.
 Initial designs called for using a stacked representation where each layer represented twice the time of the previous layer. This is proposed to show patterns as an element that repeats a growing number of times in each layer.
-Tufte's work on small multiples \cite{tufte1983visual} suggests keeping each level of the stack to represent the same amount of time, with differing start and end points. Ie: if the range is 6 hours, the top bar starts at 0600, and runs to 1200, the one below it from 0000 to 0600..  and so on. This would show patterns repeating with a period less than the time range by showing in multiple bars. See Figure \ref{lines}. The timeline visualisation chosen is familiar to most people due to wide useage. Familiarity with this model supports. 
+Tufte's work on small multiples \cite{tufte1983visual} suggests keeping each level of the stack to represent the same amount of time, with differing start and end points. Ie: if the range is 6 hours, the top bar starts at 0600, and runs to 1200, the one below it from 0000 to 0600 and so on. This would show patterns repeating with a period less than the time range by showing in multiple bars. See Figure \ref{lines}. The timeline visualisation chosen is familiar to most people due to wide useage. Familiarity with this model supports information hiding and information overload prevention goals as users can be expected to interpret the timeline structure with minimal cognitive burden. 
 
-I have been forced to consider data hiding techniques, as networks can become extremely busy, producing sufficient activity to overwhelm the user's ability to absorb information and detect meaningful patterns in the clutter. As I have chosen a time series based approach to displaying the data, I have chosen to use time binning to aggregate entities. This approach is extremely simple, with all entries in a short time period displayed as a single entity, with icons indicating some simple features of the hidden data. Such features include superuser accesses, abnormal numbers of failed access attempts, abnormally large numbers of access attempts, abnormal login locations for a user, abnormal login times for a user. Each time bin can be zoomed in on, allowing the user to see greater detail within the bin. For extremely busy systems and longer time periods there may be multiple levels of binning in play to aggregate sufficiently. This scheme reduces the visual complexity, while allowing easy access to detailed information about each incident. 
+I have been forced to consider data hiding techniqSues, as networks can become extremely busy, producing sufficient activity to overwhelm the user's ability to absorb information and detect meaningful patterns in the clutter. As I have chosen a time series based approach to displaying the data, I have chosen to use time binning to aggregate entities. This approach is extremely simple, with all entries in a short time period displayed as a single entity, with icons indicating some simple features of the hidden data. Such features include superuser accesses, abnormal numbers of failed access attempts, abnormally large numbers of access attempts, abnormal login locations for a user, abnormal login times for a user. Each time bin can be zoomed in on, allowing the user to see greater detail within the bin. For extremely busy systems and longer time periods there may be multiple levels of binning in play to aggregate sufficiently. This scheme reduces the visual complexity, while allowing easy access to detailed information about each incident. 
 
 These last are the most complicated flags, as they require creating a profile of each user's access times over repeated access attempts. This complexity can produce false positives while the system is learning a new user's habits. and may be tripped up by a legitimate change in user habits.
+
+\begin{figure}[tbh!]
+\fbox{\parbox[b]{.99\linewidth}{
+\centering \includegraphics[scale=0.43,  angle=270]{screenshots/overview.png}
+}}
+\caption{\protect\label{overview}Tool showing overview of the honeynet dataset (\ref{data})}
+\end{figure}
+
+\subsection {Final design}
+
+Figure \ref{overview} shows an overview of the tool produced. Network context and Raw line segments were ommitted (see \ref{lines}), These two components were considered less important than the timeline visualisations, and as such were dropped due to time pressures.  The space saved by dropping these components allowed more room in the left panel, which has absorbed the legend, allowing the remainder of the screen to be devoted to the timeline view. 
+
+<IDK where to put this, but it certainly belongs in this subsection.>
+All web application state is stored in the URL, and the application is capable of reloading the state from any correctly formatted URL. This was implemented to support uses expected from the user personae. It is reasonable to expect that a security officer would be required to log information about any detected anomalies, and may wish to obtain a second opinion.
+With the tool able to reload state from a URL, this is easily supported simply by passing around the URL via existing collaboration tools, such as email. 
+This also allows bookmarking of views that the user finds interesting, for later review or simply as way of saving current progress. 
+
+Four notable features have been added since the design sketches were produced, vertical scaling; colour-coding of event types; mouseover tooltips; and a timeline overview. 
+Within each timeline, blocks are vertically scaled proportional to the block with the largest number of events. Figure \ref{overview} demonstrates this most clearly in the first three blocks of the top timeline. The scale indicates 25 events at maximum, the first block consists of 5 events total, the second block is absent, indicating no events occured in that time, and the third block shows 25 events of three different classes. 
+
+Timelines are required to have independent vertical scales as the number of events in a given time period may be highly variable. This is demonstrated in Figure \ref{overview} where the top timeline shows 25 events in the largest bin, and the third shows in excess of 20K events. Without independent scaling for each timeline all features of the upper two lines would be overwhelmed by the third. This lead to the inclusion of the black scale indicators found between the controls and timelines. They are logarithmically scaled such that the timeline with the highest maximum events per bin is represented by a full bar. These provide a quick visual indication of how much variability there is between scales. 
+
+Each block is subdivided into four colours that represent 4 different classes of log event, as shown in the legend, Each event must be in exactly one event class, this allows the colour sections to be linearly scaled to block height easily (ie: if half the events are failed connections, half of the block will be red). These were added to give an instant overview of the approximate breakdown of event types within each bin, in support of requirements to avoid information overload without masking important data. To further support this goal hovering the mouse over a block produces a tooltip showing a detailed statistical breakdown of the events within that block (see Figure \ref{des_tooltip}). 
+
+\begin{figure}[tbh]
+\fbox{\parbox[b]{.99\linewidth}{
+\centering \includegraphics[scale=.35]{screenshots/overview_statistics_cropped.png}
+}}
+\caption{\protect\label{des_tooltip}Tooltip showing statistics for a block.}
+\end{figure}
+
+Above the timelines can be found a slider, when full (as in Figure \ref{overview}) this indicates that the timelines cover all data present. When there is more data off either end the slider shrinks to indicate how long a portion of the dataset is shown. The slider can then be dragged, and will move in steps, each step covering exactly as long as is currently shown in the timelines. Figure <capture a screenshot showing a reasonable sized time, at least 1 week of honeynet> demonstrates this shrinkage. 
+
+%\begin{figure}[tbh!]
+%\fbox{\parbox[b]{.99\linewidth}{
+%\centering \includegraphics[scale=0.43,  angle=270]{screenshots/overview.png}
+%}}
+%\caption{\protect\label{zoomed_in}Tool showing overview of the honeynet dataset (\ref{data})}
+%\end{figure}
+
+Doubleclicking on any block zooms in on that block, with all four timelines reloading to show only data from the selected block. 
+Zooming can be performed until either there is only one event in the chosen block, or each block covers 1 second. The one second limit is a practical consideration of the structure of SSHD logs. These logs have a time resolution of 1 second, ie:  all events occuring between 10:59:59.000 and 10:59:59.999 are logged at 10:59:59. Where there is only one event to display, mousing over the block will show the raw log line in a popup. This was implemented to reduce the number of zoom actions required to see details in low activity time blocks.
+
+When there are multiple events in a 1 second block attempting to zoom will produce a popup dialog showing the raw log for that second (Figure \ref{des_one_second}).
+
+\begin{figure}[tbh]
+\fbox{\parbox[b]{.99\linewidth}{
+\centering \includegraphics[scale=.35]{screenshots/single_second_popup.png}
+}}
+\caption{\protect\label{des_one_second}popup showing raw log for a single second.}
+\end{figure}
+
+This approach provides an arbitrarily large number of zoom levels, which supports information hiding goals.
+
+No unzoom or undo functions were implemented. Instead the application was integrated with the browser history. This integration gives both undo and redo functions using the browser back and foward buttons. 
 
 \section{Parser}\label{parser}
 
@@ -83,8 +136,6 @@ Jun 8 01:03:34 machine0 sshd[1796]: Received disconnect from 38.165.101.19: 11: 
 \caption{Examples of SSHD logs, showing each type of message}
 \label{log_examples}
 \end{figure}
-
-
 
 why do clustering here? - not really anywhere else to do it. Clustering in the server could only include data in current selection. This would result in instability in results (ie: if select one set of dates, a login is normal, select a different set and it's classified as abnormal). 
 
@@ -160,25 +211,12 @@ Why have aggregated request? nonfunctional requirements - performance and data h
 some room for refactoring, this could be split into two layers
 however the processing is quite simple, and only done for this one request type, so a data analysis layer was omitted.
 
-\section{Security}
-Rewrite to explain security model, including server choices that allow for defence in depth.
-As I'm building the tool as a client server model, accessed through the browser
-there are several security concerns to be considered in a deployment of the system.
-The database will contain a significant amount of privileged information about network security such as machine names and addresses, valid account names, and authentication methods used in the system.
+\subsection{Security}
 
-This data would be extremely useful to malicious users or outside intruders. 
-This leads to a need to ensure that access to this database is controlled through a robust authentication system.
-Ideally the web server hosting the tool should not be accessible to the outside world at all. Within the organisation's private network access should be restricted tightly to only those users with a definite need to have access. 
-Secured connections must be used for all communication between client and server to limit the opportunity for malicious individuals to snoop on the data in transit.
+The database will contain a significant amount of privileged information about network security such as machine names and addresses, valid account names, and authentication methods used in the system. This data would be extremely useful to malicious users or outside intruders. 
 
-Security of the serverside code will be considered from the beginning of the design and implementation process as this code must be able to resist any malicious access attempts. Through input sanitation and bounds checking should serve to close the majority of possible vulnerabilities.
+As the tool is accessed through the browser there are concerns about the security of this information. As implemented, the tool does not directly include any authentication or access control mechanisms. However, the server is written to be resistant to SQL injection attacks through rigorous input sanitation.
 
-Client side code contains no data, and so is significantly less critical to secure, as the database systems should deny access without valid credentials. Ideally host based authentication could be used. However, implementing a robust access control scheme does not fit within the scope of this project, and will be left for future development.
+This leads to a need to ensure that access to this tool is controlled through a robust authentication system. Ideally the web server hosting the tool should not be accessible to the outside world at all. Further, access should be restricted tightly to only those users with a definite need to have access. Secured connections must be used for all communication between client and server to limit the opportunity for malicious individuals to snoop on the data in transit. Tomcat natively supports access controls on a per application, or per page basis. Tomcat also supports SSH connection, and can be configured to require SSH connections on a per page or per app basis. These controls are managed through tomcat configuration files. 
 
-\section{Requirements}
-discuss here some thoughts as to what requirements were met, and which were abandoned for time limitations.
-requirements for log parsing limited to SSHD logs, not limited to one ssh demon.
-network context dropped.
-
-
-
+Client side code contains no data, and so does not require security, as the server should deny access without valid credentials.

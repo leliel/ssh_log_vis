@@ -9,7 +9,7 @@ LogView \cite{4641277} is a visualisation tool designed to support undertstandin
 \begin{figure}[tbh]
 \fbox{\parbox[b]{.99\linewidth}{
 \vskip 0.5cm
-\centering \includegraphics[scale=0.75]{tree.png}
+\centering \includegraphics[scale=0.5]{tree.png}
 \vskip 0.5cm}}
 \caption{\protect\label{tree} LogView treemap of SSHD logs \cite{4641277}. Shades of gree indicate severity of event.}
 \end{figure}
@@ -22,7 +22,7 @@ A system log data mining approach is presented by W. Xu et al. \cite{Xu:2009:DLS
 \begin{figure}[tbh]
 \fbox{\parbox[b]{.99\linewidth}{
 \vskip 0.5cm
-\centering \includegraphics[scale=1]{decisions.png}
+\centering \includegraphics[scale=.75]{decisions.png}
 \vskip 0.5cm}}
 \caption{\protect\label{decision} Decision tree diagram \cite{Xu:2009:DLS:1629575.1629587}. Red 1's indicate anomalies, Green 0 indicates normal. labels on the edges show count thresholds for decisions.}
 \end{figure}
@@ -34,7 +34,7 @@ Picvis \cite{tricaud2008picviz} is a tool created to generate parallel co-ordina
 \begin{figure}[tbh]
 \fbox{\parbox[b]{.99\linewidth}{
 \vskip 0.5cm
-\centering \includegraphics[scale=0.70]{parallel.png}
+\centering \includegraphics[scale=0.5]{parallel.png}
 \vskip 0.5cm}}
 \caption{\protect\label{parallel} Picviz parallel plots visualisation \cite{tricaud2008picviz} showing SSH logs.}
 \end{figure}
@@ -62,7 +62,7 @@ Integrated visualisation system \cite{mukosaka2007integrated} is an IDS log base
 When in the configuration shown in Figure \ref{integrated}, the timeline plane shows events for the entire subnet x.y.x.*. Individual IP's can be chosen by shifting the timeline plane along the IP plane.
 Filtering tools are made available to control what kinds of events are shown, though are not described in any kind of detail. port at least is usable to filter on. 
 
-This system relies colour to distinguish ports on the timeline frame, which is easily subject to visual overload, as the human eye is not able to reliably distinguish fine differences in colours. Vertical position of the line indicates the number of events. With poorly described filtering systems and reliance on colour coding to distinguish ports, this system is extremely vulnerable to producing data overload. This leads to missing of important events. the lack of data hiding creates visual clutter which can easily mask important intrusions composed of a small number of events. 
+This system relies colour to distinguish ports on the timeline frame, which is easily subject to visual overload, as the human eye is not able to reliably distinguish fine differences in colours. Vertical position of the line indicates the number of events. With poorly described filtering systems and reliance on colour coding to distinguish ports, this system is extremely vulnerable to producing information overload. This leads to missing important events. the lack of data hiding creates visual clutter which can easily mask important intrusions composed of a small number of events. 
 
 This system appears interesting as an attempt to correlate attack information with machine location through geoip systems. Where the number of events is "low enough" lines are drawn from IP plane to physical location on the lower plane. The exact number of lines drawn is not clear. 
 

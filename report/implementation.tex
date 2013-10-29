@@ -3,36 +3,15 @@
 \section{Front End}  %this needs a better title, badly.
 
 I have chosen to use javascript with the d3 visualisation library \cite{bostock2011d3} for the client portion of the system. This was chosen as d3 is a very well supported visualisation library offering excellent support for dynamic data, animations, graph layouts and highly customisable charting. Javascript, in addition to being required for D3, is the de-facto standard for interactive web applications. 
-In addition JQuery and JQuery ui were used, as these frameworks allow for consistent behaviour across many different browsers, by abstracting away the cross browser support code into the framework. Further, JQuery offers significant support for DOM manipulation in simple and powerful ways. JQueryUI provides implementations of many common desktop UI widgets in forms suitable for web browsers (Javascript, HTML and css). These widgets greatly simplified UI development, as they can simply be dropped in place and used. JQueryUI also provides CSS files and tools allowing easy tweaking or theming of the tool.
+In addition JQuery and JQuery ui were used, as these frameworks allow for consistent behaviour across many different browsers, by abstracting away the cross browser support code into the framework. Further, JQuery offers significant support for DOM manipulation in simple and powerful ways. JQueryUI provides implementations of many common desktop UI widgets in forms suitable for web browsers (Javascript, HTMLand css). These widgets greatly simplified UI development, as they can simply be dropped in place and used. JQueryUI also provides CSS files and tools allowing easy tweaking or theming of the tool.
 While this required learning a new language, javascript is a relatively simple language, and this did not pose a significant difficulty. Learning javascript was made significantly easier by extensive documentation and familiar syntax and somewhat familiar semantics. 
-
-Figure \ref{overview} shows an overview of the Honeynet dataset. In a column to the left, we have some controls for the visualisation. To the right, taking up the majority of space is a timeline visualisation of logged data.  
-Basic interaction is carried out with the mouse primarily. Filtering and datetime controls are located in a panel to the left of the screen. The remainder of screen space is taken up by the timelines. 
-Each of the four stacked timelines covers a fixed period, with each line starting when the line above ends. The times displayed in the control panel show the start time of the first timeline, and end time of the last timeline.
-Doubleclicking on any timebin triggers a zoom action, replacing the contents of all timelines with a more detailed view of the chosen bin. 
-No functionality was included to go back up a zoom level, as the application does not currently know what times were in view before the current. Instead, the application has been integrated with the browser history. The browser back and foward buttons serve to step through states, including zoom levels. 
-
-Zooming can be performed until either there is only one event in the chosen bin, or each bin covers 1 second. The one second limit is a practical consideration of the structure of SSHD logs. These logs have a time resolution of 1 second, ie:  all events occuring between 10:59:59.000 and 11:00:00.999 are logged at 10:59:59. Where there is only one event to display, mousing over the bin will show the raw log line in a popup. This was implemented to reduce the number of zoom actions required to see details in low activity time blocks. 
-
-This approach provides an arbitrarily large number of zoom levels, with more detailed statistical summaries of each block presented by mouseover<insert link to screenshot>. This was implemented to support information hiding requirements. 
 
 Filtering functions are currently somewhat limited, with options to show only data for a given username, IP addres, and toggle the display of each class of event. These filters can be freely combined. IP and username filters support wildcards, \_ matches a single character, \% matches 1 or more characters. 
 
 This is a purely visual change, with no change in data, this can be seen as mousing over the bins shows the same summary information. These filters were implemented without altering the selected data to support exploration of potential attacks. ie: when looking for a brute force attack against root, I would hide failed attacks, as there are vastly fewer successful root logins, Then use the mouseover breakdown to check which (if any) bins had a suspiciously high failure rate. This would not be possible were the data to be filtered on the server side, as currently implemented the statistical summary would lose details.
 
-(discuss why data is currently reloaded due to issues in history api.) 
-<Explain basic interactions here, related back to functional and nonfunctional requirements.>
-<explain why features were cut, here or design?>
-
 Both date boxes are linked to datepicker tools, which allow for chosing a date from a calendar, and setting time through sliders. These values may be freely edited without reloading data. The Jump to dates button will trigger a reload of data. 
 Binlength (Immediately below date controls) allows chosing the length of each timebin. the dropdown controls units (from seconds to years), while the textbox accepts a number of units.
-<Complete detailed description>
-\begin{figure}[h!]
-\fbox{\parbox[b]{.99\linewidth}{
-\centering \includegraphics[scale=0.43,  angle=270]{screenshots/overview.png}
-}}
-\caption{\protect\label{overview}Tool showing overview of the honeynet dataset (\ref{data})}
-\end{figure}
 
 Particular issues with use of javascript included issues with timezone handling, and dynamic typing in combination with implicit variable declaration. In javascript, there are two usable timezones, system local time, and GMT. Other timezones are not exposed. This caused severe issues with the datetime picker controls as there is no way to ensure that the local computer time matches server time. There was no resolution to this issue found, other than to give up and let datetimes rendered by the browser exist in host time, rather than matching the timezone logs are recorded in. 
 Dynamic typing and implicit variable declaration, while sometimes useful, allow for far easier propagation of invalid values, often resulting in abnormal behaviour in areas widely seperated from the source. This proved to be a significant complication to debugging, for limited gain in my opinion. 
@@ -48,7 +27,7 @@ GeoIp data presented a significant problem during the implementation phase of th
 
 The extreme slowness of these queries caused unacceptable performance for the parser due to use of GeoIP information during location clustering. For batch loads potentially tens of thousands of queries would be made to the GeoIP table. Honeynet data consists of 35006 rows, of which 20469 rows resulted in GeoIp lookup. In the ECS dataset, 14885 of 75K rows resulted in GeoIp lookups. 
 
-This design has some unfortunate implications for query efficiency, as there are approximately 2 million ranges<look up the exact number>. Range queries across two columns (constant between ColumnA and ColumnB) cannot use an index in most RDBMS systems. This results in very poor performance for queries.
+This design has some unfortunate implications for query efficiency, as there are approximately 2 million ranges (Exact number depending on dataset and version). Range queries across two columns (constant between ColumnA and ColumnB) cannot use an index in most RDBMS systems. This results in very poor performance for queries.
 Some simple optimizations are possible, assuming that ranges are non overlapping, and exhaustive. (ie: every address is in exactly 1 range)  With this assumption, a simple query selecting the first range where IP greater than or equal start, in increasing order by start will always select the matching range.
 
 However it's uncertain if the ranges in the dataset are both exhaustive and non overlapping. Checking this property would take significant time and effort, and would need to be repeated  every time the dataset is updated (Monthly). Due to these issues, an alternative approach was sought, and found in the spatial extensions.

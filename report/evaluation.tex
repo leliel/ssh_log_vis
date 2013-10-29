@@ -155,6 +155,7 @@ Implementing IP blacklisting would be extremely useful for some users, as it wou
 
 One participant suggested allowing filtering by authentication method. This is strongly supported by the difficulties users had in Task 1, as on multiple occasions, a successful root login would occur mixed in with many failed attempts. This successful login would be from a different IP address, using an authentication method not amenable to brute forcing, such as host-based authentication. Allowing filtering by authentication method, would assist users in avoiding this pitfall. by hiding a class of logins which cannot be involved in such an attack. This would better support both functional and nonfunctional requirements (\ref{reqs}).
 
+\subsection {Suggested Improvements}
 Results suggest the following concrete improvements could be made to the tool, to better meet functional and nonfunctional requirements. 
 
 \begin{enumerate}
@@ -166,46 +167,28 @@ Results suggest the following concrete improvements could be made to the tool, t
 \item{Seperate disconnection messages into their own type. This would allow hiding of disconnection messages in the same way failed and successful connections can be hidden, reducing noise in the dataset.}
 \end{enumerate}
 
-Several requirements were laid out for this tool, both functional and nonfunctional.
+\subsection{Functional Requirements}
+Several functional requirements were laid out for this tool in Chapter \ref{reqs}
 How well have these requirements been met by the tool?
 
 \begin{enumerate}
-\item{Strong filtering and highlighting options.}
-\item{Show surrounding context for anomalous accesses.}
-\item{GeoIP support to add context to login attempts.}
-\item{Allow the user control over which machine is monitored at any given time.}
-\item{Show network context for currently monitored machine.}
-\item{Extensible log parsing: don't prevent extension to other similar log types.}
+\item{Strong filtering and highlighting options. These require some extension to meet the needs of users, However, most users were able to successfully answer questions about both datasets with existing tools. Highlighting is not currently implemented.}
+\item{Show surrounding context for anomalous accesses. The timeline display always shows surrounding time, with each level of zoom reducing the surrounding time that is visible. This provides context to users, but requires improvement due to navigational difficulties bought on by rapid transitions.}
+\item{GeoIP support to add context to login attempts. This is currently used for abnormal location detection, but is not currently made available to the user directly.}
+\item{Allow the user control over which machine is monitored at any given time. Users have direct control over which machine's log data is shown at any time through the server dropdown, which is automatically populated with a full list of all servers known to the database.}
+\item{Show network context for currently monitored machine. While this was part of the design, there was not sufficient time to implement this feature.}
+\item{Extensible log parsing:  is currently limited to SSHD logs, though could easily be extended to cope with any log using the syslog format. The database as currently structured is only suitable for SSHD logs. Any SSHD log containing the appropriate metadata could be parsed into a form suitable for storage in the database, Though this would require a customized parser implemtation. <Should this even really be a requirement? it's a bit out of place> }
 \end{enumerate}
 
-Results suggest that filtering options require some extension to meet the needs of users, However, most users were able to successfully answer questions about both datasets with existing tools.
-
-The timeline display always shows surrounding time, with each level of zoom reducing the surrounding time that is visible. This provides context to users, but requires improvement due to navigational difficulties bought on by rapid transitions.
-
-GeoIp data is currently used for abnormal location detection, but is not currently made available to the user directly.
-
-Users have direct control over which machine's log data is shown at any time through the server dropdown, which is automatically populated with a full list of all servers known to the database. 
-
-Network context is not shown in the tool currently. While this was part of the design, there was not sufficient time to implement this feature.
-
-Log parsing is currently limited to SSHD logs, though could easily be extended to cope with any log using the syslog format. The database as currently structured is only suitable for SSHD logs. Any SSHD log containing the appropriate metadata could be parsed into a form suitable for storage in the database, Though this would require a customized parser implemtation. <Should this even really be a requirement? it's a bit out of place> 
-
+\subsection{Non-functional Requirements}
 Several non-functional requirements were developed for this tool, to deal with issues of scaling and information overload.
 
 \begin{enumerate}
-\item{Use information hiding to prevent information overload.}
+\item{Use of information hiding to prevent information overload was well enough implemented to allow users to quickly identify features of the dataset in simpler cases. This needs further work to be considered met.}
 \item{Prevent masking of important data.}
-\item{Navigation: tool needs to support easy navigation of the timeline.}
-\item{Performance capable of handling millions of events.}
+\item{Navigation; as currently implemented, navigation can pose significant issues for users, this goal cannot be considered as met, However most users improved over time with the tool.}
+\item{Performance capable of handling millions of events. Scaling was not tested for more than 75K log entries. Extrapolation from ECS and Honeynet datasets is difficult, as the ECS dataset was both larger, and significantly more complex}
 \end{enumerate}
-
-Results suggest that information hiding techniques were well enough implemented to allow users to quickly identify features of the dataset in simpler cases. This needs further work to be considered met.
-
-Prevent masking of important data. <Hmm.. not sure what I want to say here. was an ambitious goal given the nature of the data>.
-
-Navigation with the current incarnation of the tool has some significant challenges, though most users improved over time. 
-
-Performace scaling was not tested for more than 75K log entries. Extrapolation from ECS and Honeynet datasets is difficult, as the ECS dataset was both larger, and significantly more complex. 
 
 \section{Future work}
 How do we go about addressing the weaknesses discussed above?.
