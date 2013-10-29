@@ -84,14 +84,14 @@ Each block is subdivided into four colours that represent 4 different classes of
 \caption{\protect\label{des_tooltip}Tooltip showing statistics for a block.}
 \end{figure}
 
-Above the timelines can be found a slider, when full (as in Figure \ref{overview}) this indicates that the timelines cover all data present. When there is more data off either end the slider shrinks to indicate how long a portion of the dataset is shown. The slider can then be dragged, and will move in steps, each step covering exactly as long as is currently shown in the timelines. Figure <capture a screenshot showing a reasonable sized time, at least 1 week of honeynet> demonstrates this shrinkage. 
+Above the timelines can be found a slider, when full (as in Figure \ref{overview}) this indicates that the timelines cover all data present. When there is more data off either end the slider shrinks to indicate how long a portion of the dataset is shown. The slider can then be dragged, and will move in steps, each step covering exactly as long as is currently shown in the timelines. Figure \ref{zoomed_in} demonstrates this shrinkage. 
 
-%\begin{figure}[tbh!]
-%\fbox{\parbox[b]{.99\linewidth}{
-%\centering \includegraphics[scale=0.43,  angle=270]{screenshots/overview.png}
-%}}
-%\caption{\protect\label{zoomed_in}Tool showing overview of the honeynet dataset (\ref{data})}
-%\end{figure}
+\begin{figure}[tbh!]
+\fbox{\parbox[b]{.99\linewidth}{
+\centering \includegraphics[scale=0.43,  angle=270]{screenshots/2_weeks_zoom.png}
+}}
+\caption{\protect\label{zoomed_in}Tool showing 2 weeks of Honeynet dataset (\ref{data})}
+\end{figure}
 
 Doubleclicking on any block zooms in on that block, with all four timelines reloading to show only data from the selected block. 
 Zooming can be performed until either there is only one event in the chosen block, or each block covers 1 second. The one second limit is a practical consideration of the structure of SSHD logs. These logs have a time resolution of 1 second, ie:  all events occuring between 10:59:59.000 and 10:59:59.999 are logged at 10:59:59. Where there is only one event to display, mousing over the block will show the raw log line in a popup. This was implemented to reduce the number of zoom actions required to see details in low activity time blocks.
