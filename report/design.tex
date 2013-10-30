@@ -1,8 +1,8 @@
 \chapter{Design}\label{design}
 
-I have chosen to implement a client server model for the system architecture, as this offers a strong separation into multiple loosely coupled modules. Given a client server architecture, and a desire for centralised data storage between multiple users a browser based approach was chosen. Using existing browsers leverages significant work done on secure network communications between client and server, as well as significant effort in sandboxing (isolating from the rest of the computer) in-browser applications. This saves significant time and effort on implementing communication protocols and security.  The client server model was chosen as typical users for the system are expected to be security professionals who can be expected to be required to document and report any abnormal behaviour. The client server model supports sharing the application amongst multiple users. 
+I have chosen to implement a client server model for the system architecture, as this offers a strong separation into multiple loosely coupled modules. This compartmentalised design improves maintainability and modifiability by limiting  Given a client server architecture a browser based approach was chosen. Using existing browsers leverages significant work done on secure network communications between client and server, as well as significant effort in sandboxing (isolating from the rest of the computer) in-browser applications. This saves significant time and effort on implementing communication protocols and security.  The client server model was chosen as typical users for the system are expected to be security professionals who can be expected to be working in a collaborative environment where sharing their current work is required. The client server model supports sharing the application amongst multiple users. 
 
-As there are relatively few programming languages available for use within the browser this significantly simplified the choice of languages and tool sets. See section \ref{C:impl}.
+As there are relatively few programming languages available for use within the browser this significantly simplified the choice of languages and tool sets. See Chapter \ref{C:impl} for discussion.
 
 \begin{figure}[tbh]
 \fbox{\parbox[b]{.98\linewidth}{
@@ -14,9 +14,9 @@ As there are relatively few programming languages available for use within the b
 
 Inside the browser there are three major components from an object oriented perspective. The view contains what is actually displayed on screen, this is implemented in HTML with SVG (Scalable Vector Graphics) for graphical components. The model stores the data and handles requests to the server as necessary. The controller is responsible for implementing user interaction with the system.
 
-Communication between the client and server is handled through the HTTP protocol, using ajax requests.  The server software is responsible for serving data to the client, performing data aggregation, and limited data mining. In order to provide data, the server communicates with the data-store. This communication uses SQL and the JDBC api to interface with a database. Modular design permits creation of other storage interface modules. 
+Communication between the client and server is handled through the HTTP and HTTPS protocols (see Section \ref{des_sec}), using Ajax requests.  The server software is responsible for serving data to the client, performing data aggregation, and limited data mining. In order to provide data, the server communicates with the SQL data-store using the JDBC API. Modular design permits creation of other storage interface modules. 
 
-Data aggregation is performed server side for two reasons. In larger networks or over longer time periods many megabytes of logs can be created. While text is highly compressible this still creates significant network overhead to transfer. Further, there are unanswered questions about how well the client will perform with potentially millions of events to manipulate. Slow data transfers or interaction due to processing time would be a significant usability hurdle. Performing data aggregation on the server bypasses both of these limitations. 
+Data aggregation is performed server side rather than client side for two reasons; In larger networks or over longer time periods many megabytes of logs can be created. While text is highly compressible this still creates significant network overhead to transfer. Further, there are unanswered questions about how well the client will perform with potentially millions of events to manipulate. Slow data transfers or interaction due to processing time would be a significant usability hurdle. Performing data aggregation on the server bypasses both of these limitations. 
 
 \section{User interface design}\label{screen_design} 
   
@@ -24,8 +24,7 @@ I have chosen to adopt a time based approach for the visualisation elements, as 
 
 \subsection{Spiral view}
 
-Spiral view is an approach for displaying time series data mapped to a spiral, see figure \ref{spiral} where a straight line drawn from the outer edge to the center shows the same time at each level of the spiral \cite{bertini2007spiralview, chin2009visual}
-These systems appear to be highly effective at displaying time series data in a fashion that supports easy detection of repeated patterns. 
+Spiral view is an approach for displaying time series data mapped to a spiral, see figure \ref{spiral} where a straight line drawn from the outer edge to the center shows the same time at each level of the spiral \cite{bertini2007spiralview, chin2009visual}. These systems appear to be highly effective at displaying time series data in a fashion that supports easy detection of repeated patterns \cite{bertini2007spiralview, chin2009visual}. 
 
 \begin{figure}[tbh]
 \fbox{\parbox[b]{0.98\linewidth}{
@@ -35,9 +34,9 @@ These systems appear to be highly effective at displaying time series data in a 
 \caption{\protect\label{spiral_plan}Drawing showing proposed layout using spiralview for main focus. Black shading shows selection of an event with highlighting of related events.}
 \end{figure}
  
-However serious flaws in the results(\cite{chin2009visual}) of usability tests presented have lead to the rejection of this method. The error in question shows a table of results that directly contradict claims made in the text about how well spiralview supports the detection of patterns. The claims contradicted in the work are those directly bearing on the uses I had intended for the spiral layout. As this is a 300 hour project, I will not be attempting to repeat their work to clarify their findings. I attempted to contact the authors of the paper, and have as yet received no response.
+In one evaluation of the spiral view approach, participants were asked to identify regions of high and low activity in cellphone calling records, Participants were also asked to estimate the time period of patterns in the cellphone data. Participants were presented with both spiral view and linear timeline views of this data. The paper \cite{chin2009visual} claims that the spiral view approach will offer higher performance than a linear timeline due to the reinforcement of repeating patterns. The text claims that this claim was supported by the experiment, however the table of results presented shows that users were significantly faster, more accurate and more satisfied with a linear timeline presentation for identifying regions of high and low activity. Users were significantly more accurate at identifying the time period for repeating patterns with spiralview however.  
 
-This contradiction casts doubt on the ability of the spiralview model to effectively support data hiding, navigation and manage potential for information overload. These aspects are key functional requirements for this project \ref{reqs}. Due to this doubt, and lack of response from the authors when clarification was requested, I have chosen not to use the spiral model. 
+As the ability to detect patterns in data is essential to identifying attacks, this contradiction casts doubt on the ability of the spiralview model to effectively support data hiding, navigation and manage potential for information overload. These aspects are key functional requirements for this project \ref{reqs}. Due to this doubt, and lack of response from the authors when clarification was requested, I have chosen not to use the spiral model. 
 
 \begin{figure}[tbh]
 \fbox{\parbox[b]{.98\linewidth}{
@@ -214,12 +213,12 @@ Why have aggregated request? nonfunctional requirements - performance and data h
 some room for refactoring, this could be split into two layers
 however the processing is quite simple, and only done for this one request type, so a data analysis layer was omitted.
 
-\subsection{Security}
+\subsection{Security}\label{des_sec}
 
 The database will contain a significant amount of privileged information about network security such as machine names and addresses, valid account names, and authentication methods used in the system. This data would be extremely useful to malicious users or outside intruders. 
 
 As the tool is accessed through the browser there are concerns about the security of this information. As implemented, the tool does not directly include any authentication or access control mechanisms. However, the server is written to be resistant to SQL injection attacks through rigorous input sanitation.
 
-This leads to a need to ensure that access to this tool is controlled through a robust authentication system. Ideally the web server hosting the tool should not be accessible to the outside world at all. Further, access should be restricted tightly to only those users with a definite need to have access. Secured connections must be used for all communication between client and server to limit the opportunity for malicious individuals to snoop on the data in transit. Tomcat natively supports access controls on a per application, or per page basis. Tomcat also supports SSH connection, and can be configured to require SSH connections on a per page or per app basis. These controls are managed through tomcat configuration files. 
+This leads to a need to ensure that access to this tool is controlled through a robust authentication system. Ideally the web server hosting the tool should not be accessible to the outside world at all. Further, access should be restricted tightly to only those users with a definite need to have access. Secured connections must be used for all communication between client and server to limit the opportunity for malicious individuals to snoop on the data in transit. Tomcat natively supports access controls on a per application, or per page basis. Tomcat also supports HTTPS, and can be configured to require HTTPS on a per page or per app basis. These controls are managed through tomcat configuration files. 
 
 Client side code contains no data, and so does not require security, as the server should deny access without valid credentials.

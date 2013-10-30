@@ -6,15 +6,15 @@ Section \ref{res_study} discusses experimental methodology. Section \ref{res_res
 
 \section{User Study}\label{res_study}
 
-We performed a qualitative user study, with 6 expert participants. Two datasets were used, representing different sizes and system complexities. Each participant was presented with 4 tasks to complete for each dataset. Time taken and accuracy was recorded for each task, along with a 3 question usability survey capturing user preferences 0<ref appendix>. ISO9241 part 11 \cite{iso9241} provides a definition of usabilty with three components, Efficiency, Accuracy, and user preference. 
-Ethics approval has been granted for this experimental design.<ref appendix> 
+We performed a qualitative user study, with 6 expert participants. Two datasets were used, representing different sizes and system complexities. Each participant was presented with 4 tasks to complete for each dataset. Time taken and accuracy was recorded for each task, along with a 3 question usability survey capturing user preferences (Appendix \ref{append_questionnaire}). ISO9241 part 11 \cite{iso9241} provides a definition of usabilty with three components, Efficiency, Accuracy, and user preference. 
+Ethics approval has been granted for this experimental design \cite{leliel2013ethics}. 
 
 \subsection{Justification}
 It is not possible to achieve a representative sample of sufficient size to have predictive power in the time available. Two factors limit the ability to achieve a representative sample in the time available, taking part in the experiment requires between 1 and 1.5 hours. a further 1 to 1.5 hours is required to grade and analyse the data. Further, there is a relatively limited pool of potential participants as the tool is targeted at security experts. This limitation strongly suggests against attempting to demonstrate conclusively the usefulness and usability of the system. Small, exploratory evaluations have advantages in cost and time required. With small numbers of participants, the evaluation can be carried out in a short time. These exploratory evaluations can also be useful to discard non-viable approaches before significant development effort has been spent. Care should be taken to avoid detailed, large scale evaluation too early however, as the unfinished nature of the product can distort results. 
 
 \subsection{Users}
 
-As this tool targets domain experts in the security domain, I have recruited participants from the security industry, both on campus and off. I have also recruited students who have passed NWEN405, which deals with computer security as an alternate source of participants. Students are a second preference for participants as they have significantly less experience in dealing with security threats in the real world. This tool is targeted for use by security professionals working in industry. <ref personae (appendix)> However this lack of experience can be an advantage, as students are not yet so accustomed to a particular approach to log analysis. 
+As this tool targets domain experts in the security domain, I have recruited participants from the security industry, both on campus and off. I have also recruited students who have passed NWEN405, which deals with computer security as an alternate source of participants. Students are a second preference for participants as they have significantly less experience in dealing with security threats in the real world. This tool is targeted for use by security professionals working in industry (Appendix \ref{append_personae}).  However this lack of experience can be an advantage, as students are not yet so accustomed to a particular approach to log analysis. 
 All four professional participants had security issues as at least a portion of their day jobs, and could be expected to be involved in log analysis tasks on a regular basis. 3 of the professional participants are employed by the Victoria University School of Engineering. 2 students. 
 
 \begin{table}[tbh]
@@ -161,9 +161,7 @@ There were multiple successful brute force attacks on the Honeynet dataset, and 
 
 The introduced scattergun attack in the ECS dataset had a relatively small attack signature, with only 204 log entries involved, of 4.7K entries for that day. Some successful attacks on honeynet had similar numbers of access attempts, though often a much higher proportion of invalid or failed attempts for a given day. 
 
-There were many more legitimate access attempts to the ECS network, and logging of disconnect messages introduced further noise to the system. 
-<check actual results, some successful root attacks on honeynet had similar sized signatures, some much larger, though with more noise for larger datasets.>
-this needs more analysis.
+There were many more legitimate access attempts to the ECS network, and much higher event density. Logging of disconnect messages introduced further noise to the system. 
 
 Participant 2(Professional, see Table \ref{res_parts}) had a great deal of difficulty in identifying brute force and scattergun attacks on both datasets. Feedback and observation of the participant in action suggest severe difficulties with navigation, combined with the lack of ability to hide all attempts from a specified set of IP addresses caused significant difficulties for this participant.
 
@@ -210,7 +208,7 @@ How well have these requirements been met by the tool?
 \item{GeoIP support to add context to login attempts. This is currently used for abnormal location detection, but is not currently made available to the user directly.}
 \item{Allow the user control over which machine is monitored at any given time. Users have direct control over which machine's log data is shown at any time through the server dropdown, which is automatically populated with a full list of all servers known to the database.}
 \item{Show network context for currently monitored machine. While this was part of the design, there was not sufficient time to implement this feature.}
-\item{Extensible log parsing:  is currently limited to SSHD logs, though could easily be extended to cope with any log using the syslog format. The database as currently structured is only suitable for SSHD logs. Any SSHD log containing the appropriate metadata could be parsed into a form suitable for storage in the database, Though this would require a customized parser implemtation. <Should this even really be a requirement? it's a bit out of place> }
+\item{Extensible log parsing:  is currently limited to SSHD logs, though could easily be extended to cope with any log using the syslog format. The database as currently structured is only suitable for SSHD logs. Any SSHD log containing the appropriate metadata could be parsed into a form suitable for storage in the database, Though this would require a customized parser implemtation.}
 \end{enumerate}
 
 \subsection{Non-functional Requirements}

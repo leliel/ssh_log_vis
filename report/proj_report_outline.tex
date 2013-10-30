@@ -7,9 +7,10 @@
 
 
 \usepackage{float} % lets you have non-floating floats
-\usepackage{hyperref} % for typesetting urls
+\usepackage[pdfborder={0 0 0}]{hyperref} % for typesetting urls
 \usepackage{pifont}
-\usepackage{multirow}
+\usepackage[toc, page]{appendix}
+\usepackage{alltt}
 
 \newcommand{\cmark}{\ding{51}}
 \newcommand{\xmark}{\ding{55}}
@@ -92,7 +93,11 @@ Detecting malicious attempts to access computers is difficult with current tools
 \include{design}
 \include{implementation}
 \include{evaluation}
-
+\begin{appendices}
+\input{personae}
+\input{tasks}
+\input{survey}
+\end{appendices}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
