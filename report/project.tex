@@ -3,8 +3,7 @@
 As formal project management methodologies are designed to control projects with many workers, they have an unacceptable time overhead in producing required documentation and tracking progress. Agile methodologies are all designed to apply to projects with multiple workers, and do not apply well to a single person project. As such, no formalised project management technique was used in this project.  
 Weekly meetings were held with my supervisors, to track progress of the project, and User centered design was applied throughout the project. 
 
-The project took shape in 4 major sections, which this report is structured to reflect. Background reading was done first, to develop a deeper understanding of the problem. This was followed by design work. The design and implementation phases were not distinctly seperated, with many design decision deferred until implementation. <why?> After implementation was frozen, a small scale, exploratory user evaluation was carried out.
-
+The project took shape in 4 major sections, which this report is structured to reflect. Background reading was done first, to develop a deeper understanding of the problem. This was followed by design work. The design and implementation phases were not distinctly seperated, with many design decision deferred until implementation. This was done due to lack of familiarity with languages and tools, detailed design was deferred until sufficient experience with the tools had been gathered to be able to estimate difficulty. After implementation was frozen, a small scale, exploratory user evaluation was carried out.
 
 Several supporting tools were used extensively to support the implementation of the tool, these will be discussed later in this chapter. 
 
@@ -17,11 +16,14 @@ Security managers are included as a secondary user group as the frontline securi
 
 \section{Requirements}\label{reqs}
 
-In order to meet the goals laid out in Chapter \ref{C:intro}, several concrete requirements have been laid out for the tool. These requirements are divided into functional and non-functional requirements. Requirements 1 through 3 and 6 support goals 1 and 2. Requirements 3 through 7 support goal 3. Scaling goals are supported by all requirements, as goals 1 and 2 strongly support scaling to millions of events.  
+In order to meet the goals laid out in Chapter \ref{C:intro}, several concrete requirements have been laid out for the tool. These requirements are divided into functional and non-functional requirements. These requirements are designed to support the goals of the expected users of this tool. A log event will typically be represented by a single log line at the standard level of logging for OpenSSH. A typical user interaction may generate between two and three log events; One on connection; One on disconnection; and optionally one if files are being transferred across the secure connection.
+Malicious access attempts may generate  between two and three log events; One on connection; One on disconnection; and optionally one if the username provided is not recognised. Rates of log generation can vary widely between networks. For example, the Honeynet dataset generated 35K events over 48 days. While the ECS dataset recorded 75K events over 14 days. This difference in rates inspired the scaling requirements, as even a moderate sized network may produce well over 100k events per month. 
 
 \begin{enumerate}
 \item{Strong filtering and highlighting options.}
 \item{Show surrounding context for anomalous accesses.}
+\item{Support sharing work.}
+\item{Support saving work in progress.}
 \item{GeoIP support to add context to login attempts.}
 \item{Allow the user control over which machine is monitored at any given time.}
 \item{Show network context for currently monitored machine.}
@@ -49,8 +51,8 @@ Anonymization was achieved through the use of a modified version of the cryptoPA
 The Honeynet dataset publically available. No futher anonymization is required for this dataset due to public availablity. if it's not properly anonymized, no further harm will be done. 
 
 \subsection{Evaluation procedures}
-Fairly standard for user evaluations. Privacy concerns, can't reveal identity of participants -> fear of repercussions can distort data, confidentiality increases openness (doubly so for students). 
-Use numbers to refer to participants. destroy data after report completed. 
+
+User evaluations of software raise some ethical concerns, primarily around the privacy of participants. Privacy of participants is a concern as fear of repercussions can distort the results. In order to address these concerns, participant confidentiality was strictly observed. No personally identifying information was recorded, and participants are referred to solely by numbers in this report. The raw results of the evaluation will be destroyed after the project is completed.  
 
 \section{Supporting tools}
 Several supporting tools were used during the implementation and later stages of the project for source code management and version control; Issue tracking software was used in the later half of the implementation stage to track bugs and new features.

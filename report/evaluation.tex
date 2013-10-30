@@ -1,12 +1,12 @@
 \chapter{Evaluation}\label{eval}
 
-Evaluation of the tool produced in this project served to determine if there is merit to the idea justifying further development work on the tool. If the evaluation determines that there is potential to justify the development work, future work can evaluate the effectiveness of the design in a more detailed manner. I have chosen to perform an exploratory evaluation due to time limitations on this project \cite{Ellis:2006:EAU:1168149.1168152}. The exploratory evaluation takes the form of a small user study with two complimentary datasets. Results suggest that the approach taken with the tool is useful. 
+Evaluation of the tool produced in this project served to determine how well the tool meets the requirements laid out in section \ref{reqs}. I have chosen to perform an exploratory evaluation due to time limitations on this project \cite{Ellis:2006:EAU:1168149.1168152}. The exploratory evaluation takes the form of a small user study with two complimentary datasets. Results suggest that the approach taken with the tool is useful. 
 
 Section \ref{res_study} discusses experimental methodology. Section \ref{res_res} discusses the results. 
 
 \section{User Study}\label{res_study}
 
-We performed a qualitative user study, with 6 expert participants. Two datasets were used, representing different sizes and complexities of system. Each participant was presented with 4 tasks to complete for each dataset. Time taken and accuracy was recorded for each task, along with a 3 question usability survey <ref appendix>. 
+We performed a qualitative user study, with 6 expert participants. Two datasets were used, representing different sizes and system complexities. Each participant was presented with 4 tasks to complete for each dataset. Time taken and accuracy was recorded for each task, along with a 3 question usability survey capturing user preferences 0<ref appendix>. ISO9241 part 11 \cite{iso9241} provides a definition of usabilty with three components, Efficiency, Accuracy, and user preference. 
 Ethics approval has been granted for this experimental design.<ref appendix> 
 
 \subsection{Justification}
@@ -33,13 +33,15 @@ Student & & & \cmark & \cmark & & \\
 
 Two datasets have been acquired for use in this experiment. Both datasets represent real systems exposed to the public internet. 
 \begin{enumerate}
-\item{Honeynet Forensic challenge 10 dataset \cite{forensic10}. This dataset is anonymised and public domain. The data presented here covers a single server, with 35K log entries covering March 16 to May 2}
-\item{Anonymised logs from the Engineering and Computer Science network at Victoria University. This dataset covers three servers, for two disjoint weeks and 74K log entries.}
+\item{Honeynet Forensic challenge 10 dataset \cite{forensic10}. This dataset is anonymised and public domain. The data presented here covers a single server, with 35K log entries covering March 16 to May 2. (~729 events/day)}
+\item{Anonymised logs from the Engineering and Computer Science network at Victoria University. This dataset covers three servers, for two disjoint weeks and 74K log entries. (~5300 events/day)}
 \end{enumerate}
 
 The Honeynet dataset has been extensively analysed, over the course of two forensic challenges. Multiple successful brute force and scattergun attacks have been identified in this dataset. There were few usernames which showed a pattern of usage in the log data gathered. 
 
-The ECS dataset is significantly more complex than the Honeynet dataset. This data covers three seperate servers, with significantly more active users. The ECS dataset contains disconnection messages absent from the Honeynet dataset. These messages add a significant amount of noise. This dataset was extensively analysed before the experiment to search for existing attacks. Several attempted brute force and scattergun attacks were found, though all were determined to be unsuccessful.  
+The Honeynet server used to generate this dataset was running in the GMT-5 timezone. As discussed in section \ref{imp_ui}, this causes a significant display issue, which has caused confusion to users. unfortunately this error is unavoidable where the monitored server resides in a different timezone to tool user.
+
+The ECS dataset is significantly more complex than the Honeynet dataset. This data covers three seperate servers, with significantly more active users. The ECS dataset shows approximated 5300 events/day, more than 7 times as many as the Honeynet dataset. The ECS dataset contains disconnection messages absent from the Honeynet dataset. These messages can account for at most a doubling of event rates, as there may be at most one disconnection per connection attempt, and a connection attempt may produce more than one event. As disconnection messages are not currently useful, they add a significant amount of noise. This dataset was extensively analysed before the experiment to search for existing attacks. Several attempted brute force and scattergun attacks were found, though all were determined to be unsuccessful.  
 
 The difference in attack success rates between datasets reflects differences in the purposes of the networks. The ECS network is provided for use by staff and students at the school of engineering and computer science at victoria university. This network can reasonably be expected to have significant amounts of sensitive information stored. Therefore the school expends significant effort in protecting these systems. In contrast, the Honeynet system is deliberately exposed to lure in attackers, and as such has significantly less effort expended on securing it.
 
@@ -74,9 +76,10 @@ Participants were given up to ten minutes to familiarise themselves with the too
 \item{Find an instance of a legitimate user logging in at an abnormal time.}
 \end{enumerate}
 
+Note that legitimate users are those accounts that should exist on the monitored system, as compared to accounts that have been added by malicious users.
 Questions 1 \& 2 are based on the most commonly found attack signatures in SSH logs. with many botnets and automated systems carrying out brute force or scattergun attacks against any IP address responding to connection requests. As these attacks are very common and can lead to serious compromises, as shown in the Honeynet dataset, determining success or failure of such attacks is a core function of any log analysis tool. 
 
-Questions 3 \& 4 are based in finding anomalous behaviour by legitimate accounts. Anomalous behaviour by legitimate accounts can be an indication that their account has been compromised, or that the account owner has become malicious. <Badly worded. I mean they might be trying to compromise the system or data stored there.>. 
+Questions 3 \& 4 are based in finding anomalous behaviour by legitimate accounts. Anomalous behaviour by legitimate accounts can be an indication that their account has been compromised, or that the account owner has become malicious.  
 
 Tasks 1 through 4 were based on questions 1 \& 2, with tasks 1 \& 4 using the ECS dataset, and tasks 2 \&3 using the Honeynet dataset.
 Tasks 5 through 8 were based on questions 3 \& 4, with tasks 5 \& 7 using the ECS dataset, and tasks 6 \& 8 using  the Honeynet dataset. 
@@ -91,7 +94,7 @@ For each task a date, time, source IP and where applicable username involved wer
  
 Both datasets are in the 10's of thousands of entries, This has prevented any investigation of how the tool scales to much larger networks with 100K+ log entries in a similar time period. However, the ECS dataset covers a much shorter time period, with many more entries. This provides some indication of how performance scales with log density.
  
-The extremely small number of participants means that the sample cannot be known to be representative. This greatly limits our ability to extrapolate to users outside of the sample. <work in a green grids reference here. Not quite sure how to word it yet.> 
+While the sample covers our primary personae, the sample cannot be assumed to extrapolate to the wider community (see section \ref{eval_future}).
 
 The addition of a successful scattergun attack to the ECS dataset represents a potential weakness of this study, however great care was taken to ensure that the inserted log entries matched the patterns found in other scattergun attacks on both datasets. 
 
@@ -121,6 +124,32 @@ Task 8 & 0:32 & \cmark & 1:10 & \xmark & 1:32 & \xmark & 1:07 & \cmark & 1:15 & 
 \caption{Time and accuracy results for each task.}
 \label{res_times}
 \end{table}
+
+\begin{table}[tbh]
+\centering
+\begin{tabular}{l|| l|l|l|| l|l|l|| l|l|l|| l|l|l|| l|l|l|| l|l|l|| l|l|l|| l|l|l||} & 
+\multicolumn{3}{|c|}{Task 1} & 
+\multicolumn{3}{|c|}{Task 2} &
+\multicolumn{3}{|c|}{Task 3} & 
+\multicolumn{3}{|c|}{Task 4} &
+\multicolumn{3}{|c|}{Task 5} &
+\multicolumn{3}{|c|}{Task 6} &
+\multicolumn{3}{|c|}{Task 7} &
+\multicolumn{3}{|c|}{Task 8} \\
+Question&1&2&3&1&2&3&1&2&3&1&2&3&1&2&3&1&2&3&1&2&3&1&2&3 \\
+\hline
+Participant 1 &1&2&2&3&4&4&2&2&3&5&6&6&1&1&2&1&1&2&1&1&3&1&1&2\\
+Participant 2 &3&3&3&5&5&6&5&5&5&5&5&6&3&3&3&3&3&4&3&3&4&3&3&4\\
+Participant 3 &-&-&-&5&5&4&2&2&4&3&3&4&1&1&4&1&1&4&1&1&4&1&1&4\\
+Participant 4 &7&7&6&3&3&3&3&3&3&2&3&3&1&2&2&2&1&4&1&1&3&1&2&3\\
+Participant 5 &3&4&3&3&3&2&4&4&3&4&5&3&2&2&3&2&2&2&2&2&3&1&1&3\\
+Participant 6 &3&2&2&1&1&1&1&1&1&7&7&5&1&1&1&1&1&1&4&4&6&1&1&1\\
+\end{tabular}
+\caption{Survey results for each task. (dashes mark results spoiled by experimenter error)}
+\label{res_survey}
+\end{table}
+
+User satisfaction results(Table \ref{res_survey}) match well with accuracy and time results, as each participant gave a higher score for tasks they found difficult. Each question in the survey was answered with a score on a 7 point likert scale, where 7 is Strongly disagree, and 1 Strongly agree. Significant variation between participants is to be expected in an early prototype, and can be caused by many factors. 
 
 Observation of participants working on tasks 1 through 4, and participant comments suggest that difficulty in navigating the timeline was a significant issue for carrying out these tasks.
 Task 1 involved finding a brute force attack which compromised root on the ECS dataset. There was no such attack present in the dataset. It's well known that demonstrating the absence of something can be significantly harder than the presence.<justify this>. I believe the combination of navigational difficulties with increased task difficulty is the cause of the very high failure rate for this task, with only one participant successful.
@@ -155,6 +184,8 @@ Implementing IP blacklisting would be extremely useful for some users, as it wou
 
 One participant suggested allowing filtering by authentication method. This is strongly supported by the difficulties users had in Task 1, as on multiple occasions, a successful root login would occur mixed in with many failed attempts. This successful login would be from a different IP address, using an authentication method not amenable to brute forcing, such as host-based authentication. Allowing filtering by authentication method, would assist users in avoiding this pitfall. by hiding a class of logins which cannot be involved in such an attack. This would better support both functional and nonfunctional requirements (\ref{reqs}).
 
+The timezone display issue (see section \ref{imp_ui}) caused all participants to query the discrepancy in times. This did cause some confusion at first, however results suggest that once informed of the issue, users are able to compensate well. However, this remains a significant issue for the tool.
+
 \subsection {Suggested Improvements}
 Results suggest the following concrete improvements could be made to the tool, to better meet functional and nonfunctional requirements. 
 
@@ -174,6 +205,8 @@ How well have these requirements been met by the tool?
 \begin{enumerate}
 \item{Strong filtering and highlighting options. These require some extension to meet the needs of users, However, most users were able to successfully answer questions about both datasets with existing tools. Highlighting is not currently implemented.}
 \item{Show surrounding context for anomalous accesses. The timeline display always shows surrounding time, with each level of zoom reducing the surrounding time that is visible. This provides context to users, but requires improvement due to navigational difficulties bought on by rapid transitions.}
+\item{Support sharing work. This requirement was not tested in the evaluation, however the application was designed to support this through URL passing.}
+\item{Support saving work in progress. This requirement was not tested in the evaluation, however the application was designed to support this through browser bookmarking.}
 \item{GeoIP support to add context to login attempts. This is currently used for abnormal location detection, but is not currently made available to the user directly.}
 \item{Allow the user control over which machine is monitored at any given time. Users have direct control over which machine's log data is shown at any time through the server dropdown, which is automatically populated with a full list of all servers known to the database.}
 \item{Show network context for currently monitored machine. While this was part of the design, there was not sufficient time to implement this feature.}
@@ -190,7 +223,7 @@ Several non-functional requirements were developed for this tool, to deal with i
 \item{Performance capable of handling millions of events. Scaling was not tested for more than 75K log entries. Extrapolation from ECS and Honeynet datasets is difficult, as the ECS dataset was both larger, and significantly more complex}
 \end{enumerate}
 
-\section{Future work}
+\section{Future work}\label{eval_future}
 How do we go about addressing the weaknesses discussed above?.
 can they be addresssed?
 address known bugs.
