@@ -1,4 +1,4 @@
-\chapter{Evaluation}\label{eval}
+\chapter{Evaluation}\label{C:eval}
 
 Evaluation of the tool produced in this project served to determine how well the tool meets the requirements laid out in section \ref{reqs}. I have chosen to perform an exploratory evaluation due to time limitations on this project \cite{Ellis:2006:EAU:1168149.1168152}. The exploratory evaluation takes the form of a small user study with two complimentary datasets. Results suggest that the approach taken with the tool is useful. 
 
@@ -15,7 +15,7 @@ It is not possible to achieve a representative sample of sufficient size to have
 \subsection{Users}
 
 As this tool targets domain experts in the security domain, I have recruited participants from the security industry, both on campus and off. I have also recruited students who have passed NWEN405, which deals with computer security as an alternate source of participants. Students are a second preference for participants as they have significantly less experience in dealing with security threats in the real world. This tool is targeted for use by security professionals working in industry (Appendix \ref{append_personae}).  However this lack of experience can be an advantage, as students are not yet so accustomed to a particular approach to log analysis. 
-All four professional participants had security issues as at least a portion of their day jobs, and could be expected to be involved in log analysis tasks on a regular basis. 3 of the professional participants are employed by the Victoria University School of Engineering. 2 students. 
+All four professional participants had security issues as at least a portion of their day jobs, and could be expected to be involved in log analysis tasks on a regular basis. 3 of the professional participants are employed by the Victoria University School of Engineering. 
 
 \begin{table}[tbh]
 \centering
@@ -45,7 +45,7 @@ The ECS dataset is significantly more complex than the Honeynet dataset. This da
 
 The difference in attack success rates between datasets reflects differences in the purposes of the networks. The ECS network is provided for use by staff and students at the school of engineering and computer science at victoria university. This network can reasonably be expected to have significant amounts of sensitive information stored. Therefore the school expends significant effort in protecting these systems. In contrast, the Honeynet system is deliberately exposed to lure in attackers, and as such has significantly less effort expended on securing it.
 
-While both datasets were anonymized, anonymization procedures were different. The Honeynet dataset is publically available in an anonymized form \cite{forensic10} whereas the ECS dataset was recorded from internet facing servers in the ECS network. The latter dataset required anonymization of both usernames and IP addresses. IP addresses were anonymized with cryptoPAN <ref> a prefix preserving IP address anonymization tool extended with support for IPv6 addresses. Usernames were anonymized through a very simple scheme, where each username was replaced with the string "user" + a unique number. ie: user4 is different from user5.
+While both datasets were anonymized, anonymization procedures were different. The Honeynet dataset is publically available in an anonymized form \cite{forensic10} whereas the ECS dataset was recorded from internet facing servers in the ECS network. The latter dataset required anonymization of both usernames and IP addresses. IP addresses were anonymized with cryptoPAN \cite{xu2002prefix} a prefix preserving IP address anonymization tool extended with support for IPv6 addresses. Usernames were anonymized through a very simple scheme, where each username was replaced with the string "user" + a unique number. ie: user4 is different from user5.
 
 The ECS dataset was altered, to introduce a successful scattergun attack on one server. ThIs was introduced, as there were no naturally occuring successful attacks discovered after thorough analysis with both the tool, and direct exploration through the database.  
 The introduced scattergun attack in the ECS dataset had a relatively small attack signature, with only 204 log entries involved, of 4.7K entries for that day. Some successful attacks on honeynet had similar numbers of access attempts, though often a much higher proportion of invalid or failed attempts for a given day. 
@@ -53,8 +53,9 @@ The introduced scattergun attack in the ECS dataset had a relatively small attac
 \subsection{Setup}
 Participants were provided with one of two machines
 \begin{itemize}
-\item{Dell Optiplex 9010 with an i7-3770 CPU and 8Gb of ram running Arch linux 3.7.5}
-\item{Dell Optiplex GX760 with a Core2 Duo CPU and 4GB ram, running Arch linux 3.7.5}
+\item{Dell Optiplex 9010 with an i7-3770 CPU and 8Gb of ram running Arch linux 3.7.5 \\ With a 21.5'' widescreen monitor running at 1920x1080 resolution}
+\item{Dell Optiplex GX760 with a Core2 Duo CPU and 4GB ram, running Arch linux 3.7.5 \\
+With a 37'' full high definition LCD TV as monitor.}
 \end{itemize}
 Both systems had chrome 26.0.1410.63 as the browser.
 
@@ -66,7 +67,7 @@ More significant is the consistent OS and browser versions, as javascript behavi
 The experiment was conducted in a quiet lab, with only the experimenter and subject present. Each question was allocated an 8 minute maximum, based on test runs with a supervisor. Audio recordings were made as a record of events during the experiment as an addition to handwritten notes. 
 
 \subsection{Procedure}
-Participants were given up to ten minutes to familiarise themselves with the tool, and how it behaves. After familiarisation, participants were asked to answer four questions about each  dataset for a total of 8 tasks. Tasks were presented to users in randomised order. This was done in order to avoid learning effects distorting results. For each of the 8 tasks a brief questionnaire was completed indicating opinions about the tool's performance in the task\cite{lewis1995ibm}. As users are not given the opportunity to read questions before the experiment begins there is limited opportunity to learn the answers to later questions while performing a task. 
+Participants were given up to ten minutes to familiarise themselves with the tool, and how it behaves. After familiarisation, participants were asked to answer four questions about each  dataset for a total of 8 tasks. Tasks were presented to users in randomised order. This was done in order to avoid learning effects distorting results. For each of the 8 tasks a brief questionnaire was completed indicating opinions about the tool's performance in the task \cite{lewis1995ibm}. As users are not given the opportunity to read questions before the experiment begins there is limited opportunity to learn the answers to later questions while performing a task. 
 
 \begin{enumerate}
 \item{Find an instance of a successful brute force attack on root.}
@@ -89,8 +90,9 @@ Time was measured manually, by means of a stopwatch. While stopwatches are hard 
 
 For each task a date, time, source IP and where applicable username involved were recorded. This combined with the dataset provides sufficient information to allow checking of answers for accuracy from the raw logs, database directly, or using the tool. 
 
-\subsection{Threats to validity}
- Students are less ideal, as their experience and domain knowledge are more limited than those that have been working in the industry for some time.
+\subsection{Threats to validity}\label{res_threats}
+
+Students are less ideal, as their experience and domain knowledge are more limited than those that have been working in the industry for some time.
  
 Both datasets are in the 10's of thousands of entries, This has prevented any investigation of how the tool scales to much larger networks with 100K+ log entries in a similar time period. However, the ECS dataset covers a much shorter time period, with many more entries. This provides some indication of how performance scales with log density.
  
@@ -222,14 +224,19 @@ Several non-functional requirements were developed for this tool, to deal with i
 \end{enumerate}
 
 \section{Future work}\label{eval_future}
-How do we go about addressing the weaknesses discussed above?.
-can they be addresssed?
-address known bugs.
-address discovered weaknesses
- - add more filter types
- - add mechanism for excluding addresses from results.
- - refine clustering algorithm to reduce false positives. 
- - animate transitions to assist navigation.
-maybe some work on performance?
-critical - once bugs and new features addressed, perform a more complete evaluation
-higher n, with actual statistical power, and much more variety of datasets. allow more training time, and some learning questions.
+
+Evaluation of the tool produced has identified several areas for future work, with 6 suggested improvements, Each of these will be discussed in turn, with suggestions for how to approach implementation and problems that may be encountered.
+
+Animated zooming offers the potential for large improvements by helping to address the navigation issues experienced by participants. However as each timeline is currently updated independently and zooming replaces the contents of all timelines this may be complex to implement. The most natural zooming action would be for the selected block to grow to fill all four timelines, replacing their data with a more detailed breakdown. I do not believe that this is possible within the current design. merging all four timelines into one logical timeline would force a single vertical scale for all timelines, As discussed in section \ref{des_final} this is not desireable. 
+
+Adding options to filter IP addresses by subnet would potentially be useful, as it would more controllable filtering on IP than is currently present, However there would be some difficulty in implementing the filtering approach, as IP addresses are currently stored in human readable formats, not suitable for matching against less common subnets. Matching against subnets in 1 byte increments (/8, /16, /24) would be easy, as these match with the dotted quad format used. 
+
+Implementing IP address hiding, or blacklisting is relatively simple from a server side perspective, as the datastore is able to efficiently handle complex selection criteria. The complicated issue with this maintaining the stateful URL for this filter. Blacklists can grow potentially quite large, and URL's have an implementation defined maximum size. Larger urls are also unwieldy to pass around through existing collaboration tools such as email. A new approach to sharing application state may be needed to implement this filter.
+
+Adding filtering for authentication type would offer the ability to hide all events that cannot be involved in specific types of attacks. This would be simple and straightforward, though this would involve changes in several places. The data access layer of the server would have to be modified with an additional optional where clause in the query (as discussed in section \ref{imp_server} this is not difficult), the url would have to be modified with the addition of another optional filtering clause.
+
+Suppression of abnormal time and place warnings for invalid and failed attempts would help to reduce false positives. This would improve the ability to spot abnormal logins. Implementation of this would require a trivial change to the server, to simply ignore time and location flags when producing the aggregated data. 
+
+Seperating disconnection messages into their own class of message would allow for a new visual only filter to suppress these messages, reducing noise in the dataset. Implementation of this enhancement would be relatively straightforward, requiring changes in the aggregation code to count disconnections seperately, and adjustment of the rendering code to draw a 5th category of event. 
+
+Once these issues have been addressed, and some known bugs addresssed, a further evaluation should be carried out. This evaluation should have a larger scope, with a statistically significant sample size, and both larger and more varied datasets to address the weaknesses identified in section \ref{res_threats} A futher improvement to the evaluation would be the inclusion of a training dataset and questions to allow greater participant familiarity with the tool. 
